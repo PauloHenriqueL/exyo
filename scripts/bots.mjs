@@ -3,7 +3,7 @@
 import { Client } from "colyseus.js";
 const code = process.argv[2]; const URL = process.env.SERVER_URL ?? "http://localhost:2567";
 const houses = ["ferrobranco", "verdemar", "lumen"];
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < Number(process.env.BOTS ?? 3); i++) {
   const r = await fetch(URL + "/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Bot " + (i + 1), phone: "3199900000" + i }) });
   const { token } = await r.json();
   const room = await new Client(URL).joinOrCreate("kingdom", { roomCode: code, token });

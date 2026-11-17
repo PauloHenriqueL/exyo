@@ -132,3 +132,4 @@ section { margin-bottom: 20px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+.start-row { display: grid; gap: 8px; justify-items: start; margin-top: 16px; }

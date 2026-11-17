@@ -8,6 +8,7 @@ export function Lobby({ view, room }: { view: ClientView; room: Room }) {
   const [copied, setCopied] = useState(false);
   const link = location.href;
   const myHouse = view.players.find((p) => p.id === view.me.id)?.houseId;
+  const ready = view.players.length >= view.minPlayers && view.players.every((p) => p.houseId);
 
   const copy = async () => {
     try {
@@ -30,7 +31,7 @@ export function Lobby({ view, room }: { view: ClientView; room: Room }) {
 
       <section className="panel">
         <h2>
-          Conselheiros ({view.players.length}/{view.minPlayers})
+          Conselheiros ({view.players.length}/{view.maxPlayers})
         </h2>
         <ul className="seats">
           {view.players.map((p) => {
@@ -68,9 +69,16 @@ export function Lobby({ view, room }: { view: ClientView; room: Room }) {
             );
           })}
         </div>
-        <p className="muted">
-          A partida começa quando {view.minPlayers} conselheiros tiverem escolhido suas Casas. Seu objetivo secreto é sorteado no início.
-        </p>
+        <div className="start-row">
+          <button className="btn primary" disabled={!ready} onClick={() => room.send("start")}>
+            Iniciar partida com {view.players.length} conselheiros
+          </button>
+          <p className="muted">
+            {ready
+              ? `Com ${view.maxPlayers} conselheiros a partida começa sozinha. Seu objetivo secreto é sorteado no início.`
+              : `Mínimo de ${view.minPlayers} conselheiros, todos com Casa escolhida.`}
+          </p>
+        </div>
       </section>
     </main>
   );

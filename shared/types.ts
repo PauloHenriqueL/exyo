@@ -112,6 +112,7 @@ export interface ClientView {
   round: number;
   totalRounds: number;
   minPlayers: number;
+  maxPlayers: number;
   deadline: number | null;
   players: PublicPlayer[];
   resources: Resources;

@@ -14,7 +14,8 @@ import {
 import type { ClientView, Dilemma, FinalInfo, Phase, RevealInfo, Vote } from "../shared/types";
 import { endMatch, logEvent, playerByToken, startMatch, type PlayerRow } from "./db";
 
-const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 4);
+const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 3);
+const MAX_PLAYERS = Number(process.env.MAX_PLAYERS ?? 4);
 const DISCUSSION_MS = Number(process.env.DISCUSSION_SEC ?? 300) * 1000;
 const VOTE_MS = Number(process.env.VOTE_SEC ?? 45) * 1000;
 const REVEAL_MS = Number(process.env.REVEAL_SEC ?? 12) * 1000;
@@ -29,7 +30,7 @@ interface Seat {
 }
 
 export class KingdomRoom extends Room {
-  maxClients = 8; // folga para reconexões; as cadeiras são limitadas a MIN_PLAYERS
+  maxClients = 8; // folga para reconexões; as cadeiras são limitadas a MAX_PLAYERS
   autoDispose = false;
 
   private roomCode = "";
@@ -51,13 +52,14 @@ export class KingdomRoom extends Room {
 
     this.onMessage("pickHouse", (client, msg: { houseId: string }) => this.pickHouse(client, msg?.houseId));
     this.onMessage("vote", (client, msg: Vote) => this.castVote(client, msg));
+    this.onMessage("start", (client) => this.seatOf(client) && this.startGame());
   }
 
   onAuth(_client: Client, options: { token?: string }): PlayerRow {
     const player = options.token ? playerByToken(options.token) : null;
     if (!player) throw new Error("Sessão inválida. Faça login de novo.");
     const seated = this.seats.some((s) => s.id === player.id);
-    if (!seated && (this.phase !== "lobby" || this.seats.length >= MIN_PLAYERS)) {
+    if (!seated && (this.phase !== "lobby" || this.seats.length >= MAX_PLAYERS)) {
       throw new Error("A sala está cheia ou a partida já começou.");
     }
     return player;
@@ -105,7 +107,8 @@ export class KingdomRoom extends Room {
     if (this.seats.some((s) => s.houseId === houseId && s !== seat)) return; // ordem de chegada
     seat.houseId = houseId;
     this.broadcastViews();
-    if (this.seats.length === MIN_PLAYERS && this.seats.every((s) => s.houseId)) {
+    // Mesa cheia: começa sozinho. Com menos, alguém aperta "Iniciar partida".
+    if (this.seats.length === MAX_PLAYERS && this.seats.every((s) => s.houseId)) {
       this.clock.setTimeout(() => this.startGame(), 1500);
     }
   }
@@ -123,7 +126,7 @@ export class KingdomRoom extends Room {
   // ---------- máquina de estados ----------
 
   private startGame() {
-    if (this.phase !== "lobby" || this.seats.length !== MIN_PLAYERS || !this.seats.every((s) => s.houseId)) return;
+    if (this.phase !== "lobby" || this.seats.length < MIN_PLAYERS || !this.seats.every((s) => s.houseId)) return;
     const seed = randomBytes(4).readUInt32LE();
     this.matchId = randomBytes(8).toString("hex");
     this.game = createGame(
@@ -217,6 +220,7 @@ export class KingdomRoom extends Room {
       round: g?.round ?? 0,
       totalRounds: g?.totalRounds ?? TOTAL_ROUNDS,
       minPlayers: MIN_PLAYERS,
+      maxPlayers: MAX_PLAYERS,
       deadline: this.deadline,
       players: this.seats.map((s) => ({
         id: s.id,
