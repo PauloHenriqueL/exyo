@@ -1,7 +1,7 @@
 // Uso: npm run dev (em outro terminal) e depois: node scripts/bots.mjs CODIGO_DA_SALA
 // 3 bots que entram na sala, escolhem Casa e votam aleatoriamente.
 import { Client } from "colyseus.js";
-const code = process.argv[2]; const URL = "http://localhost:2567";
+const code = process.argv[2]; const URL = process.env.SERVER_URL ?? "http://localhost:2567";
 const houses = ["ferrobranco", "verdemar", "lumen"];
 for (let i = 0; i < 3; i++) {
   const r = await fetch(URL + "/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Bot " + (i + 1), phone: "3199900000" + i }) });

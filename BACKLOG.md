@@ -4,7 +4,7 @@
 > Legenda: `[x]` feito · `[~]` em andamento · `[ ]` pendente · `[?]` decisão em aberto
 
 **Última atualização:** 2026-11-16
-**Fase atual:** 3 — Protótipo jogável rodando local (partida completa validada com 1 humano + 3 bots)
+**Fase atual:** 4 — No ar em https://exyo.onrender.com (pronto para o playtest)
 
 ---
 
@@ -42,7 +42,9 @@
 - [ ] Testar reconexão no meio da votação e duas abas do mesmo jogador
 
 ## Fase 4 — Deploy e playtest
-- [ ] Deploy no Render (web service + disco persistente para SQLite)
+- [x] Repositório público https://github.com/PauloHenriqueL/exyo (push na `main` faz deploy automático)
+- [x] Deploy no Render: serviço `exyo`, plano Starter, região Virginia, `PHONE_PEPPER` configurado. Partida iniciada em produção com 3 bots
+- [ ] Disco persistente no Render (pelo painel) para o SQLite sobreviver a deploys e reinícios
 - [ ] Playtest #1 com 4 jogadores
 - [ ] Ajustes pós-playtest
 
