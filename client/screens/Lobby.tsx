@@ -1,0 +1,77 @@
+import { useState } from "react";
+import type { Room } from "colyseus.js";
+import { HOUSES } from "../../shared/content";
+import type { ClientView } from "../../shared/types";
+import { Crest } from "../components/Crest";
+
+export function Lobby({ view, room }: { view: ClientView; room: Room }) {
+  const [copied, setCopied] = useState(false);
+  const link = location.href;
+  const myHouse = view.players.find((p) => p.id === view.me.id)?.houseId;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* sem permissão de clipboard */
+    }
+  };
+
+  return (
+    <main className="page">
+      <header className="lobby-head">
+        <h1>Sala {view.roomCode}</h1>
+        <button className="btn" onClick={copy}>
+          {copied ? "Link copiado!" : "Copiar link da sala"}
+        </button>
+      </header>
+
+      <section className="panel">
+        <h2>
+          Conselheiros ({view.players.length}/{view.minPlayers})
+        </h2>
+        <ul className="seats">
+          {view.players.map((p) => {
+            const h = HOUSES.houses.find((x) => x.id === p.houseId);
+            return (
+              <li key={p.id} className={p.id === view.me.id ? "me" : ""}>
+                <span>{p.name}</span>
+                <span className="muted">{h ? h.name : "escolhendo Casa…"}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Escolha sua Casa</h2>
+        <div className="houses">
+          {HOUSES.houses.map((h) => {
+            const owner = view.players.find((p) => p.houseId === h.id);
+            const mine = h.id === myHouse;
+            return (
+              <button
+                key={h.id}
+                className={`house ${mine ? "mine" : ""}`}
+                disabled={!!owner && !mine}
+                onClick={() => room.send("pickHouse", { houseId: h.id })}
+                style={{ borderColor: h.colors.primary }}
+              >
+                <Crest house={h} />
+                <strong>{h.name}</strong>
+                <span className="muted">{h.epithet}</span>
+                <em>“{h.motto}”</em>
+                {owner && <span className="owner">{mine ? "Sua Casa" : owner.name}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="muted">
+          A partida começa quando {view.minPlayers} conselheiros tiverem escolhido suas Casas. Seu objetivo secreto é sorteado no início.
+        </p>
+      </section>
+    </main>
+  );
+}

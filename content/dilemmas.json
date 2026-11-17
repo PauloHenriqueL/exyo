@@ -1,0 +1,923 @@
+{
+  "version": "0.1.0",
+  "notes": "18 cartas raiz + 12 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Uma carta já jogada ou já na fila de injeção não é injetada de novo.",
+  "dilemmas": [
+    {
+      "id": "viajantes_do_leste",
+      "kind": "root",
+      "category": "diplomacy",
+      "title": "Os Viajantes do Leste",
+      "prompt": "Uma caravana de 200 refugiados do Leste chega aos portões. Dizem fugir de uma guerra e oferecem trabalho em troca de abrigo.",
+      "question": "O Reino deve abrir os portões?",
+      "outcomes": {
+        "yes": [{
+          "text": "Os portões se abrem. Mãos novas chegam aos campos — e bocas novas à mesa.",
+          "effects": { "food": -1, "wealth": 1 },
+          "setFlags": { "viajantes_aceitos": true },
+          "inject": [{ "card": "segredo_dos_viajantes", "inRounds": 3 }]
+        }],
+        "no": [{
+          "text": "A caravana segue para o reino vizinho, levando seus ofícios e seu rancor.",
+          "effects": { "security": 1 },
+          "setFlags": { "viajantes_recusados": true, "rei_reputacao": { "add": -1 } },
+          "inject": [{ "card": "mercenarios_do_leste", "inRounds": 4 }]
+        }],
+        "tie": [{
+          "text": "Enquanto o conselho hesitava, metade da caravana entrou pelos fundos sem registro.",
+          "effects": { "security": -1, "food": -1 },
+          "setFlags": { "viajantes_clandestinos": true },
+          "inject": [{ "card": "segredo_dos_viajantes", "inRounds": 3 }]
+        }]
+      }
+    },
+    {
+      "id": "segredo_dos_viajantes",
+      "kind": "consequence",
+      "category": "crime",
+      "title": "O Segredo dos Viajantes",
+      "prompt": "Um dos viajantes pede audiência. Diz que entre os seus há espiões do reino vizinho — e oferece os nomes em troca de terras.",
+      "question": "O Rei deve conceder as terras em troca dos nomes?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "guarda_reforcada", "eq": true },
+            "text": "Com a guarda já reforçada, os espiões são presos em uma noite. Os viajantes se tornam cidadãos leais.",
+            "effects": { "security": 3, "wealth": -1 },
+            "setFlags": { "viajantes_leais": true }
+          },
+          {
+            "text": "Os nomes são verdadeiros, mas a prisão é desastrada: dois espiões fogem com mapas dos celeiros.",
+            "effects": { "security": 1, "wealth": -1, "food": -1 },
+            "setFlags": { "viajantes_leais": true, "espioes_fugidos": true }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "viajantes_clandestinos", "eq": true },
+            "text": "Sem registro, ninguém sabe quem é quem. Na mesma noite, os celeiros do sul queimam.",
+            "effects": { "food": -3, "security": -2 },
+            "setFlags": { "traicao_viajantes": true }
+          },
+          {
+            "text": "O informante desaparece. Semanas depois, um poço da capital é envenenado.",
+            "effects": { "health": -2, "security": -1 },
+            "setFlags": { "traicao_viajantes": true }
+          }
+        ],
+        "tie": [{
+          "text": "O conselho adia a audiência. O informante aparece morto no rio.",
+          "effects": { "security": -2 },
+          "setFlags": { "traicao_viajantes": true }
+        }]
+      }
+    },
+    {
+      "id": "mercenarios_do_leste",
+      "kind": "consequence",
+      "category": "war",
+      "title": "Os Mercenários do Leste",
+      "prompt": "Os viajantes que recusamos agora servem ao reino vizinho como mercenários. Saqueiam vilas da fronteira e mandam recado: pagam-se tributos ou a fronteira arde.",
+      "question": "O Reino deve pagar o tributo?",
+      "outcomes": {
+        "yes": [{
+          "text": "O ouro compra a paz — por enquanto. Na corte, sussurram que o Rei paga a quem ele mesmo expulsou.",
+          "effects": { "wealth": -2, "security": 1 }
+        }],
+        "no": [
+          {
+            "when": { "flag": "guarda_reforcada", "eq": true },
+            "text": "A guarda reforçada espera os mercenários na ponte. Poucos voltam para casa.",
+            "effects": { "military": -1, "security": 2 }
+          },
+          {
+            "text": "A cavalaria parte às pressas. Vence, mas deixa metade dos homens pelo caminho.",
+            "effects": { "military": -2, "security": 1 }
+          }
+        ],
+        "tie": [{
+          "text": "Sem resposta do conselho, os mercenários queimam três vilas e levam o gado.",
+          "effects": { "security": -2, "food": -1 }
+        }]
+      }
+    },
+    {
+      "id": "banquete_da_colheita",
+      "kind": "root",
+      "category": "feast",
+      "title": "O Banquete da Colheita",
+      "prompt": "O Rei quer celebrar a colheita com um banquete para toda a nobreza — e convidar os embaixadores vizinhos.",
+      "question": "O banquete deve acontecer?",
+      "requires": { "res": "food", "gte": -3 },
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "traicao_viajantes", "eq": true },
+            "text": "Entre os embaixadores, um rosto conhecido da caravana. O vinho do Rei estava envenenado.",
+            "effects": { "health": -3, "wealth": -2, "military": -1 }
+          },
+          {
+            "when": { "res": "food", "lte": 0 },
+            "text": "Nobres se fartam enquanto o povo passa fome. Há pedras nas janelas do salão.",
+            "effects": { "wealth": 1, "food": -2, "security": -2 },
+            "setFlags": { "povo_revoltado": true },
+            "inject": [{ "card": "revolta_camponesa", "inRounds": 2 }]
+          },
+          {
+            "text": "Uma noite memorável. Tratados são selados entre taças.",
+            "effects": { "wealth": 2, "food": -2, "security": 1 },
+            "setFlags": { "alianca_vizinhos": true },
+            "inject": [{ "card": "pedido_de_tropas", "inRounds": 3 }]
+          }
+        ],
+        "no": [{
+          "text": "O Rei come sozinho. Os embaixadores tomam a recusa como desfeita.",
+          "effects": { "food": 1 },
+          "setFlags": { "rei_reputacao": { "add": -1 } }
+        }],
+        "tie": [{
+          "text": "Um banquete pela metade: caro demais para ser modesto, modesto demais para impressionar.",
+          "effects": { "wealth": -1, "food": -1 }
+        }]
+      }
+    },
+    {
+      "id": "muralha_do_norte",
+      "kind": "root",
+      "category": "war",
+      "title": "A Muralha do Norte",
+      "prompt": "O capitão da guarda alerta: a muralha norte tem rachaduras e a guarnição está pela metade. Reformar tudo esvaziaria parte do tesouro.",
+      "question": "O Reino deve reforçar a muralha e a guarda?",
+      "outcomes": {
+        "yes": [{
+          "text": "Pedreiros e recrutas trabalham dia e noite. A muralha volta a parecer invencível.",
+          "effects": { "wealth": -2, "security": 2, "military": 1 },
+          "setFlags": { "guarda_reforcada": true }
+        }],
+        "no": [{
+          "text": "O tesouro agradece. Os guardas, nem tanto — dois desertam na mesma semana.",
+          "effects": { "wealth": 1, "security": -1 }
+        }],
+        "tie": [{
+          "text": "A obra começa e para no meio. Andaimes abandonados viram ponto de contrabando.",
+          "effects": { "wealth": -1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "peste_no_porto",
+      "kind": "root",
+      "category": "plague",
+      "title": "Peste no Porto",
+      "prompt": "Marinheiros de um navio estrangeiro chegam com febre e manchas negras. Os mercadores imploram: fechar o porto agora seria a ruína da temporada.",
+      "question": "O porto deve ser fechado em quarentena?",
+      "outcomes": {
+        "yes": [{
+          "text": "Correntes fecham o porto. A doença morre no navio — e os lucros da temporada também.",
+          "effects": { "health": 2, "wealth": -2, "food": -1 },
+          "setFlags": { "quarentena": true }
+        }],
+        "no": [{
+          "text": "As mercadorias circulam, e com elas a febre. Os primeiros sinos de luto tocam no bairro do cais.",
+          "effects": { "wealth": 1, "health": -2 },
+          "setFlags": { "peste_espalhada": true },
+          "inject": [{ "card": "segunda_onda", "inRounds": 2 }]
+        }],
+        "tie": [{
+          "text": "O porto fecha só à noite. A doença aprende o horário.",
+          "effects": { "health": -1, "wealth": -1 },
+          "setFlags": { "peste_espalhada": true },
+          "inject": [{ "card": "segunda_onda", "inRounds": 2 }]
+        }]
+      }
+    },
+    {
+      "id": "segunda_onda",
+      "kind": "consequence",
+      "category": "plague",
+      "title": "A Segunda Onda",
+      "prompt": "A peste chegou aos bairros pobres. Os curandeiros propõem queimar as casas infectadas e realojar as famílias — o povo jura que não sai.",
+      "question": "As casas infectadas devem ser queimadas?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "viajantes_aceitos", "eq": true },
+            "text": "O fogo contém a peste, mas a multidão culpa os estrangeiros e ataca o bairro dos viajantes.",
+            "effects": { "health": 2, "wealth": -2, "security": -2 }
+          },
+          {
+            "text": "As chamas purificam o bairro. A peste recua; o rancor fica.",
+            "effects": { "health": 2, "wealth": -2, "security": -1 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "hospital_construido", "eq": true },
+            "text": "O Hospital Real abre suas portas e segura o pior. Muitos morrem, mas o Reino resiste.",
+            "effects": { "health": -1, "food": -1 }
+          },
+          {
+            "text": "Sem fogo e sem leitos, a peste se alastra pelos mercados.",
+            "effects": { "health": -3, "food": -1 }
+          }
+        ],
+        "tie": [{
+          "text": "Queimam metade das casas. A peste mora na outra metade.",
+          "effects": { "health": -2, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "hospital_real",
+      "kind": "root",
+      "category": "faith",
+      "title": "O Hospital Real",
+      "prompt": "A Casa Lumen propõe transformar o antigo mosteiro num hospital — pago pelo tesouro e pelas terras da Igreja. O Bispo não foi consultado.",
+      "question": "O Reino deve construir o hospital?",
+      "outcomes": {
+        "yes": [{
+          "text": "As primeiras camas são ocupadas em semanas. O povo abençoa o Rei.",
+          "effects": { "wealth": -2, "health": 2 },
+          "setFlags": { "hospital_construido": true }
+        }],
+        "no": [{
+          "text": "O mosteiro segue vazio. O Bispo, que queria o prédio para si, se sente igualmente ofendido pela discussão.",
+          "effects": { "wealth": 1, "health": -1 },
+          "setFlags": { "clero_ofendido": true },
+          "inject": [{ "card": "bispo_exige_dizimo", "inRounds": 3 }]
+        }],
+        "tie": [{
+          "text": "Metade do mosteiro vira hospital, metade continua capela. Ninguém fica satisfeito.",
+          "effects": { "wealth": -1, "health": 1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "bispo_exige_dizimo",
+      "kind": "consequence",
+      "category": "faith",
+      "title": "O Bispo Exige o Dízimo",
+      "prompt": "Ofendido, o Bispo exige que a Coroa pague o dízimo atrasado de dez anos. Ameaça pregar contra o Rei em todas as paróquias.",
+      "question": "A Coroa deve pagar o dízimo?",
+      "outcomes": {
+        "yes": [{
+          "text": "Os cofres sangram, mas os sermões voltam a pedir saúde ao Rei.",
+          "effects": { "wealth": -2, "health": 1, "security": 1 }
+        }],
+        "no": [
+          {
+            "when": { "flag": "bruxa_protegida", "eq": true },
+            "text": "O Bispo acusa o Rei de proteger bruxas. Fiéis armados marcham até o castelo.",
+            "effects": { "security": -3, "health": -1 }
+          },
+          {
+            "when": { "flag": "rei_reputacao", "lte": -2 },
+            "text": "Com a reputação do Rei já em frangalhos, os sermões incendeiam o povo.",
+            "effects": { "security": -3, "wealth": 1 }
+          },
+          {
+            "text": "Os sermões são duros, mas o povo ainda confia no Rei.",
+            "effects": { "security": -2, "health": -1, "wealth": 1 }
+          }
+        ],
+        "tie": [{
+          "text": "Paga-se metade. O Bispo considera isso metade de uma ofensa.",
+          "effects": { "wealth": -1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "torneio_real",
+      "kind": "root",
+      "category": "feast",
+      "title": "O Torneio Real",
+      "prompt": "Cavaleiros de todo o Reino pedem um grande torneio. Seria caro, mas atrairia guerreiros e lealdades.",
+      "question": "O Reino deve sediar o torneio?",
+      "outcomes": {
+        "yes": [{
+          "text": "Lanças se quebram, bandeiras tremulam e dezenas de cavaleiros juram lealdade ao Rei.",
+          "effects": { "wealth": -2, "military": 2, "security": 1 },
+          "setFlags": { "cavaleiros_leais": true },
+          "inject": [{ "card": "campeao_estrangeiro", "inRounds": 3 }]
+        }],
+        "no": [{
+          "text": "Os cavaleiros voltam para seus castelos resmungando que o Rei ficou avarento.",
+          "effects": { "wealth": 1, "military": -1 }
+        }],
+        "tie": [{
+          "text": "Um torneio modesto, com mais lama que glória.",
+          "effects": { "wealth": -1, "military": 1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "campeao_estrangeiro",
+      "kind": "consequence",
+      "category": "diplomacy",
+      "title": "O Campeão Estrangeiro",
+      "prompt": "O vencedor do torneio retira o elmo: é o filho bastardo do rei vizinho. Pede asilo e um título de cavaleiro em troca de sua espada.",
+      "question": "O Rei deve sagrá-lo cavaleiro?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "alianca_vizinhos", "eq": true },
+            "text": "Com a aliança firmada, o gesto é visto como honra mútua. O campeão treina nossas tropas.",
+            "effects": { "military": 2, "security": 1 }
+          },
+          {
+            "text": "A espada dele vale por dez, mas o rei vizinho toma o gesto como provocação.",
+            "effects": { "military": 2, "security": -1 }
+          }
+        ],
+        "no": [{
+          "text": "O campeão parte em silêncio. Dizem que foi oferecer a espada a quem pagar mais.",
+          "effects": { "military": -1, "wealth": 1 }
+        }],
+        "tie": [{
+          "text": "Sem resposta, o campeão leva consigo três dos nossos melhores escudeiros.",
+          "effects": { "military": -1 }
+        }]
+      }
+    },
+    {
+      "id": "invasao_do_norte",
+      "kind": "root",
+      "category": "war",
+      "title": "A Invasão do Norte",
+      "prompt": "Um exército de clãs do norte atravessa o rio congelado. Os generais divergem: marchar ao encontro do inimigo ou esperar atrás das muralhas?",
+      "question": "O exército deve marchar ao encontro do inimigo?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "espioes_fugidos", "eq": true },
+            "text": "O inimigo conhecia cada passo — os espiões fugidos levaram nossos mapas. Emboscada no vale.",
+            "effects": { "military": -3, "security": -2 }
+          },
+          {
+            "when": { "flag": "cavaleiros_leais", "eq": true },
+            "text": "Os cavaleiros do torneio lideram a carga. Vitória esmagadora, e o saque enche os cofres.",
+            "effects": { "military": -1, "security": 3, "wealth": 1 }
+          },
+          {
+            "text": "Vitória sangrenta. O norte recua, mas muitos não voltam.",
+            "effects": { "military": -2, "security": 1, "health": -1 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "all": [ { "flag": "alianca_vizinhos", "eq": true }, { "not": { "flag": "alianca_rompida", "eq": true } } ] },
+            "text": "Atrás das muralhas, o Reino resiste até que os aliados vizinhos atacam o inimigo pela retaguarda.",
+            "effects": { "security": 1, "military": 1, "food": -1 }
+          },
+          {
+            "when": { "flag": "guarda_reforcada", "eq": true },
+            "text": "A muralha reformada aguenta o cerco. O inimigo desiste antes do inverno acabar.",
+            "effects": { "security": 1, "food": -1 }
+          },
+          {
+            "text": "A muralha cede no terceiro dia. As vilas do norte são saqueadas.",
+            "effects": { "security": -3, "food": -2 },
+            "setFlags": { "norte_saqueado": true },
+            "inject": [{ "card": "refugiados_do_norte", "inRounds": 2 }]
+          }
+        ],
+        "tie": [{
+          "text": "Metade do exército marcha, metade fica. As duas metades perdem.",
+          "effects": { "security": -2, "military": -1 },
+          "setFlags": { "norte_saqueado": true },
+          "inject": [{ "card": "refugiados_do_norte", "inRounds": 2 }]
+        }]
+      }
+    },
+    {
+      "id": "refugiados_do_norte",
+      "kind": "consequence",
+      "category": "diplomacy",
+      "title": "Os Refugiados do Norte",
+      "prompt": "Famílias das vilas saqueadas chegam à capital sem nada. Pedem pão e teto — e muitos homens oferecem-se para a milícia.",
+      "question": "A capital deve acolher os refugiados?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "viajantes_leais", "eq": true },
+            "text": "Os viajantes do Leste, que já foram refugiados, organizam abrigos. A integração é rápida.",
+            "effects": { "food": -1, "military": 1, "security": 1 }
+          },
+          {
+            "text": "Os celeiros se esvaziam, mas a milícia ganha braços.",
+            "effects": { "food": -2, "military": 1, "security": 1 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "viajantes_recusados", "eq": true },
+            "text": "Primeiro os estrangeiros, agora o próprio povo. O Reino ganha fama de cruel.",
+            "effects": { "security": -2, "health": -1 },
+            "setFlags": { "rei_reputacao": { "add": -1 } }
+          },
+          {
+            "text": "Os refugiados acampam fora dos muros. A doença e o rancor crescem no acampamento.",
+            "effects": { "security": -1, "health": -1 },
+            "setFlags": { "rei_reputacao": { "add": -1 } }
+          }
+        ],
+        "tie": [{
+          "text": "Acolhe-se as crianças, recusa-se os pais. Ninguém esquece.",
+          "effects": { "food": -1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "liga_mercante",
+      "kind": "root",
+      "category": "trade",
+      "title": "A Liga Mercante",
+      "prompt": "Uma liga de cidades mercantes oferece um tratado: tarifas zeradas para navios de ambos os lados. Mais comércio — e menos controle sobre o que entra.",
+      "question": "O Reino deve assinar o tratado?",
+      "outcomes": {
+        "yes": [{
+          "text": "O porto ferve de navios. Especiarias, tecidos… e mercadorias que ninguém declara.",
+          "effects": { "wealth": 2, "food": 1, "security": -1 },
+          "setFlags": { "comercio_aberto": true },
+          "inject": [{ "card": "contrabando", "inRounds": 3 }]
+        }],
+        "no": [{
+          "text": "A Liga leva seus navios para o reino vizinho. Nossos mercadores reclamam, a guarda agradece.",
+          "effects": { "wealth": -1, "security": 1 }
+        }],
+        "tie": [{
+          "text": "A Liga cansa de esperar a resposta e fecha com outro reino.",
+          "effects": { "wealth": -1 }
+        }]
+      }
+    },
+    {
+      "id": "contrabando",
+      "kind": "consequence",
+      "category": "crime",
+      "title": "O Mercado Negro",
+      "prompt": "Com o porto aberto, surgiu um mercado negro nas docas: armas, ópio e remédios falsos. Os contrabandistas oferecem uma parte dos lucros à Coroa para ficarem em paz.",
+      "question": "A Coroa deve reprimir o contrabando?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "guarda_reforcada", "eq": true },
+            "text": "A guarda reforçada varre as docas em uma noite.",
+            "effects": { "security": 2, "wealth": -1 }
+          },
+          {
+            "text": "A repressão é longa e cara, mas as docas voltam a ser seguras.",
+            "effects": { "security": 2, "wealth": -2 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "quarentena", "eq": true },
+            "text": "Os contrabandistas furam a quarentena com mercadoria de navios doentes.",
+            "effects": { "wealth": 2, "health": -2, "security": -1 },
+            "setFlags": { "mercado_negro": true }
+          },
+          {
+            "text": "O ouro do crime enche os cofres. Remédios falsos enchem os cemitérios.",
+            "effects": { "wealth": 2, "health": -1, "security": -1 },
+            "setFlags": { "mercado_negro": true }
+          }
+        ],
+        "tie": [{
+          "text": "Prende-se uns, ignora-se outros. Os que ficaram soltos agora cobram mais caro.",
+          "effects": { "security": -1, "wealth": -1 }
+        }]
+      }
+    },
+    {
+      "id": "celeiro_real",
+      "kind": "root",
+      "category": "nature",
+      "title": "O Celeiro Real",
+      "prompt": "A Casa Verdemar propõe construir grandes celeiros reais para estocar grãos dos anos bons para os anos ruins.",
+      "question": "O Reino deve construir os celeiros?",
+      "outcomes": {
+        "yes": [{
+          "text": "Celeiros de pedra se erguem nos vales. O Reino dorme mais tranquilo.",
+          "effects": { "wealth": -2, "food": 1, "security": 1 },
+          "setFlags": { "celeiro_real": true }
+        }],
+        "no": [{
+          "text": "O ouro fica no cofre. Os grãos excedentes apodrecem no campo.",
+          "effects": { "wealth": 1, "food": -1 }
+        }],
+        "tie": [{
+          "text": "Constrói-se um único celeiro, mal localizado.",
+          "effects": { "wealth": -1 }
+        }]
+      }
+    },
+    {
+      "id": "seca_no_vale",
+      "kind": "root",
+      "category": "nature",
+      "title": "A Seca no Vale",
+      "prompt": "Três meses sem chuva. A colheita será metade do normal. Mercadores estrangeiros oferecem grãos — a preço de ouro.",
+      "question": "O Reino deve comprar grãos do exterior?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "comercio_aberto", "eq": true },
+            "text": "Com o tratado da Liga, os grãos chegam baratos e rápidos.",
+            "effects": { "wealth": -1, "food": 3 }
+          },
+          {
+            "text": "Os grãos chegam, e o tesouro paga caro por cada saca.",
+            "effects": { "wealth": -2, "food": 2 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "celeiro_real", "eq": true },
+            "text": "Os celeiros reais são abertos. O Reino aperta o cinto, mas ninguém passa fome.",
+            "effects": { "food": -1, "wealth": 1 }
+          },
+          {
+            "when": { "flag": "bruxa_queimada", "eq": true },
+            "text": "Sem grãos e sem chuva, o povo diz que é a maldição da bruxa queimada. Há tumultos nas aldeias.",
+            "effects": { "food": -2, "security": -2, "health": -1 }
+          },
+          {
+            "text": "O racionamento é duro. Os mais fracos adoecem.",
+            "effects": { "food": -2, "health": -1 }
+          }
+        ],
+        "tie": [{
+          "text": "Compra-se pouco e tarde. Metade dos grãos chega mofada.",
+          "effects": { "food": -1, "wealth": -1 }
+        }]
+      }
+    },
+    {
+      "id": "ratos_nos_celeiros",
+      "kind": "root",
+      "category": "plague",
+      "title": "Ratos nos Celeiros",
+      "prompt": "Uma praga de ratos invade os estoques de grãos da capital. Um caçador de ratos estrangeiro oferece seus serviços — caros e estranhos.",
+      "question": "O Reino deve contratar o caçador de ratos?",
+      "outcomes": {
+        "yes": [{
+          "text": "Ele toca uma flauta, e os ratos somem. Ninguém pergunta para onde.",
+          "effects": { "wealth": -1, "food": 1, "health": 1 }
+        }],
+        "no": [
+          {
+            "when": { "flag": "celeiro_real", "eq": true },
+            "text": "Os ratos se banqueteiam nos grandes celeiros reais. Quanto mais estoque, maior a perda.",
+            "effects": { "food": -3, "health": -1 }
+          },
+          {
+            "text": "Os ratos comem os grãos e espalham doenças.",
+            "effects": { "food": -2, "health": -1 }
+          }
+        ],
+        "tie": [{
+          "text": "Gatos são soltos nos celeiros. Funciona pela metade.",
+          "effects": { "food": -1, "health": -1 }
+        }]
+      }
+    },
+    {
+      "id": "bruxa_da_floresta",
+      "kind": "root",
+      "category": "faith",
+      "title": "A Bruxa da Floresta",
+      "prompt": "Aldeões trazem acorrentada uma velha que cura com ervas. O clero a acusa de bruxaria e exige a fogueira.",
+      "question": "A acusada deve ir para a fogueira?",
+      "outcomes": {
+        "yes": [{
+          "text": "A fogueira ilumina a praça. O clero aplaude. As aldeias perdem sua curandeira.",
+          "effects": { "security": 1, "health": -1 },
+          "setFlags": { "bruxa_queimada": true }
+        }],
+        "no": [{
+          "text": "O Rei a liberta. Ela desaparece na floresta, sem dizer obrigado — ainda.",
+          "effects": { "health": 1, "security": -1 },
+          "setFlags": { "bruxa_protegida": true },
+          "inject": [{ "card": "favor_da_bruxa", "inRounds": 4 }]
+        }],
+        "tie": [{
+          "text": "Ela é presa indefinidamente. A aldeia fica sem curandeira e o clero, sem sua fogueira.",
+          "effects": { "security": -1, "health": -1 }
+        }]
+      }
+    },
+    {
+      "id": "favor_da_bruxa",
+      "kind": "consequence",
+      "category": "faith",
+      "title": "O Favor da Bruxa",
+      "prompt": "A velha da floresta volta ao castelo com um frasco escuro. Diz que é um elixir para os males do Reino. Os sacerdotes juram que é veneno.",
+      "question": "O Reino deve distribuir o elixir?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "peste_espalhada", "eq": true },
+            "text": "O elixir cura a peste em dias. O povo chama a velha de santa.",
+            "effects": { "health": 3, "security": -1 }
+          },
+          {
+            "text": "O elixir fortalece os fracos e faz as plantações vingarem.",
+            "effects": { "health": 1, "food": 1, "security": -1 }
+          }
+        ],
+        "no": [{
+          "text": "O frasco é quebrado diante dela. Ela sorri e diz que o Reino ainda vai pedir de volta.",
+          "effects": { "health": -1, "security": 1 }
+        }],
+        "tie": [{
+          "text": "Dão o elixir só aos nobres. O povo fica sabendo.",
+          "effects": { "health": -1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "casamento_real",
+      "kind": "root",
+      "category": "diplomacy",
+      "title": "O Casamento Real",
+      "prompt": "O rei vizinho propõe casar seu filho com a princesa. Aliança sólida — mas o dote seria pago por nós.",
+      "question": "O casamento deve ser aceito?",
+      "outcomes": {
+        "yes": [{
+          "text": "Sinos tocam nos dois reinos. A fronteira nunca esteve tão tranquila.",
+          "effects": { "security": 2, "military": 1, "wealth": -2 },
+          "setFlags": { "alianca_vizinhos": true },
+          "inject": [{ "card": "pedido_de_tropas", "inRounds": 3 }, { "card": "o_herdeiro", "inRounds": 5 }]
+        }],
+        "no": [{
+          "text": "A recusa é educada, mas o rei vizinho guarda rancor.",
+          "effects": { "wealth": 1, "security": -1 },
+          "setFlags": { "rei_reputacao": { "add": -1 } }
+        }],
+        "tie": [{
+          "text": "O conselho pede mais tempo. O príncipe casa com outra.",
+          "effects": { "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "pedido_de_tropas",
+      "kind": "consequence",
+      "category": "war",
+      "title": "O Pedido de Tropas",
+      "prompt": "Nosso aliado vizinho está em guerra com os povos do mar e pede mil soldados. Promete pagar em ouro.",
+      "question": "O Reino deve enviar as tropas?",
+      "outcomes": {
+        "yes": [{
+          "text": "Nossos soldados lutam em terra estrangeira. Voltam menos, mas voltam com ouro.",
+          "effects": { "military": -2, "wealth": 2 }
+        }],
+        "no": [{
+          "text": "O aliado considera a recusa uma traição. A aliança está rompida.",
+          "effects": { "security": -1, "military": 1 },
+          "setFlags": { "alianca_rompida": true }
+        }],
+        "tie": [{
+          "text": "Enviamos cem homens em vez de mil. O aliado se sente insultado.",
+          "effects": { "military": -1, "security": -1 },
+          "setFlags": { "alianca_rompida": true }
+        }]
+      }
+    },
+    {
+      "id": "o_herdeiro",
+      "kind": "consequence",
+      "category": "feast",
+      "title": "O Herdeiro",
+      "prompt": "Nasce o primeiro neto do Rei, herdeiro de dois tronos. O povo espera festa nas ruas.",
+      "question": "O Reino deve celebrar com festas públicas?",
+      "outcomes": {
+        "yes": [{
+          "text": "Três dias de festa. Pão e vinho de graça, e o nome do herdeiro em todas as bocas.",
+          "effects": { "wealth": -2, "security": 2, "food": -1 }
+        }],
+        "no": [{
+          "text": "Uma cerimônia discreta. Nas tavernas, corre o boato de que a criança nasceu doente.",
+          "effects": { "security": -1, "wealth": 1 }
+        }],
+        "tie": [{
+          "text": "A festa é anunciada e cancelada. Pior do que não ter anunciado.",
+          "effects": { "wealth": -1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "imposto_de_guerra",
+      "kind": "root",
+      "category": "trade",
+      "title": "O Imposto de Guerra",
+      "prompt": "O tesoureiro propõe um novo imposto sobre colheitas para financiar o exército. Os camponeses já pagam o dobro dos nobres.",
+      "question": "O novo imposto deve ser criado?",
+      "outcomes": {
+        "yes": [{
+          "text": "Os cofres e os quartéis se enchem. Os camponeses, nem tanto.",
+          "effects": { "wealth": 2, "military": 1, "security": -1 },
+          "setFlags": { "impostos_altos": true },
+          "inject": [{ "card": "revolta_camponesa", "inRounds": 3 }]
+        }],
+        "no": [
+          {
+            "when": { "flag": "norte_saqueado", "eq": true },
+            "text": "Sem dinheiro, o norte saqueado fica sem reconstrução e sem defesa.",
+            "effects": { "military": -1, "security": -2 }
+          },
+          {
+            "text": "O exército terá que se virar com o que tem.",
+            "effects": { "military": -1, "food": 1 }
+          }
+        ],
+        "tie": [{
+          "text": "Um imposto pequeno demais para ajudar e grande demais para ser esquecido.",
+          "effects": { "wealth": 1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "revolta_camponesa",
+      "kind": "consequence",
+      "category": "crime",
+      "title": "A Revolta Camponesa",
+      "prompt": "Camponeses armados com foices cercam o castelo. Exigem pão, justiça e a cabeça do tesoureiro.",
+      "question": "O Rei deve negociar com os revoltosos?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "impostos_altos", "eq": true },
+            "text": "O Rei revoga o imposto de guerra. A multidão comemora; o tesouro chora.",
+            "effects": { "wealth": -3, "security": 3 }
+          },
+          {
+            "text": "Pão é distribuído e promessas são feitas. A multidão se dispersa.",
+            "effects": { "food": -2, "security": 2 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "cavaleiros_leais", "eq": true },
+            "text": "Os cavaleiros leais dispersam a multidão quase sem sangue.",
+            "effects": { "security": 2, "health": -1, "military": -1 }
+          },
+          {
+            "text": "A revolta é esmagada. A praça fica vermelha.",
+            "effects": { "security": 1, "health": -2, "military": -1 }
+          }
+        ],
+        "tie": [
+          {
+            "when": { "flag": "povo_revoltado", "eq": true },
+            "text": "Sem resposta, a multidão — já furiosa desde o banquete — invade o castelo.",
+            "effects": { "security": -4, "wealth": -1 }
+          },
+          {
+            "text": "O castelo espera. A multidão saqueia os armazéns da cidade.",
+            "effects": { "security": -2, "food": -1 }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mina_de_prata",
+      "kind": "root",
+      "category": "trade",
+      "title": "A Mina de Prata",
+      "prompt": "Mineiros encontram um veio de prata nas montanhas. Explorá-lo exige túneis perigosos e homens tirados das lavouras.",
+      "question": "O Reino deve abrir a mina?",
+      "outcomes": {
+        "yes": [{
+          "text": "A prata brota das montanhas. Os campos ficam com menos braços.",
+          "effects": { "wealth": 3, "food": -1, "health": -1 },
+          "inject": [{ "card": "desabamento", "inRounds": 3 }]
+        }],
+        "no": [{
+          "text": "Os clãs da montanha tomam a mina e vendem a prata ao inimigo.",
+          "effects": { "military": -1, "wealth": -1 }
+        }],
+        "tie": [{
+          "text": "Uma exploração tímida, que rende pouco e custa caro.",
+          "effects": { "wealth": 1, "health": -1 }
+        }]
+      }
+    },
+    {
+      "id": "desabamento",
+      "kind": "consequence",
+      "category": "nature",
+      "title": "O Desabamento",
+      "prompt": "Um túnel da mina de prata desaba. Quarenta mineiros estão presos. O resgate exigiria parar a mina por semanas.",
+      "question": "A mina deve parar para o resgate?",
+      "outcomes": {
+        "yes": [{
+          "text": "Trinta e oito saem vivos. O povo celebra um Rei que não abandona os seus.",
+          "effects": { "wealth": -2, "health": 1, "security": 1 }
+        }],
+        "no": [
+          {
+            "when": { "flag": "mercado_negro", "eq": true },
+            "text": "A prata segue fluindo — e parte dela some pelas mãos dos contrabandistas. Os mineiros se revoltam.",
+            "effects": { "health": -2, "security": -2 }
+          },
+          {
+            "text": "A mina não para. Os mineiros param de confiar no Rei.",
+            "effects": { "health": -2, "security": -1, "wealth": 1 }
+          }
+        ],
+        "tie": [{
+          "text": "O resgate começa tarde demais.",
+          "effects": { "health": -2 }
+        }]
+      }
+    },
+    {
+      "id": "cometa",
+      "kind": "root",
+      "category": "faith",
+      "title": "O Cometa",
+      "prompt": "Um cometa vermelho cruza o céu por sete noites. Os sacerdotes pedem uma grande procissão para afastar o mau presságio.",
+      "question": "O Reino deve financiar a procissão?",
+      "outcomes": {
+        "yes": [{
+          "text": "Milhares rezam juntos. O medo dá lugar à esperança.",
+          "effects": { "wealth": -1, "security": 1, "health": 1 }
+        }],
+        "no": [
+          {
+            "when": { "flag": "clero_ofendido", "eq": true },
+            "text": "O clero, já ofendido, anuncia que o cometa é castigo pelos pecados do Rei.",
+            "effects": { "security": -2, "wealth": 1 }
+          },
+          {
+            "text": "O cometa passa. O medo, não tão rápido.",
+            "effects": { "security": -1, "wealth": 1 }
+          }
+        ],
+        "tie": [{
+          "text": "Uma procissão sem velas, sem coro e sem fé.",
+          "effects": { "wealth": -1, "security": -1 }
+        }]
+      }
+    },
+    {
+      "id": "assassino_capturado",
+      "kind": "root",
+      "category": "crime",
+      "title": "O Assassino Capturado",
+      "prompt": "A guarda captura um assassino nos aposentos do Rei. Ele diz que foi contratado por uma Casa deste conselho — mas só fala sob tortura.",
+      "question": "O prisioneiro deve ser interrogado sob tortura?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "espioes_fugidos", "eq": true },
+            "text": "Ele revela toda a rede dos espiões que fugiram. A guarda limpa a capital.",
+            "effects": { "security": 3, "health": -1 }
+          },
+          {
+            "text": "Ele cita nomes demais, verdadeiros e falsos. O conselho se olha com desconfiança.",
+            "effects": { "security": 1, "health": -1 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "mercado_negro", "eq": true },
+            "text": "Na mesma noite, os contrabandistas o tiram da prisão. Ninguém sabe quem pagou.",
+            "effects": { "security": -3 }
+          },
+          {
+            "text": "Sua família paga o resgate. O ouro entra; o mandante continua livre.",
+            "effects": { "wealth": 1, "security": -2 }
+          }
+        ],
+        "tie": [{
+          "text": "O prisioneiro amanhece morto na cela. Alguém neste conselho dormiu aliviado.",
+          "effects": { "security": -2 }
+        }]
+      }
+    },
+    {
+      "id": "guilda_dos_ferreiros",
+      "kind": "root",
+      "category": "trade",
+      "title": "A Guilda dos Ferreiros",
+      "prompt": "A guilda dos ferreiros oferece armas pela metade do preço — em troca do monopólio de todo o ferro do Reino por dez anos.",
+      "question": "O Reino deve conceder o monopólio?",
+      "outcomes": {
+        "yes": [{
+          "text": "Espadas novas chegam aos quartéis. Arados, por outro lado, ficam caríssimos.",
+          "effects": { "military": 2, "food": -1, "wealth": -1 }
+        }],
+        "no": [{
+          "text": "A guilda recusa encomendas da Coroa por um ano.",
+          "effects": { "military": -1, "wealth": 1 }
+        }],
+        "tie": [{
+          "text": "A guilda entende o silêncio como desprezo e aumenta os preços.",
+          "effects": { "military": -1, "wealth": -1 }
+        }]
+      }
+    }
+  ]
+}
