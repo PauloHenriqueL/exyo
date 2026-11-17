@@ -89,6 +89,7 @@ export interface PublicPlayer {
   connected: boolean;
   hasVoted: boolean;
   isBot: boolean;
+  isReady: boolean;
 }
 
 export interface RevealInfo {

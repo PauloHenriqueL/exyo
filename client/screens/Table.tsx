@@ -76,9 +76,7 @@ export function Table({ view, room }: { view: ClientView; room: Room }) {
             )}
           </AnimatePresence>
 
-          {view.phase === "discussion" && (
-            <p className="muted center-text">Debatam na chamada. A votação abre quando o tempo acabar.</p>
-          )}
+          {view.phase === "discussion" && me && <ReadyPanel view={view} room={room} />}
           {view.phase === "voting" && me && <VotePanel view={view} room={room} tokens={me.tokens} />}
           {view.phase === "reveal" && view.reveal && <RevealPanel view={view} />}
         </section>
@@ -90,6 +88,23 @@ export function Table({ view, room }: { view: ClientView; room: Room }) {
         </aside>
       </div>
     </main>
+  );
+}
+
+function ReadyPanel({ view, room }: { view: ClientView; room: Room }) {
+  const me = view.players.find((p) => p.id === view.me.id)!;
+  const humans = view.players.filter((p) => !p.isBot);
+  const readyCount = humans.filter((p) => p.isReady).length;
+  return (
+    <div className="panel ready">
+      <p className="muted">Debatam na chamada. Quando todos clicarem, a votação abre na hora — ou quando o tempo acabar.</p>
+      <button className="btn primary" disabled={me.isReady} onClick={() => room.send("ready")}>
+        {me.isReady ? "Aguardando os outros…" : "Pronto para votar"}
+      </button>
+      <p className="muted">
+        {readyCount}/{humans.length} prontos
+      </p>
+    </div>
   );
 }
 
@@ -189,6 +204,7 @@ function Players({ view }: { view: ClientView }) {
             </span>
             <span title="Fichas de Favor">🎖 {p.tokens}</span>
             {view.phase === "voting" && <span>{p.hasVoted ? "✔" : "…"}</span>}
+            {view.phase === "discussion" && <span title="Pronto para votar">{p.isReady ? "✔" : "…"}</span>}
           </li>
         );
       })}

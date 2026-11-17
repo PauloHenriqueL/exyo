@@ -17,7 +17,7 @@ import { endMatch, logEvent, playerByToken, startMatch, type PlayerRow } from ".
 const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 3); // mesa mínima (humanos + bots)
 const MIN_HUMANS = Number(process.env.MIN_HUMANS ?? 2); // abaixo de MIN_PLAYERS, bots completam a mesa
 const MAX_PLAYERS = Number(process.env.MAX_PLAYERS ?? 4);
-const DISCUSSION_MS = Number(process.env.DISCUSSION_SEC ?? 300) * 1000;
+const DISCUSSION_MS = Number(process.env.DISCUSSION_SEC ?? 180) * 1000;
 const VOTE_MS = Number(process.env.VOTE_SEC ?? 45) * 1000;
 const REVEAL_MS = Number(process.env.REVEAL_SEC ?? 12) * 1000;
 const TOTAL_ROUNDS = Number(process.env.TOTAL_ROUNDS ?? 12);
@@ -42,6 +42,7 @@ export class KingdomRoom extends Room {
   private game: GameState | null = null;
   private card: Dilemma | null = null;
   private votes: Record<string, Vote> = {};
+  private ready = new Set<string>(); // quem já clicou "Pronto para votar" nesta rodada
   private reveal: RevealInfo | null = null;
   private final: FinalInfo | null = null;
   private deadline: number | null = null;
@@ -54,6 +55,7 @@ export class KingdomRoom extends Room {
 
     this.onMessage("pickHouse", (client, msg: { houseId: string }) => this.pickHouse(client, msg?.houseId));
     this.onMessage("vote", (client, msg: Vote) => this.castVote(client, msg));
+    this.onMessage("ready", (client) => this.markReady(client));
     this.onMessage("start", (client) => this.seatOf(client) && this.startGame());
   }
 
@@ -113,6 +115,15 @@ export class KingdomRoom extends Room {
     if (this.seats.length === MAX_PLAYERS && this.seats.every((s) => s.houseId)) {
       this.clock.setTimeout(() => this.startGame(), 1500);
     }
+  }
+
+  private markReady(client: Client) {
+    const seat = this.seatOf(client);
+    if (!seat || this.phase !== "discussion") return;
+    this.ready.add(seat.id);
+    // Todos os humanos prontos (bots contam como prontos): a votação abre já.
+    if (this.seats.every((s) => s.isBot || this.ready.has(s.id))) this.startVoting();
+    else this.broadcastViews();
   }
 
   private castVote(client: Client, vote: Vote) {
@@ -187,6 +198,7 @@ export class KingdomRoom extends Room {
     this.game = state;
     this.card = card;
     this.votes = {};
+    this.ready = new Set();
     this.reveal = null;
     logEvent(this.matchId, "draw", { round: state.round, card: card.id });
     this.setPhase("discussion", DISCUSSION_MS, () => this.startVoting());
@@ -261,6 +273,7 @@ export class KingdomRoom extends Room {
         connected: s.isBot || !!s.sessionId,
         isBot: !!s.isBot,
         hasVoted: !!this.votes[s.id],
+        isReady: !!s.isBot || this.ready.has(s.id),
       })),
       resources: g?.resources ?? { ...HOUSES.initialResources },
       card: this.card

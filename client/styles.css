@@ -133,3 +133,4 @@ section { margin-bottom: 20px; }
   * { transition: none !important; animation: none !important; }
 }
 .start-row { display: grid; gap: 8px; justify-items: start; margin-top: 16px; }
+.ready { display: grid; gap: 10px; justify-items: center; text-align: center; }
