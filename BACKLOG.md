@@ -45,7 +45,7 @@
 - [x] Repositório público https://github.com/PauloHenriqueL/exyo (push na `main` faz deploy automático)
 - [x] Deploy no Render: serviço `exyo`, plano Starter, região Virginia, `PHONE_PEPPER` configurado. Partida iniciada em produção com 3 bots
 - [ ] Disco persistente no Render (pelo painel) para o SQLite sobreviver a deploys e reinícios
-- [x] Partida aceita 3 ou 4 jogadores: com 4 começa sozinha; com 3 aparece o botão "Iniciar partida"
+- [x] Partida aceita 2 a 4 jogadores: com 4 começa sozinha; com 3 pelo botão "Iniciar partida"; com 2 o servidor adiciona 1 bot (Autômato) que vota ao acaso
 - [ ] Playtest #1 com 3–4 jogadores
 - [ ] Ajustes pós-playtest
 

@@ -88,6 +88,7 @@ export interface PublicPlayer {
   tokens: number;
   connected: boolean;
   hasVoted: boolean;
+  isBot: boolean;
 }
 
 export interface RevealInfo {
@@ -113,6 +114,7 @@ export interface ClientView {
   totalRounds: number;
   minPlayers: number;
   maxPlayers: number;
+  minHumans: number;
   deadline: number | null;
   players: PublicPlayer[];
   resources: Resources;

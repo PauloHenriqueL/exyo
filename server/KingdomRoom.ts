@@ -14,7 +14,8 @@ import {
 import type { ClientView, Dilemma, FinalInfo, Phase, RevealInfo, Vote } from "../shared/types";
 import { endMatch, logEvent, playerByToken, startMatch, type PlayerRow } from "./db";
 
-const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 3);
+const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 3); // mesa mínima (humanos + bots)
+const MIN_HUMANS = Number(process.env.MIN_HUMANS ?? 2); // abaixo de MIN_PLAYERS, bots completam a mesa
 const MAX_PLAYERS = Number(process.env.MAX_PLAYERS ?? 4);
 const DISCUSSION_MS = Number(process.env.DISCUSSION_SEC ?? 300) * 1000;
 const VOTE_MS = Number(process.env.VOTE_SEC ?? 45) * 1000;
@@ -27,6 +28,7 @@ interface Seat {
   name: string;
   houseId: string | null;
   sessionId: string | null;
+  isBot?: boolean;
 }
 
 export class KingdomRoom extends Room {
@@ -88,7 +90,7 @@ export class KingdomRoom extends Room {
       // No lobby, quem sai libera a cadeira.
       if (this.phase === "lobby") this.seats = this.seats.filter((s) => s !== seat);
     }
-    if (this.seats.every((s) => !s.sessionId)) {
+    if (this.seats.every((s) => s.isBot || !s.sessionId)) {
       this.idleTimer = this.clock.setTimeout(() => this.disconnect(), IDLE_DISPOSE_MS);
     }
     this.broadcastViews();
@@ -126,7 +128,8 @@ export class KingdomRoom extends Room {
   // ---------- máquina de estados ----------
 
   private startGame() {
-    if (this.phase !== "lobby" || this.seats.length < MIN_PLAYERS || !this.seats.every((s) => s.houseId)) return;
+    if (this.phase !== "lobby" || this.seats.length < MIN_HUMANS || !this.seats.every((s) => s.houseId)) return;
+    this.fillWithBots();
     const seed = randomBytes(4).readUInt32LE();
     this.matchId = randomBytes(8).toString("hex");
     this.game = createGame(
@@ -140,6 +143,32 @@ export class KingdomRoom extends Room {
     startMatch(this.matchId, this.roomCode, seed);
     logEvent(this.matchId, "start", { seats: this.seats.map(({ id, houseId }) => ({ id, houseId })), goals: this.game.goals });
     this.nextRound();
+  }
+
+  /** Com menos de MIN_PLAYERS humanos, bots ocupam Casas livres até completar a mesa. */
+  private fillWithBots() {
+    let n = 1;
+    while (this.seats.length < MIN_PLAYERS) {
+      const free = HOUSES.houses.filter((h) => !this.seats.some((s) => s.houseId === h.id));
+      const house = free[Math.floor(Math.random() * free.length)];
+      this.seats.push({ id: `bot-${n}`, name: `Autômato ${n}`, houseId: house.id, sessionId: null, isBot: true });
+      n++;
+    }
+  }
+
+  /** Bot vota sozinho, com um pequeno atraso: SIM/NÃO/ABSTER ao acaso; às vezes gasta 1 ficha. */
+  private scheduleBotVotes() {
+    for (const bot of this.seats.filter((s) => s.isBot)) {
+      this.clock.setTimeout(() => {
+        if (this.phase !== "voting" || !this.game || this.votes[bot.id]) return;
+        const choice = (["yes", "no", "abstain"] as const)[Math.floor(Math.random() * 3)];
+        const available = this.game.tokens[bot.id] ?? 0;
+        const tokens = choice !== "abstain" && available > 0 && Math.random() < 0.4 ? 1 : 0;
+        this.votes[bot.id] = { choice, tokens };
+        if (this.seats.every((s) => this.votes[s.id])) this.endVoting();
+        else this.broadcastViews();
+      }, 1500 + Math.random() * 4000);
+    }
   }
 
   private setPhase(phase: Phase, ms: number | null, then?: () => void) {
@@ -165,6 +194,7 @@ export class KingdomRoom extends Room {
 
   private startVoting() {
     this.setPhase("voting", VOTE_MS, () => this.endVoting());
+    this.scheduleBotVotes();
   }
 
   private endVoting() {
@@ -220,6 +250,7 @@ export class KingdomRoom extends Room {
       round: g?.round ?? 0,
       totalRounds: g?.totalRounds ?? TOTAL_ROUNDS,
       minPlayers: MIN_PLAYERS,
+      minHumans: MIN_HUMANS,
       maxPlayers: MAX_PLAYERS,
       deadline: this.deadline,
       players: this.seats.map((s) => ({
@@ -227,7 +258,8 @@ export class KingdomRoom extends Room {
         name: s.name,
         houseId: s.houseId,
         tokens: g?.tokens[s.id] ?? 0,
-        connected: !!s.sessionId,
+        connected: s.isBot || !!s.sessionId,
+        isBot: !!s.isBot,
         hasVoted: !!this.votes[s.id],
       })),
       resources: g?.resources ?? { ...HOUSES.initialResources },

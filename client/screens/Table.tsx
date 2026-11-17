@@ -184,6 +184,7 @@ function Players({ view }: { view: ClientView }) {
             <Crest house={h} size={28} />
             <span>
               {p.name}
+              {p.isBot && " 🤖"}
               {!p.connected && " (desconectado)"}
             </span>
             <span title="Fichas de Favor">🎖 {p.tokens}</span>
