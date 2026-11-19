@@ -7,6 +7,7 @@ import { Lobby } from "./screens/Lobby";
 import { Table } from "./screens/Table";
 import { Final } from "./screens/Final";
 import { Intermission } from "./screens/Intermission";
+import { Prologue } from "./screens/Prologue";
 import { MuteButton } from "./components/MuteButton";
 import { useGameSounds } from "./useGameSounds";
 
@@ -96,6 +97,8 @@ export function App() {
           <Final view={view} />
         ) : view.phase === "intermission" ? (
           <Intermission view={view} room={room} />
+        ) : view.phase === "prologue" ? (
+          <Prologue view={view} room={room} />
         ) : (
           <Table view={view} room={room} />
         )

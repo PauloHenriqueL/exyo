@@ -24,6 +24,12 @@
 - [x] Simulação inicial (20 mil partidas com votos aleatórios): 0,8% de colapso
 - [x] Faixas das metas baixadas para alto = +3..+10 e moderado = −2..+2 (melhor caso simulado: ~3,6/5; votos aleatórios: maioria entre 1 e 3 pontos)
 - [ ] Revisitar o balanceamento depois do primeiro playtest
+- [x] Mão do Rei e Favor do Rei (2026-11-19): token de desempate que passa entre jogadores; 16 cartas dão Favor do Rei ao lado que agrada ao Rei; maior Favor (sozinho) toma a coroa (+5 fichas). Rei Osric III com gostos e desgostos mostrados na abertura
+- [x] Economia balanceada por simulação (`scripts/balance.ts`, ver `BALANCEAMENTO.md`): 15 fichas iniciais, +5 para a Mão, Favor inicial 5
+- [x] Roubar do Reino (recurso −1 → +1 ficha, só votando SIM/NÃO) e Voto aberto em 15 cartas (voto visível na hora e definitivo)
+- [x] Carta "A Mão da Princesa": maior aposta no SIM vira a Mão até o fim da partida e zera o Favor de todos; sempre aparece na campanha
+- [x] Textos de abertura das 51 cartas reescritos (mais longos e imersivos)
+- [x] Animação das espadas removida a pedido (fica só o som)
 - [x] Campanha 2×12 com votos aleatórios: ~16–18% de colapso (uma partida isolada: ~1%). Decidido (2026-11-19): manter, como tensão; o teste trava em 20% só para pegar pioras. Revisitar se o playtest mostrar colapsos demais
 - [x] Validador de conteúdo e simulação de campanhas como testes (`shared/content.test.ts`)
 - [x] Brasões em SVG (5) para o protótipo (componente `Crest`, escudo nas cores + símbolo)
@@ -46,7 +52,8 @@
 - [x] Efeitos: espadas se cruzando com faíscas nas cartas de Guerra; balões de conversa nos brasões durante a discussão; mapa do Reino ao fundo
 - [x] Validado no navegador (2026-11-19): campanha completa com 2 bots, intervalo e placar final; desktop 1440px e 390px; console sem erros do app
 - [ ] Polimento visual (passada de design), estados de erro mais claros
-- [ ] Testar reconexão no meio da votação e duas abas do mesmo jogador
+- [x] Corrigido: recarregar a página no meio da partida criava uma sala nova (a sala era trancada com lock()); agora volta à mesma mesa
+- [ ] Testar duas abas do mesmo jogador
 
 ## Fase 4 — Deploy e playtest
 - [x] Repositório público https://github.com/PauloHenriqueL/exyo (push na `main` faz deploy automático)

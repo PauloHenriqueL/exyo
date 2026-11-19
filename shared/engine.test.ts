@@ -14,7 +14,7 @@ import {
   startNextMatch,
   tally,
 } from "./engine";
-import type { Vote } from "./types";
+import type { Dilemma, Vote } from "./types";
 
 const players = [
   { id: "a", houseId: "aurivel" },
@@ -31,7 +31,7 @@ describe("tally", () => {
       c: { choice: "no", tokens: 2 },
       d: { choice: "abstain", tokens: 0 },
     };
-    expect(tally(votes)).toEqual({ outcome: "no", yesWeight: 2, noWeight: 3 });
+    expect(tally(votes)).toEqual({ outcome: "no", yesWeight: 2, noWeight: 3, tiebreakByHand: false });
   });
   it("todos abstendo = empate", () => {
     expect(tally({ a: { choice: "abstain", tokens: 0 } }).outcome).toBe("tie");
@@ -74,7 +74,7 @@ describe("partida", () => {
     const r = resolveRound(drawn.state, drawn.card!, yes);
     expect(r.state.flags.viajantes_aceitos).toBe(true);
     expect(r.state.queue).toEqual([{ card: "segredo_dos_viajantes", atRound: 4 }]);
-    expect(r.state.tokens.b).toBe(1);
+    expect(r.state.tokens.b).toBe(drawn.state.tokens.b + 1);
 
     let st = r.state;
     for (let i = 0; i < 3; i++) {
@@ -175,5 +175,131 @@ describe("campanha de 2 partidas", () => {
     const d = drawCard(s, DILEMMA_BY_ID);
     expect(d.card?.id).toBe("cometa");
     expect(d.state.deck[0]).toBe("banquete_da_colheita");
+  });
+});
+
+describe("Mão do Rei, Favor do Rei e roubo", () => {
+  const base = () => createGame(DILEMMAS, HOUSES, players, 3, 12, 2, { startingTokens: 10, handBonus: 5, startingFavor: 5 });
+  const plain: Dilemma = {
+    id: "teste",
+    kind: "root",
+    category: "trade",
+    title: "Teste",
+    prompt: "",
+    question: "",
+    outcomes: {
+      yes: [{ text: "sim", effects: { wealth: 1 } }],
+      no: [{ text: "não", effects: { wealth: -1 } }],
+      tie: [{ text: "empate", effects: {} }],
+    },
+  };
+  const favorCard: Dilemma = { ...plain, id: "favor", kingFavor: { side: "yes", amount: 1, reason: "o Rei gosta" } };
+
+  it("começo: todos com as fichas iniciais e Favor 5; a Mão sorteada tem o bônus", () => {
+    const s = base();
+    expect(players.map((p) => p.id)).toContain(s.hand);
+    for (const p of players) {
+      expect(s.favor[p.id]).toBe(5);
+      expect(s.tokens[p.id]).toBe(p.id === s.hand ? 15 : 10);
+    }
+  });
+
+  it("empate: vence o lado em que a Mão do Rei votou", () => {
+    const s = { ...base(), hand: "a" };
+    const votes: Record<string, Vote> = { a: { choice: "no", tokens: 0 }, b: { choice: "yes", tokens: 0 } };
+    const r = resolveRound(s, plain, votes);
+    expect(r.outcome).toBe("no");
+    expect(r.tiebreakByHand).toBe(true);
+  });
+
+  it("empate com a Mão abstendo continua Indecisão", () => {
+    const s = { ...base(), hand: "a" };
+    const votes: Record<string, Vote> = { a: { choice: "abstain", tokens: 0 }, b: { choice: "yes", tokens: 1 }, c: { choice: "no", tokens: 1 } };
+    const r = resolveRound(s, plain, votes);
+    expect(r.outcome).toBe("tie");
+    expect(r.tiebreakByHand).toBe(false);
+  });
+
+  it("roubar do Reino: recurso −1, +1 ficha já usável no voto", () => {
+    const s = { ...base(), hand: "a", tokens: { a: 0, b: 0, c: 0, d: 0 } };
+    expect(isValidVote({ choice: "yes", tokens: 1, steal: "food" }, 0)).toBe(true);
+    expect(isValidVote({ choice: "yes", tokens: 2, steal: "food" }, 0)).toBe(false);
+    expect(isValidVote({ choice: "abstain", tokens: 0, steal: "food" }, 3)).toBe(false);
+    const r = resolveRound(s, plain, { b: { choice: "yes", tokens: 1, steal: "food" } });
+    expect(r.state.resources.food).toBe(s.resources.food - 1);
+    expect(r.state.tokens.b).toBe(0); // +1 roubada −1 apostada
+    expect(r.steals).toEqual([{ playerId: "b", resource: "food" }]);
+    expect(r.deltas.food).toBe(-1);
+  });
+
+  it("roubo pode derrubar o Reino", () => {
+    const s = { ...base(), resources: { ...base().resources, health: -9 } };
+    const r = resolveRound(s, plain, { b: { choice: "yes", tokens: 0, steal: "health" } });
+    expect(isCollapsed(r.state)).toBe(true);
+  });
+
+  it("votar no lado do Rei rende Favor e o maior Favor vira a Mão (+bônus)", () => {
+    const s = { ...base(), hand: "a" };
+    const tokensB = s.tokens.b;
+    const r = resolveRound(s, favorCard, { b: { choice: "yes", tokens: 0 }, c: { choice: "no", tokens: 0 } });
+    expect(r.favorGains).toEqual({ b: 1 });
+    expect(r.state.favor.b).toBe(6);
+    expect(r.state.hand).toBe("b");
+    expect(r.handChange).toEqual({ from: "a", to: "b", reason: "favor", bonus: 5 });
+    expect(r.state.tokens.b).toBe(tokensB + 5);
+  });
+
+  it("empate no topo do Favor não tira a Mão de ninguém", () => {
+    const s = { ...base(), hand: "a" };
+    const r = resolveRound(s, favorCard, { b: { choice: "yes", tokens: 0 }, c: { choice: "yes", tokens: 0 } });
+    expect(r.state.hand).toBe("a");
+    expect(r.handChange).toBeNull();
+  });
+
+  it("A Mão da Princesa: maior aposta no SIM vira a Mão, trava o título e zera o Favor", () => {
+    const princess = DILEMMA_BY_ID["a_mao_da_princesa"];
+    expect(princess.special).toBe("princess");
+    const s = { ...base(), hand: "a", favor: { a: 9, b: 2, c: 5, d: 5 } };
+    const votes: Record<string, Vote> = {
+      a: { choice: "no", tokens: 3 },
+      b: { choice: "yes", tokens: 4 },
+      c: { choice: "yes", tokens: 2 },
+    };
+    const r = resolveRound(s, princess, votes);
+    expect(r.outcome).toBe("yes");
+    expect(r.princess).toEqual({ winnerId: "b" });
+    expect(r.state.hand).toBe("b");
+    expect(r.state.handLocked).toBe(true);
+    expect(Object.values(r.state.favor).every((f) => f === 0)).toBe(true);
+    // Travado: mais favor não muda a Mão até a próxima partida.
+    const favorCard2 = { ...favorCard };
+    const r2 = resolveRound(r.state, favorCard2, { c: { choice: "yes", tokens: 0 } });
+    expect(r2.state.hand).toBe("b");
+    expect(startNextMatch(r2.state, HOUSES).handLocked).toBe(false);
+  });
+
+  it("A Mão da Princesa: empate de apostas e de favor = ninguém casa", () => {
+    const princess = DILEMMA_BY_ID["a_mao_da_princesa"];
+    const s = { ...base(), hand: "a", favor: { a: 5, b: 5, c: 5, d: 5 } };
+    const r = resolveRound(s, princess, { b: { choice: "yes", tokens: 2 }, c: { choice: "yes", tokens: 2 } });
+    expect(r.princess).toEqual({ winnerId: null });
+    expect(r.state.hand).toBe("a");
+    expect(r.state.favor.b).toBe(5);
+  });
+
+  it("a carta da princesa sempre aparece na campanha, qualquer que seja a duração", () => {
+    for (const rounds of [4, 8, 12]) {
+      for (let seed = 1; seed <= 150; seed++) {
+        let s = createGame(DILEMMAS, HOUSES, players, seed, rounds, 2);
+        const total = rounds * 2;
+        while (s.round < total) {
+          if (isMatchOver(s)) s = startNextMatch(s, HOUSES);
+          const d = drawCard(s, DILEMMA_BY_ID);
+          if (!d.card) break;
+          s = resolveRound(d.state, d.card, { a: { choice: "abstain", tokens: 0 } }).state;
+        }
+        expect(s.played, `rodadas ${rounds}, seed ${seed}`).toContain("a_mao_da_princesa");
+      }
+    }
   });
 });

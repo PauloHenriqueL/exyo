@@ -70,6 +70,29 @@ describe("conteúdo das cartas", () => {
   });
 });
 
+describe("Rei e cartas especiais", () => {
+  it("cartas de Favor do Rei têm lado, valor e motivo", () => {
+    const fav = DILEMMAS.filter((d) => d.kingFavor);
+    expect(fav.length).toBeGreaterThanOrEqual(10);
+    for (const d of fav) {
+      expect(["yes", "no"]).toContain(d.kingFavor!.side);
+      expect(d.kingFavor!.amount).toBeGreaterThan(0);
+      expect(d.kingFavor!.reason.length).toBeGreaterThan(10);
+    }
+  });
+
+  it("existe exatamente uma carta da princesa, com o texto da regra", () => {
+    const p = DILEMMAS.filter((d) => d.special === "princess");
+    expect(p).toHaveLength(1);
+    expect(p[0].ruleText).toMatch(/Mão do Rei/);
+    expect(p[0].ruleText).toMatch(/zero/);
+  });
+
+  it("textos das cartas são longos o bastante para imersão", () => {
+    for (const d of DILEMMAS) expect(d.prompt.length, d.id).toBeGreaterThan(220);
+  });
+});
+
 describe("Casas", () => {
   it("cada Casa tem 2 objetivos com 5 recursos distintos", () => {
     for (const h of HOUSES.houses) {
