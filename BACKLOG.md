@@ -4,7 +4,7 @@
 > Legenda: `[x]` feito · `[~]` em andamento · `[ ]` pendente · `[?]` decisão em aberto
 
 **Última atualização:** 2026-11-19
-**Fase atual:** 4 — Fora do ar (serviço removido do Render; subir de novo antes do playtest)
+**Fase atual:** 4 — No ar em https://exyo.onrender.com (plano Free; pronto para o playtest)
 
 ---
 
@@ -51,7 +51,9 @@
 ## Fase 4 — Deploy e playtest
 - [x] Repositório público https://github.com/PauloHenriqueL/exyo (push na `main` faz deploy automático)
 - [x] Deploy no Render: serviço `exyo`, plano Starter, região Virginia, `PHONE_PEPPER` configurado. Partida iniciada em produção com 3 bots
-- [ ] Disco persistente no Render (pelo painel) para o SQLite sobreviver a deploys e reinícios
+- [x] Serviço removido e recriado em 2026-11-19: `exyo`, plano **Free**, região Virginia, deploy automático da `main`, `PHONE_PEPPER` novo. Campanha 2×12 testada em produção com 2 bots (rodada completa, console sem erros)
+- [ ] Plano Free dorme após 15 min sem acesso (~1 min para acordar): abrir o link alguns minutos antes do playtest, ou subir para o Starter (~US$ 7/mês)
+- [ ] Disco persistente no Render (exige plano pago; pelo painel) para o SQLite sobreviver a deploys e reinícios
 - [x] Partida aceita 2 a 4 jogadores: com 4 começa sozinha; com 3 pelo botão "Iniciar partida"; com 2 o servidor adiciona 1 bot (Autômato) que vota ao acaso
 - [ ] Playtest #1 com 3–4 jogadores
 - [ ] Ajustes pós-playtest
