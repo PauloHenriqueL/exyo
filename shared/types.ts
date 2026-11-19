@@ -32,6 +32,13 @@ export interface Variant {
 
 export type Outcome = "yes" | "no" | "tie";
 
+/** Lado da votação que agrada ao Rei: quem votar nele ganha Favor do Rei, ganhe ou perca a votação. */
+export interface KingFavor {
+  side: "yes" | "no";
+  amount: number;
+  reason: string; // ligado ao gosto do Rei (ver content/king.json)
+}
+
 export interface Dilemma {
   id: string;
   kind: "root" | "consequence";
@@ -40,6 +47,15 @@ export interface Dilemma {
   prompt: string;
   question: string;
   requires?: Cond;
+  kingFavor?: KingFavor;
+  /** Voto aberto: cada voto selado aparece para todos na hora e não pode ser trocado. */
+  openVote?: boolean;
+  /** Regra especial da carta (ex.: "princess" = A Mão da Princesa). */
+  special?: "princess";
+  /** Posição garantida no baralho, como fração da campanha (0 = primeira carta, 1 = última rodada). */
+  placement?: { from: number; to: number };
+  /** Texto da regra especial, mostrado na carta. */
+  ruleText?: string;
   outcomes: Record<Outcome, Variant[]>;
 }
 
@@ -58,19 +74,37 @@ export interface House {
   goals: Goal[];
 }
 
+/** Números da economia de fichas e do Favor do Rei (balanceados em scripts/balance.ts). */
+export interface Economy {
+  startingTokens: number; // fichas de voto de cada jogador no início
+  handBonus: number; // fichas extras ao se tornar a Mão do Rei (inclusive no início)
+  startingFavor: number; // Favor do Rei de cada jogador no início
+}
+
 export interface HousesFile {
   ranges: { high: [number, number]; moderate: [number, number] };
   initialResources: Resources;
+  economy: Economy;
   houses: House[];
+}
+
+export interface King {
+  name: string;
+  epithet: string;
+  intro: string;
+  likes: { title: string; text: string }[];
+  dislikes: { title: string; text: string }[];
 }
 
 export type Choice = "yes" | "no" | "abstain";
 export interface Vote {
   choice: Choice;
   tokens: number;
+  /** Roubar do Reino: o recurso perde 1 ponto e o jogador ganha 1 ficha (só votando SIM/NÃO, 1x por rodada). */
+  steal?: Resource;
 }
 
-export type Phase = "lobby" | "discussion" | "voting" | "reveal" | "intermission" | "end";
+export type Phase = "lobby" | "prologue" | "discussion" | "voting" | "reveal" | "intermission" | "end";
 
 /** Carta como o cliente a vê: sem efeitos. */
 export interface PublicCard {
@@ -79,6 +113,10 @@ export interface PublicCard {
   title: string;
   prompt: string;
   question: string;
+  kingFavor?: KingFavor;
+  openVote?: boolean;
+  special?: "princess";
+  ruleText?: string;
 }
 
 export interface PublicPlayer {
@@ -90,6 +128,17 @@ export interface PublicPlayer {
   hasVoted: boolean;
   isBot: boolean;
   isReady: boolean;
+  favor: number; // Favor do Rei
+  isHand: boolean; // tem o token de Mão do Rei (desempata)
+  /** Em carta de Voto aberto: o voto selado, visível para todos. */
+  openVote: Vote | null;
+}
+
+export interface HandChange {
+  from: string | null;
+  to: string;
+  reason: "favor" | "princess";
+  bonus: number;
 }
 
 export interface RevealInfo {
@@ -98,7 +147,13 @@ export interface RevealInfo {
   noWeight: number;
   votes: Record<string, Vote>;
   text: string;
-  deltas: Partial<Resources>;
+  deltas: Partial<Resources>; // variação total do Reino nesta rodada (roubos + carta)
+  tiebreakByHand: boolean; // empate decidido pelo voto da Mão do Rei
+  steals: { playerId: string; resource: Resource }[];
+  favorGains: Record<string, number>;
+  handChange: HandChange | null;
+  /** Carta da princesa com SIM vencedor: quem ficou com a mão dela (null = empate, ninguém). */
+  princess: { winnerId: string | null } | null;
 }
 
 export interface FinalInfo {
@@ -133,5 +188,7 @@ export interface ClientView {
   intermission: IntermissionInfo | null;
   final: FinalInfo | null;
   me: { id: string; goal: Goal | null; vote: Vote | null };
+  handId: string | null;
+  handLocked: boolean; // título travado pela carta da princesa até o fim da partida
   ranges: HousesFile["ranges"];
 }

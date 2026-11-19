@@ -1,14 +1,15 @@
 {
-  "version": "0.2.0",
-  "notes": "30 cartas raiz + 20 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra.",
+  "version": "0.3.0",
+  "notes": "31 cartas raiz + 20 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. kingFavor = lado que agrada ao Rei (quem vota nele ganha Favor do Rei); openVote = votos visíveis na hora e definitivos; a_mao_da_princesa tem regra especial.",
   "dilemmas": [
     {
       "id": "viajantes_do_leste",
       "kind": "root",
       "category": "diplomacy",
       "title": "Os Viajantes do Leste",
-      "prompt": "Uma caravana de 200 refugiados do Leste chega aos portões. Dizem fugir de uma guerra e oferecem trabalho em troca de abrigo.",
+      "prompt": "Ao amanhecer, os sinos da Porta Leste tocam sem parar. Uma caravana de duzentos refugiados se arrasta pela poeira: mulheres com crianças no colo, ferreiros com as ferramentas nas costas, velhos que mal param de pé. O porta-voz, um homem de barba queimada pelo sol, ajoelha diante dos guardas. Dizem fugir de uma guerra que engoliu suas cidades e oferecem a única coisa que lhes resta: trabalho, em troca de abrigo dentro dos muros.",
       "question": "O Reino deve abrir os portões?",
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Os portões se abrem. Mãos novas chegam aos campos — e bocas novas à mesa.",
@@ -35,7 +36,7 @@
       "kind": "consequence",
       "category": "crime",
       "title": "O Segredo dos Viajantes",
-      "prompt": "Um dos viajantes pede audiência. Diz que entre os seus há espiões do reino vizinho — e oferece os nomes em troca de terras.",
+      "prompt": "Numa noite de chuva, um dos viajantes do Leste pede audiência em segredo. Tremendo, conta que entre os seus vieram espiões do reino vizinho, homens que contam soldados e desenham mapas dos celeiros. Ele sabe o nome de todos. Em troca, quer o que nenhum refugiado jamais teve: terras próprias, com escritura e selo real.",
       "question": "O Rei deve conceder as terras em troca dos nomes?",
       "outcomes": {
         "yes": [
@@ -76,7 +77,7 @@
       "kind": "consequence",
       "category": "war",
       "title": "Os Mercenários do Leste",
-      "prompt": "Os viajantes que recusamos agora servem ao reino vizinho como mercenários. Saqueiam vilas da fronteira e mandam recado: pagam-se tributos ou a fronteira arde.",
+      "prompt": "Os viajantes que mandamos embora não esqueceram a porta fechada. Agora vestem as cores do reino vizinho e cavalgam como mercenários pela fronteira, queimando celeiros e levando o gado. Um mensageiro chega com um pergaminho manchado de fuligem: ou o Reino paga um tributo em ouro, ou a fronteira inteira vai arder até o inverno.",
       "question": "O Reino deve pagar o tributo?",
       "outcomes": {
         "yes": [{
@@ -105,8 +106,10 @@
       "kind": "root",
       "category": "feast",
       "title": "O Banquete da Colheita",
-      "prompt": "O Rei quer celebrar a colheita com um banquete para toda a nobreza — e convidar os embaixadores vizinhos.",
+      "prompt": "A colheita foi generosa e o Rei Osric quer que o mundo saiba. Sonha com um banquete de três dias no Grande Salão: javalis assados, vinho do Sul, menestréis e toda a nobreza do Reino — e, principalmente, os embaixadores dos reinos vizinhos, para verem com os próprios olhos a fartura da Coroa. Os despenseiros, porém, lembram que cada saca servida à mesa é uma saca a menos para o inverno.",
       "question": "O banquete deve acontecer?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei adora mostrar ao mundo a fartura da Coroa." },
+      "openVote": true,
       "requires": { "res": "food", "gte": -3 },
       "outcomes": {
         "yes": [
@@ -145,7 +148,7 @@
       "kind": "root",
       "category": "war",
       "title": "A Muralha do Norte",
-      "prompt": "O capitão da guarda alerta: a muralha norte tem rachaduras e a guarnição está pela metade. Reformar tudo esvaziaria parte do tesouro.",
+      "prompt": "O capitão da guarda entra no salão com as botas ainda sujas de neve. A Muralha do Norte, diz ele, tem rachaduras onde cabe o braço de um homem, e a guarnição está pela metade desde a última febre. Se os clãs do norte descobrirem, a capital fica a três dias de marcha. Reformar tudo e recrutar novos guardas, porém, esvaziaria boa parte do tesouro.",
       "question": "O Reino deve reforçar a muralha e a guarda?",
       "outcomes": {
         "yes": [{
@@ -168,7 +171,7 @@
       "kind": "root",
       "category": "plague",
       "title": "Peste no Porto",
-      "prompt": "Marinheiros de um navio estrangeiro chegam com febre e manchas negras. Os mercadores imploram: fechar o porto agora seria a ruína da temporada.",
+      "prompt": "Um navio estrangeiro atraca no Porto com as velas rasgadas e metade da tripulação deitada no convés. Os marinheiros ardem em febre e têm manchas negras no pescoço. O mestre do porto quer fechar tudo com correntes agora mesmo; os mercadores, desesperados, imploram o contrário: é o auge da temporada, e um porto fechado hoje é a ruína de muitas famílias amanhã.",
       "question": "O porto deve ser fechado em quarentena?",
       "outcomes": {
         "yes": [{
@@ -195,7 +198,7 @@
       "kind": "consequence",
       "category": "plague",
       "title": "A Segunda Onda",
-      "prompt": "A peste chegou aos bairros pobres. Os curandeiros propõem queimar as casas infectadas e realojar as famílias — o povo jura que não sai.",
+      "prompt": "A peste escapou do cais e chegou aos bairros pobres, onde as famílias dormem dez num quarto. Os curandeiros propõem uma solução terrível: queimar as casas infectadas e realojar todos fora dos muros. Mas o povo já se trancou lá dentro e jura que só sai morto. Cada dia de hesitação é um novo sino de luto tocando na cidade.",
       "question": "As casas infectadas devem ser queimadas?",
       "outcomes": {
         "yes": [
@@ -231,8 +234,9 @@
       "kind": "root",
       "category": "faith",
       "title": "O Hospital Real",
-      "prompt": "A Casa Lumen propõe transformar o antigo mosteiro num hospital — pago pelo tesouro e pelas terras da Igreja. O Bispo não foi consultado.",
+      "prompt": "A Casa Lumen apresenta um plano ambicioso: transformar o antigo mosteiro de São Bérnio, abandonado há décadas, no primeiro hospital do Reino. Leitos para quinhentos doentes, pagos pelo tesouro e pelas terras da Igreja que cercam o mosteiro. Há um detalhe: ninguém consultou o Bispo, que considera aquelas terras sagradas e intocáveis.",
       "question": "O Reino deve construir o hospital?",
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "As primeiras camas são ocupadas em semanas. O povo abençoa o Rei.",
@@ -256,7 +260,7 @@
       "kind": "consequence",
       "category": "faith",
       "title": "O Bispo Exige o Dízimo",
-      "prompt": "Ofendido, o Bispo exige que a Coroa pague o dízimo atrasado de dez anos. Ameaça pregar contra o Rei em todas as paróquias.",
+      "prompt": "O Bispo atravessa o salão do trono de báculo em punho, seguido por doze padres em silêncio. Ofendido, exige que a Coroa pague de uma vez o dízimo atrasado de dez anos, até a última moeda. Se o conselho recusar, promete que em todas as paróquias do Reino os sermões de domingo serão sobre reis que roubam de Deus.",
       "question": "A Coroa deve pagar o dízimo?",
       "outcomes": {
         "yes": [{
@@ -290,8 +294,10 @@
       "kind": "root",
       "category": "feast",
       "title": "O Torneio Real",
-      "prompt": "Cavaleiros de todo o Reino pedem um grande torneio. Seria caro, mas atrairia guerreiros e lealdades.",
+      "prompt": "Os cavaleiros do Reino pedem algo que não se vê há uma geração: um grande torneio, com justas, lutas a pé e um banquete para o campeão. O Rei Osric, que venceu três torneios na juventude, já sorri só de imaginar. Seria caro — arquibancadas, prêmios, hospedagem para centenas de nobres —, mas atrairia espadas de todo o continente e juramentos de lealdade à Coroa.",
       "question": "O Reino deve sediar o torneio?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei Osric ama a glória das justas." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Lanças se quebram, bandeiras tremulam e dezenas de cavaleiros juram lealdade ao Rei.",
@@ -314,7 +320,7 @@
       "kind": "consequence",
       "category": "diplomacy",
       "title": "O Campeão Estrangeiro",
-      "prompt": "O vencedor do torneio retira o elmo: é o filho bastardo do rei vizinho. Pede asilo e um título de cavaleiro em troca de sua espada.",
+      "prompt": "O torneio termina com um vencedor que ninguém esperava. Quando o campeão retira o elmo diante do Rei, a multidão emudece: é o filho bastardo do rei vizinho, renegado pelo próprio pai. De joelhos, ele pede asilo e um título de cavaleiro do Reino, e oferece em troca a espada que acabou de derrubar os melhores guerreiros da corte.",
       "question": "O Rei deve sagrá-lo cavaleiro?",
       "outcomes": {
         "yes": [
@@ -343,8 +349,9 @@
       "kind": "root",
       "category": "war",
       "title": "A Invasão do Norte",
-      "prompt": "Um exército de clãs do norte atravessa o rio congelado. Os generais divergem: marchar ao encontro do inimigo ou esperar atrás das muralhas?",
+      "prompt": "O rio do norte congelou, e com o gelo vieram os clãs. Milhares de guerreiros vestidos de peles e armados de machados atravessam a fronteira, queimando as primeiras aldeias. No salão de guerra, os generais gritam uns com os outros: metade quer marchar agora e enfrentar o inimigo em campo aberto; a outra metade quer esperar atrás das muralhas até que a fome vença os invasores.",
       "question": "O exército deve marchar ao encontro do inimigo?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei despreza quem se esconde atrás de muralhas." },
       "outcomes": {
         "yes": [
           {
@@ -393,7 +400,7 @@
       "kind": "consequence",
       "category": "diplomacy",
       "title": "Os Refugiados do Norte",
-      "prompt": "Famílias das vilas saqueadas chegam à capital sem nada. Pedem pão e teto — e muitos homens oferecem-se para a milícia.",
+      "prompt": "Pelas estradas do norte chega uma procissão de gente sem nada: as famílias das vilas saqueadas, com crianças enroladas em mantas e o cheiro de fumaça ainda nas roupas. Pedem pão e um teto para o inverno. Muitos dos homens, de olhos duros, oferecem-se para a milícia — querem voltar ao norte e cobrar o que lhes foi tirado.",
       "question": "A capital deve acolher os refugiados?",
       "outcomes": {
         "yes": [
@@ -431,8 +438,9 @@
       "kind": "root",
       "category": "trade",
       "title": "A Liga Mercante",
-      "prompt": "Uma liga de cidades mercantes oferece um tratado: tarifas zeradas para navios de ambos os lados. Mais comércio — e menos controle sobre o que entra.",
+      "prompt": "Embaixadores da Liga das Cidades Livres desembarcam com baús de presentes e um tratado em pergaminho fino: tarifas zeradas para os navios dos dois lados por vinte anos. O porto ficaria abarrotado de especiarias, sedas e ouro estrangeiro. Mas os fiscais do Rei já avisam que, sem tarifas, ninguém mais saberá o que entra nos porões dos navios.",
       "question": "O Reino deve assinar o tratado?",
+      "kingFavor": { "side": "no", "amount": 1, "reason": "O Rei detesta mercadores estrangeiros mandando no seu porto." },
       "outcomes": {
         "yes": [{
           "text": "O porto ferve de navios. Especiarias, tecidos… e mercadorias que ninguém declara.",
@@ -455,7 +463,7 @@
       "kind": "consequence",
       "category": "crime",
       "title": "O Mercado Negro",
-      "prompt": "Com o porto aberto, surgiu um mercado negro nas docas: armas, ópio e remédios falsos. Os contrabandistas oferecem uma parte dos lucros à Coroa para ficarem em paz.",
+      "prompt": "Com o porto aberto à Liga, as docas mudaram. Nos becos atrás dos armazéns surgiu um mercado negro onde se vende de tudo: armas sem marca, ópio, remédios falsificados. Os chefes do contrabando mandam um recado educado ao conselho: uma parte generosa dos lucros pode ir direto para a Coroa, se a guarda passar a olhar para o outro lado.",
       "question": "A Coroa deve reprimir o contrabando?",
       "outcomes": {
         "yes": [
@@ -493,7 +501,7 @@
       "kind": "root",
       "category": "nature",
       "title": "O Celeiro Real",
-      "prompt": "A Casa Verdemar propõe construir grandes celeiros reais para estocar grãos dos anos bons para os anos ruins.",
+      "prompt": "A Casa Verdemar abre mapas sobre a mesa do conselho. Propõe construir grandes celeiros de pedra nos vales, guardados pela Coroa, para estocar os grãos dos anos bons e salvar o Reino nos anos ruins. Os lavradores juram que é a melhor ideia em cem anos; o tesoureiro lembra que pedra, pedreiros e guardas custam ouro agora — e a fome talvez nunca venha.",
       "question": "O Reino deve construir os celeiros?",
       "outcomes": {
         "yes": [{
@@ -516,7 +524,7 @@
       "kind": "root",
       "category": "nature",
       "title": "A Seca no Vale",
-      "prompt": "Três meses sem chuva. A colheita será metade do normal. Mercadores estrangeiros oferecem grãos — a preço de ouro.",
+      "prompt": "Faz três meses que não cai uma gota no Vale. A terra racha, os riachos viraram trilhas de pedra e o trigo morre de pé. A colheita será metade do normal. No Porto, mercadores estrangeiros já esperam com navios carregados de grãos — e um sorriso: o preço, dizem, é em ouro, pago adiantado, e sobe a cada semana sem chuva.",
       "question": "O Reino deve comprar grãos do exterior?",
       "outcomes": {
         "yes": [
@@ -557,7 +565,7 @@
       "kind": "root",
       "category": "plague",
       "title": "Ratos nos Celeiros",
-      "prompt": "Uma praga de ratos invade os estoques de grãos da capital. Um caçador de ratos estrangeiro oferece seus serviços — caros e estranhos.",
+      "prompt": "Os guardas dos armazéns da capital acordaram com um barulho de chuva — mas eram ratos. Milhares deles, roendo sacas, sujando os grãos e levando doença aos bairros vizinhos. Um homem estranho, de capa colorida e flauta no cinto, se apresenta à corte. Diz que livra qualquer cidade de qualquer praga. O preço é alto, e ele não explica seus métodos.",
       "question": "O Reino deve contratar o caçador de ratos?",
       "outcomes": {
         "yes": [{
@@ -586,8 +594,10 @@
       "kind": "root",
       "category": "faith",
       "title": "A Bruxa da Floresta",
-      "prompt": "Aldeões trazem acorrentada uma velha que cura com ervas. O clero a acusa de bruxaria e exige a fogueira.",
+      "prompt": "Os aldeões da Floresta do Rei trazem uma velha acorrentada até a praça do castelo. Ela curou febres com ervas e partos difíceis com rezas que ninguém entende — e agora uma criança morreu em suas mãos. O clero a declara bruxa e exige a fogueira ao pôr do sol. A velha não chora nem implora; apenas olha para o conselho, um por um.",
       "question": "A acusada deve ir para a fogueira?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei é devoto e odeia bruxaria." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "A fogueira ilumina a praça. O clero aplaude. As aldeias perdem sua curandeira.",
@@ -611,7 +621,7 @@
       "kind": "consequence",
       "category": "faith",
       "title": "O Favor da Bruxa",
-      "prompt": "A velha da floresta volta ao castelo com um frasco escuro. Diz que é um elixir para os males do Reino. Os sacerdotes juram que é veneno.",
+      "prompt": "A velha que o Reino libertou volta ao castelo numa noite de lua cheia, sem que nenhum guarda a veja entrar. Traz um frasco de vidro escuro e diz que é um elixir para os males do Reino: força para os fracos e vigor para as plantações. Os sacerdotes, pálidos, juram que é veneno ou coisa pior. Ela só sorri e espera uma resposta.",
       "question": "O Reino deve distribuir o elixir?",
       "outcomes": {
         "yes": [
@@ -640,8 +650,10 @@
       "kind": "root",
       "category": "diplomacy",
       "title": "O Casamento Real",
-      "prompt": "O rei vizinho propõe casar seu filho com a princesa. Aliança sólida — mas o dote seria pago por nós.",
+      "prompt": "Um mensageiro do reino vizinho chega com um selo de cera dourada. O rei vizinho propõe casar seu filho primogênito com Lady Mirela, sobrinha do Rei Osric, unindo as duas casas reais. Seria a aliança mais sólida em gerações e o fim das escaramuças na fronteira. Há só um problema: o costume exige um dote, e ele sairia do nosso tesouro.",
       "question": "O casamento deve ser aceito?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei acredita em alianças seladas com sangue." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Sinos tocam nos dois reinos. A fronteira nunca esteve tão tranquila.",
@@ -665,7 +677,7 @@
       "kind": "consequence",
       "category": "war",
       "title": "O Pedido de Tropas",
-      "prompt": "Nosso aliado vizinho está em guerra com os povos do mar e pede mil soldados. Promete pagar em ouro.",
+      "prompt": "Nossos novos aliados estão em guerra com os povos do mar e chegam pedindo ajuda: mil soldados, por uma estação inteira. Prometem pagar cada lança em ouro e lembram que os laços do casamento foram feitos justamente para momentos assim. Os capitães do Reino franzem a testa: mil soldados lá fora são mil soldados a menos nas nossas muralhas.",
       "question": "O Reino deve enviar as tropas?",
       "outcomes": {
         "yes": [{
@@ -689,8 +701,10 @@
       "kind": "consequence",
       "category": "feast",
       "title": "O Herdeiro",
-      "prompt": "Nasce o primeiro neto do Rei, herdeiro de dois tronos. O povo espera festa nas ruas.",
+      "prompt": "Os sinos tocam no meio da madrugada: nasceu o filho de Lady Mirela, sangue das duas casas reais e herdeiro de dois tronos. O Rei Osric segura o bebê no colo e, pela primeira vez em anos, a corte o vê sorrir. O povo já se aglomera nos portões, esperando três dias de festa, com pão e vinho de graça, como manda a tradição.",
       "question": "O Reino deve celebrar com festas públicas?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "Nada importa mais ao Rei que o sangue da família real." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Três dias de festa. Pão e vinho de graça, e o nome do herdeiro em todas as bocas.",
@@ -711,8 +725,9 @@
       "kind": "root",
       "category": "trade",
       "title": "O Imposto de Guerra",
-      "prompt": "O tesoureiro propõe um novo imposto sobre colheitas para financiar o exército. Os camponeses já pagam o dobro dos nobres.",
+      "prompt": "O tesoureiro desenrola um pergaminho comprido: para manter o exército pronto, propõe um novo imposto sobre as colheitas, pago por todos os camponeses do Reino. Os nobres, curiosamente, ficariam de fora. Nas aldeias, já se murmura que os camponeses pagam o dobro dos senhores — e que um dia essa conta será cobrada de outro jeito.",
       "question": "O novo imposto deve ser criado?",
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Os cofres e os quartéis se enchem. Os camponeses, nem tanto.",
@@ -742,8 +757,9 @@
       "kind": "consequence",
       "category": "crime",
       "title": "A Revolta Camponesa",
-      "prompt": "Camponeses armados com foices cercam o castelo. Exigem pão, justiça e a cabeça do tesoureiro.",
+      "prompt": "A conta chegou. Ao amanhecer, centenas de camponeses armados com foices, forcados e tochas cercam o castelo. Gritam por pão, por justiça e pela cabeça do tesoureiro. Os guardas nas ameias esperam uma ordem. Lá embaixo, um líder de rosto marcado sobe numa carroça e pede para falar com o conselho, antes que alguém faça algo de que todos vão se arrepender.",
       "question": "O Rei deve negociar com os revoltosos?",
+      "openVote": true,
       "outcomes": {
         "yes": [
           {
@@ -785,7 +801,7 @@
       "kind": "root",
       "category": "trade",
       "title": "A Mina de Prata",
-      "prompt": "Mineiros encontram um veio de prata nas montanhas. Explorá-lo exige túneis perigosos e homens tirados das lavouras.",
+      "prompt": "Mineiros descem das montanhas com os olhos brilhando e as mãos cheias de pedras prateadas: encontraram um veio de prata como não se via há séculos. Explorá-lo, porém, exige túneis fundos e perigosos e centenas de homens tirados das lavouras em plena época de plantio. Os clãs das montanhas também viram a prata — e não vão esperar para sempre.",
       "question": "O Reino deve abrir a mina?",
       "outcomes": {
         "yes": [{
@@ -808,8 +824,9 @@
       "kind": "consequence",
       "category": "nature",
       "title": "O Desabamento",
-      "prompt": "Um túnel da mina de prata desaba. Quarenta mineiros estão presos. O resgate exigiria parar a mina por semanas.",
+      "prompt": "Um estrondo ecoa pelas montanhas: um túnel da mina de prata desabou. Quarenta mineiros estão presos lá embaixo, e ainda se ouvem batidas nas pedras. O resgate é possível, mas exigiria parar a mina inteira por semanas e escorar cada metro com madeira nova. O capataz pergunta, de chapéu na mão, se a prata pode esperar.",
       "question": "A mina deve parar para o resgate?",
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Trinta e oito saem vivos. O povo celebra um Rei que não abandona os seus.",
@@ -837,8 +854,10 @@
       "kind": "root",
       "category": "faith",
       "title": "O Cometa",
-      "prompt": "Um cometa vermelho cruza o céu por sete noites. Os sacerdotes pedem uma grande procissão para afastar o mau presságio.",
+      "prompt": "Há sete noites um cometa vermelho cruza o céu, com uma cauda que parece sangue. Nas aldeias, as galinhas param de botar, crianças acordam gritando e profetas de rua anunciam o fim dos tempos. Os sacerdotes pedem uma grande procissão por todas as cidades do Reino, com velas, relíquias e o próprio Rei à frente, para afastar o mau presságio.",
       "question": "O Reino deve financiar a procissão?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei quer liderar a procissão da fé." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Milhares rezam juntos. O medo dá lugar à esperança.",
@@ -866,7 +885,7 @@
       "kind": "root",
       "category": "crime",
       "title": "O Assassino Capturado",
-      "prompt": "A guarda captura um assassino nos aposentos do Rei. Ele diz que foi contratado por uma Casa deste conselho — mas só fala sob tortura.",
+      "prompt": "A guarda arrastou para o calabouço um homem encontrado com um punhal envenenado dentro dos aposentos do Rei. Ele não nega nada. Diz, com um sorriso torto, que foi contratado por uma das Casas sentadas neste conselho — mas que só revela o nome sob tortura. O carrasco já esquenta os ferros e aguarda a decisão.",
       "question": "O prisioneiro deve ser interrogado sob tortura?",
       "outcomes": {
         "yes": [
@@ -902,7 +921,7 @@
       "kind": "root",
       "category": "trade",
       "title": "A Guilda dos Ferreiros",
-      "prompt": "A guilda dos ferreiros oferece armas pela metade do preço — em troca do monopólio de todo o ferro do Reino por dez anos.",
+      "prompt": "O mestre da Guilda dos Ferreiros entra no salão coberto de fuligem e de anéis de ouro. Oferece ao Reino espadas, lanças e armaduras pela metade do preço durante dez anos. Em troca, quer o monopólio de todo o ferro do Reino: cada prego, cada ferradura, cada arado. Os lavradores já sabem o que isso significa para o preço das ferramentas.",
       "question": "O Reino deve conceder o monopólio?",
       "outcomes": {
         "yes": [{
@@ -924,7 +943,7 @@
       "kind": "root",
       "category": "crime",
       "title": "O Escriba das Cartas Cifradas",
-      "prompt": "A guarda interceptou cartas cifradas escritas por um escriba do castelo. Ele jura que pode decifrar a rede inteira de quem as recebe — se for poupado.",
+      "prompt": "A guarda interceptou um mensageiro com cartas cifradas, escritas com a letra caprichada de um escriba do próprio castelo. Preso, o escriba confessa sem resistência e faz uma proposta: conhece a cifra e a rede inteira de quem recebe as cartas. Se for poupado, pode continuar escrevendo para os inimigos — agora contando a eles só o que o Reino quiser.",
       "question": "O Reino deve transformá-lo em agente duplo?",
       "outcomes": {
         "yes": [{
@@ -948,7 +967,7 @@
       "kind": "consequence",
       "category": "crime",
       "title": "A Rede das Tavernas",
-      "prompt": "O agente duplo entregou os nomes: dezenas de informantes inimigos bebem nas tavernas da capital. Prender todos de uma vez exige tirar soldados das muralhas.",
+      "prompt": "O agente duplo cumpriu a palavra e entregou uma lista com dezenas de nomes. Os informantes inimigos estão espalhados pelas tavernas da capital, bebendo com soldados, ouvindo conversas, contando carroças. Prender todos de uma vez, numa única noite, exigiria tirar soldados das muralhas. Esperar pode dar tempo de alguém avisar a rede.",
       "question": "O Reino deve varrer as tavernas esta noite?",
       "outcomes": {
         "yes": [
@@ -979,7 +998,7 @@
       "kind": "root",
       "category": "crime",
       "title": "Os Ladrões da Estrada do Rei",
-      "prompt": "Bandidos atacam caravanas na Estrada do Rei. Os mercadores pedem patrulhas armadas; os bandidos mandam um recado oferecendo paz em troca de um pedágio.",
+      "prompt": "A Estrada do Rei, que liga a capital ao leste, virou terra de ninguém. Bandidos mascarados atacam caravanas, levam mercadorias e cavalos, e os mercadores pedem patrulhas armadas a cada légua. Ontem, porém, chegou um recado dos próprios bandidos, escrito com boa caligrafia: em troca de um pequeno pedágio mensal, a estrada fica em paz.",
       "question": "O Reino deve enviar patrulhas contra os bandidos?",
       "outcomes": {
         "yes": [{
@@ -1003,8 +1022,9 @@
       "kind": "consequence",
       "category": "crime",
       "title": "O Barão Sem-Terra",
-      "prompt": "Os bandidos da estrada se uniram sob um líder carismático que se intitula Barão Sem-Terra. Ele oferece trezentos homens ao exército do Rei em troca de perdão para todos.",
+      "prompt": "Os bandidos da estrada já não são um bando: são um exército. Seguem um líder carismático, filho bastardo de um nobre falido, que se intitula Barão Sem-Terra. Ele envia uma carta respeitosa ao conselho: oferece trezentos homens armados ao exército do Rei, em troca de perdão para todos os crimes e de terras para o seu povo.",
       "question": "O Reino deve perdoar o Barão e seus homens?",
+      "kingFavor": { "side": "no", "amount": 1, "reason": "Perdoar foras da lei? O Rei jamais." },
       "outcomes": {
         "yes": [
           {
@@ -1034,7 +1054,7 @@
       "kind": "root",
       "category": "crime",
       "title": "O Tesoureiro Sumido",
-      "prompt": "O tesoureiro real desapareceu com as chaves do cofre e um baú de moedas. Há rumores de que ele espera um navio no porto.",
+      "prompt": "O cofre real amanheceu aberto, e o tesoureiro, sumido. Levou as chaves, os livros de contas e um baú cheio de moedas de ouro. Um pescador jura que o viu de capa cinza no Porto, esperando um navio que parte ao anoitecer. Fechar o porto agora talvez o pegue — mas também prende no cais a frota mercante inteira.",
       "question": "O Reino deve fechar o porto para caçá-lo?",
       "outcomes": {
         "yes": [{
@@ -1057,8 +1077,9 @@
       "kind": "root",
       "category": "war",
       "title": "As Torres da Fronteira",
-      "prompt": "Batedores avisam: um senhor da guerra está erguendo torres na fronteira leste. Atacar agora pode impedir uma guerra — ou começar uma.",
+      "prompt": "Batedores voltam da fronteira leste com notícias inquietantes: um senhor da guerra está erguendo torres de pedra no alto das colinas, de onde se avistam nossas aldeias. Ainda não há soldados nelas, só pedreiros trabalhando dia e noite. Atacar agora pode impedir uma guerra antes que ela comece — ou começar exatamente a guerra que se queria evitar.",
       "question": "O Reino deve atacar primeiro?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei prefere esmagar o inimigo antes que ele cresça." },
       "outcomes": {
         "yes": [
           {
@@ -1088,7 +1109,7 @@
       "kind": "consequence",
       "category": "war",
       "title": "O Cerco de Pedravento",
-      "prompt": "As torres da fronteira viraram um exército. O inimigo cercou o castelo de Pedravento e cortou a estrada dos grãos.",
+      "prompt": "As torres da fronteira viraram um exército. O inimigo cercou o castelo de Pedravento, onde trezentas famílias se abrigam atrás das muralhas, e cortou a estrada dos grãos que alimenta o leste. Fogueiras de sinal pedem socorro todas as noites. Romper o cerco à força custaria muitas vidas; pagar para o inimigo ir embora custaria o orgulho e o ouro do Reino.",
       "question": "O Reino deve romper o cerco à força?",
       "outcomes": {
         "yes": [
@@ -1122,8 +1143,10 @@
       "kind": "root",
       "category": "war",
       "title": "Os Desertores",
-      "prompt": "Vinte soldados desertaram depois de meses sem soldo e foram pegos bebendo numa taverna. O capitão pede um castigo exemplar.",
+      "prompt": "Vinte soldados desertaram depois de seis meses sem receber soldo e foram encontrados bebendo e cantando numa taverna da capital. O capitão, furioso, exige um castigo que ninguém esqueça: forca na praça, diante de todo o quartel. Os presos dizem que só querem o que lhes devem — e muitos dos que ainda estão nas fileiras pensam o mesmo.",
       "question": "O Reino deve enforcá-los como exemplo?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei exige justiça exemplar para desertores." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Vinte cordas na praça. Ninguém mais deserta — e ninguém mais se alista por vontade própria.",
@@ -1152,7 +1175,7 @@
       "kind": "root",
       "category": "nature",
       "title": "A Enchente do Rio Lento",
-      "prompt": "O Rio Lento transbordou. A água invade as aldeias baixas, mas os velhos dizem que a cheia deixa a terra mais fértil.",
+      "prompt": "Depois de semanas de tempestade, o Rio Lento traiu o próprio nome: subiu depressa e transbordou numa só noite. A água invade as aldeias baixas e leva cercas, animais e paredes de barro. Os velhos lavradores, porém, dizem que a cheia deixa a terra mais fértil do que nunca. Construir diques às pressas custaria ouro e braços; deixar a água correr custaria outra coisa.",
       "question": "O Reino deve construir diques às pressas?",
       "outcomes": {
         "yes": [{
@@ -1176,7 +1199,7 @@
       "kind": "consequence",
       "category": "plague",
       "title": "A Febre do Pântano",
-      "prompt": "Da água parada nasceu uma febre que derruba aldeias inteiras. Os curandeiros falam em queimar as casas infectadas.",
+      "prompt": "A água da enchente baixou, mas deixou poças paradas por toda parte, e delas nasceu uma febre que derruba aldeias inteiras em poucos dias. Os doentes tremem, deliram e ficam amarelos. Os curandeiros, sem remédio que funcione, falam em queimar as aldeias infectadas antes que a febre suba o rio até a capital.",
       "question": "O Reino deve queimar as aldeias infectadas?",
       "outcomes": {
         "yes": [{
@@ -1215,8 +1238,9 @@
       "kind": "root",
       "category": "nature",
       "title": "Os Lobos do Inverno",
-      "prompt": "Um inverno feroz trouxe matilhas de lobos às aldeias. Os camponeses pedem licença para caçar nas florestas reservadas ao Rei.",
+      "prompt": "Um inverno feroz desceu das montanhas e trouxe matilhas de lobos famintos às aldeias. Ovelhas somem à noite, e ontem uma criança foi atacada perto do moinho. Os camponeses pedem licença para caçar nas florestas reservadas ao Rei, onde ninguém além da corte pode erguer um arco. O guarda-caça real avisa: quem entra para caçar lobos sai carregando cervos.",
       "question": "O Reino deve liberar a caça nas florestas reais?",
+      "kingFavor": { "side": "no", "amount": 1, "reason": "A floresta é do Rei, e só dele." },
       "outcomes": {
         "yes": [{
           "text": "Os camponeses caçam lobos — e também cervos, javalis e lebres. As panelas se enchem; a coutada do Rei, nem tanto.",
@@ -1237,8 +1261,9 @@
       "kind": "root",
       "category": "plague",
       "title": "O Médico do Sul",
-      "prompt": "Um médico vindo do Sul afirma curar a varíola com uma pasta feita de mofo. O bispo o chama de herege e exige sua expulsão.",
+      "prompt": "Um médico vindo do Sul, de turbante e mãos manchadas de tinta, afirma curar a varíola com uma pasta feita de mofo de pão. Já salvou três crianças numa aldeia do Vale, e os pais choram de gratidão. O Bispo, porém, o chama de herege e feiticeiro e exige que seja expulso do Reino antes que espalhe suas práticas pagãs.",
       "question": "O Reino deve permitir que ele trate os doentes?",
+      "kingFavor": { "side": "no", "amount": 1, "reason": "O Rei confia no Bispo, não em curas pagãs." },
       "outcomes": {
         "yes": [
           {
@@ -1274,8 +1299,10 @@
       "kind": "root",
       "category": "feast",
       "title": "O Festival das Máscaras",
-      "prompt": "A nobreza pede um Festival das Máscaras para alegrar a capital. Mascarados nas ruas, porém, são um presente para ladrões e assassinos.",
+      "prompt": "A nobreza da capital está entediada e pede um Festival das Máscaras: três noites de bailes, música nas praças e vinho jorrando das fontes, todos com o rosto coberto por máscaras douradas. O Rei adora a ideia. O capitão da guarda, nem tanto: mascarados nas ruas são um presente para ladrões, assassinos e qualquer um que queira chegar perto demais da Coroa.",
       "question": "O Reino deve realizar o festival?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei adora as festas da corte." },
+      "openVote": true,
       "outcomes": {
         "yes": [
           {
@@ -1306,8 +1333,9 @@
       "kind": "consequence",
       "category": "crime",
       "title": "Morte no Baile",
-      "prompt": "No último baile do festival, o embaixador do reino vizinho foi encontrado morto atrás de uma tapeçaria. Ninguém viu o rosto do assassino.",
+      "prompt": "No último baile do festival, a música parou de repente. O embaixador do reino vizinho foi encontrado morto atrás de uma tapeçaria, com uma faca de cabo prateado nas costas. Ninguém viu o rosto do assassino: todos usavam máscaras. O reino vizinho exige um culpado em sete dias e não parece disposto a esperar por provas.",
       "question": "O Reino deve entregar um culpado ao reino vizinho, mesmo sem provas?",
+      "openVote": true,
       "outcomes": {
         "yes": [
           {
@@ -1345,7 +1373,7 @@
       "kind": "root",
       "category": "diplomacy",
       "title": "A Embaixada do Sul",
-      "prompt": "O Califado do Sul propõe uma rota comercial pelo deserto: especiarias e remédios em troca dos melhores cavalos de guerra do Reino.",
+      "prompt": "Uma comitiva do Califado do Sul atravessa o deserto em camelos carregados de presentes: tapetes, especiarias e frascos de remédios desconhecidos no Reino. O embaixador propõe uma rota comercial permanente pelo deserto. Em troca de especiarias e medicina, o Califado quer uma só coisa: os melhores cavalos de guerra dos estábulos do Rei.",
       "question": "O Reino deve aceitar a troca?",
       "outcomes": {
         "yes": [{
@@ -1369,7 +1397,7 @@
       "kind": "consequence",
       "category": "diplomacy",
       "title": "A Caravana Perdida",
-      "prompt": "A primeira caravana da rota do Sul desapareceu no caminho. O Califa acusa bandidos do Reino e exige uma compensação em ouro.",
+      "prompt": "A primeira caravana da nova rota do Sul nunca chegou ao destino. Encontraram apenas camelos mortos e baús vazios na beira do deserto. O Califa está furioso: acusa bandidos do nosso Reino e exige uma compensação em ouro pelas mercadorias e pelos homens perdidos. Sem ela, diz, a rota estará fechada para sempre.",
       "question": "O Reino deve pagar a compensação?",
       "outcomes": {
         "yes": [
@@ -1398,8 +1426,9 @@
       "kind": "root",
       "category": "diplomacy",
       "title": "O Sobrinho Refém",
-      "prompt": "Piratas capturaram o sobrinho do Rei numa viagem pela costa. Pedem um resgate que esvaziaria metade do cofre.",
+      "prompt": "Piratas da Costa Cinzenta capturaram o sobrinho do Rei durante uma viagem pelo litoral. Mandaram de volta o anel dele, um cacho de cabelo e um bilhete: o rapaz está vivo, por enquanto, e será devolvido em troca de um resgate que esvaziaria metade do cofre real. O Rei Osric amassa o bilhete no punho e olha para o conselho.",
       "question": "O Reino deve pagar o resgate?",
+      "kingFavor": { "side": "no", "amount": 1, "reason": "O Rei não paga resgate a piratas: para ele, isso é covardia." },
       "outcomes": {
         "yes": [{
           "text": "O sobrinho volta magro, mas vivo. Os piratas voltam para o mar, ricos e animados.",
@@ -1429,7 +1458,7 @@
       "kind": "consequence",
       "category": "war",
       "title": "Os Piratas Voltam",
-      "prompt": "Encorajados pelo ouro fácil, os piratas voltaram com três navios a mais. Agora exigem um tributo anual para deixar a costa em paz.",
+      "prompt": "Encorajados pelo ouro fácil, os piratas voltaram — agora com três navios a mais e bandeiras novas. Ancoram à vista do Porto e mandam um bote com o recado: querem um tributo anual para deixar a costa em paz. Os pescadores já não saem para o mar, e o preço do peixe triplicou nos mercados.",
       "question": "O Reino deve pagar o tributo?",
       "outcomes": {
         "yes": [{
@@ -1458,8 +1487,10 @@
       "kind": "root",
       "category": "faith",
       "title": "A Relíquia do Santo",
-      "prompt": "Um monge chega à corte com o que diz ser o osso de um santo. Peregrinos pagariam fortunas para vê-lo — se for verdadeiro.",
+      "prompt": "Um monge descalço chega à corte carregando um relicário de prata. Dentro dele, diz, está o osso do dedo de São Anselmo, que curava cegos e acalmava tempestades. Se for verdadeiro, peregrinos de todo o continente pagariam fortunas para vê-lo. O monge pede apenas um santuário digno. O Rei Osric, devoto, já se ajoelhou diante do relicário.",
       "question": "O Reino deve construir um santuário para a relíquia?",
+      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei é devoto e já se ajoelhou diante da relíquia." },
+      "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "O santuário é erguido em pedra branca. O monge sorri; as primeiras velas se acendem.",
@@ -1488,7 +1519,7 @@
       "kind": "consequence",
       "category": "faith",
       "title": "Os Peregrinos",
-      "prompt": "Milhares de peregrinos chegam ao santuário da relíquia. Trazem moedas de muitos reinos — e doenças de terras distantes.",
+      "prompt": "A fama da relíquia correu o continente. Milhares de peregrinos chegam ao santuário todos os dias: nobres em liteiras, camponeses descalços, doentes carregados em macas. Trazem moedas de muitos reinos — e também doenças de terras distantes. As ruas ao redor do santuário já não comportam tanta gente, e os hospitais começam a encher.",
       "question": "O Reino deve limitar a entrada de peregrinos?",
       "outcomes": {
         "yes": [{
@@ -1509,6 +1540,31 @@
         "tie": [{
           "text": "Uns portões abrem, outros fecham. Os peregrinos se amontoam onde dá.",
           "effects": { "health": -1, "wealth": 1 }
+        }]
+      }
+    },
+    {
+      "id": "a_mao_da_princesa",
+      "kind": "root",
+      "category": "feast",
+      "title": "A Mão da Princesa",
+      "prompt": "O Rei Osric III bate o cetro no chão três vezes, e o salão inteiro se cala. Está velho, diz, e não tem filho homem; a princesa Elara precisa de um marido digno do Trono de Pedra. Em vez de entregá-la a um príncipe estrangeiro, quer casá-la com um membro deste conselho — aquele que mais se empenhar por ela. O escolhido se tornará a Mão do Rei, e todo o favor que os outros acumularam até hoje deixará de valer.",
+      "question": "O conselho aprova que a princesa se case com um de seus membros?",
+      "special": "princess",
+      "ruleText": "Se o SIM vencer, quem apostar mais fichas votando SIM se casa com a princesa e se torna a Mão do Rei até o fim desta partida, e o Favor do Rei de todos os jogadores volta a zero. Em empate de apostas, vence quem tiver mais Favor do Rei; se o empate continuar, a princesa recusa todos.",
+      "placement": { "from": 0.25, "to": 0.75 },
+      "outcomes": {
+        "yes": [{
+          "text": "Os sinos tocam por três dias. A princesa Elara caminha até o altar pelo braço de um conselheiro, e a corte inteira entende quem fala agora ao ouvido do Rei.",
+          "effects": { "security": 1, "wealth": -1 }
+        }],
+        "no": [{
+          "text": "O conselho recusa. O Rei engole a raiva e promete a filha a um príncipe estrangeiro; um dote pesado sai do Reino junto com ela.",
+          "effects": { "wealth": -2, "security": 1 }
+        }],
+        "tie": [{
+          "text": "O conselho não decide. Cansada de esperar, a princesa foge com um capitão da guarda, e o Rei passa semanas sem falar com ninguém.",
+          "effects": { "security": -1 }
         }]
       }
     }

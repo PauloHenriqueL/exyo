@@ -43,6 +43,17 @@ export function useGameSounds(view: ClientView | null) {
       if (meBefore !== undefined && meNow !== undefined && meBefore !== meNow) play("coins", after + 300);
     }
 
+    if (phaseChanged && view.phase === "prologue") {
+      play("door");
+      play("bell", 900);
+    }
+
+    if (phaseChanged && view.phase === "reveal" && (view.reveal?.handChange || view.reveal?.princess?.winnerId)) {
+      const t = view.players.length * 400 + 900;
+      play("coins", t);
+      play("bell", t + 150);
+    }
+
     if (phaseChanged && view.phase === "intermission") {
       play("door");
       play("bell", 700);

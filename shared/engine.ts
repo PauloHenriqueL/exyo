@@ -3,10 +3,13 @@ import {
   RESOURCES,
   type Cond,
   type Dilemma,
+  type Economy,
   type FlagValue,
   type Goal,
+  type HandChange,
   type HousesFile,
   type Outcome,
+  type Resource,
   type Resources,
   type Variant,
   type Vote,
@@ -38,8 +41,12 @@ export interface GameState {
   deck: string[]; // ids de cartas raiz, na ordem de compra
   queue: Scheduled[];
   played: string[];
-  tokens: Record<string, number>;
+  tokens: Record<string, number>; // fichas de voto
   goals: Record<string, Goal>;
+  favor: Record<string, number>; // Favor do Rei
+  hand: string; // quem tem o token de Mão do Rei
+  handLocked: boolean; // travado pela carta da princesa até o fim da partida
+  handBonus: number;
 }
 
 /** PRNG determinístico (mulberry32) para reproduzir partidas pela seed. */
@@ -82,18 +89,24 @@ export function createGame(
   seed: number,
   totalRounds = 12,
   totalMatches = 1,
+  economy: Economy = houses.economy,
 ): GameState {
   const rand = rng(seed);
   const goals: Record<string, Goal> = {};
   const tokens: Record<string, number> = {};
+  const favor: Record<string, number> = {};
   const houseOf: Record<string, string> = {};
   for (const p of players) {
     houseOf[p.id] = p.houseId;
     const house = houses.houses.find((h) => h.id === p.houseId);
     if (!house) throw new Error(`Casa desconhecida: ${p.houseId}`);
     goals[p.id] = house.goals[Math.floor(rand() * house.goals.length)];
-    tokens[p.id] = 0;
+    tokens[p.id] = economy.startingTokens;
+    favor[p.id] = economy.startingFavor;
   }
+  // A primeira Mão do Rei é sorteada e já começa com o bônus.
+  const hand = players[Math.floor(rand() * players.length)].id;
+  tokens[hand] += economy.handBonus;
   return {
     round: 0,
     totalRounds,
@@ -104,12 +117,34 @@ export function createGame(
     history: [],
     resources: { ...houses.initialResources },
     flags: {},
-    deck: shuffle(dilemmas.filter((d) => d.kind === "root").map((d) => d.id), rand),
+    deck: buildDeck(dilemmas, rand, totalRounds * totalMatches),
     queue: [],
     played: [],
     tokens,
     goals,
+    favor,
+    hand,
+    handLocked: false,
+    handBonus: economy.handBonus,
   };
+}
+
+/**
+ * Embaralha as cartas raiz; cartas com `placement` vão para uma posição sorteada dentro da faixa,
+ * dada como fração das rodadas da campanha (assim a carta aparece qualquer que seja a duração).
+ * Consequências também ocupam rodadas, por isso a faixa é aplicada a ~70% das rodadas.
+ */
+function buildDeck(dilemmas: Dilemma[], rand: () => number, campaignRounds: number): string[] {
+  const roots = dilemmas.filter((d) => d.kind === "root");
+  const deck = shuffle(roots.filter((d) => !d.placement).map((d) => d.id), rand);
+  const rootRounds = Math.max(1, Math.floor(campaignRounds * 0.7));
+  for (const d of roots.filter((x) => x.placement)) {
+    const { from, to } = d.placement!;
+    const lo = Math.max(0, Math.min(Math.floor(from * rootRounds), deck.length));
+    const hi = Math.max(lo, Math.min(Math.floor(to * rootRounds), deck.length));
+    deck.splice(lo + Math.floor(rand() * (hi - lo + 1)), 0, d.id);
+  }
+  return deck;
 }
 
 /** Rodada atual dentro da partida (1..totalRounds). */
@@ -139,7 +174,7 @@ export function startNextMatch(s: GameState, houses: HousesFile): GameState {
     const fresh = house.goals.filter((g) => !used.has(g.id));
     goals[pid] = (fresh.length ? fresh : house.goals.filter((g) => g.id !== s.goals[pid]?.id))[0] ?? s.goals[pid];
   }
-  return { ...s, match: s.match + 1, matchStartRound: s.round, history, goals };
+  return { ...s, match: s.match + 1, matchStartRound: s.round, history, goals, handLocked: false };
 }
 
 /** Pontos somados de todas as partidas (encerradas + a atual). */
@@ -170,20 +205,32 @@ export function drawCard(s: GameState, byId: Record<string, Dilemma>): { state: 
 
 export function isValidVote(v: Vote, available: number): boolean {
   if (!["yes", "no", "abstain"].includes(v.choice)) return false;
-  if (!Number.isInteger(v.tokens) || v.tokens < 0 || v.tokens > available) return false;
+  if (v.steal !== undefined && (v.choice === "abstain" || !RESOURCES.includes(v.steal))) return false;
+  const max = available + (v.steal ? 1 : 0); // a ficha roubada já pode ser usada neste voto
+  if (!Number.isInteger(v.tokens) || v.tokens < 0 || v.tokens > max) return false;
   if (v.choice === "abstain" && v.tokens !== 0) return false;
   return true;
 }
 
-export function tally(votes: Record<string, Vote>): { outcome: Outcome; yesWeight: number; noWeight: number } {
+/** Soma os pesos (1 + fichas). Num empate, vence o lado em que a Mão do Rei votou; se ela se absteve, é Indecisão. */
+export function tally(
+  votes: Record<string, Vote>,
+  hand?: string,
+): { outcome: Outcome; yesWeight: number; noWeight: number; tiebreakByHand: boolean } {
   let yesWeight = 0;
   let noWeight = 0;
   for (const v of Object.values(votes)) {
     if (v.choice === "yes") yesWeight += 1 + v.tokens;
     if (v.choice === "no") noWeight += 1 + v.tokens;
   }
-  const outcome: Outcome = yesWeight > noWeight ? "yes" : noWeight > yesWeight ? "no" : "tie";
-  return { outcome, yesWeight, noWeight };
+  let outcome: Outcome = yesWeight > noWeight ? "yes" : noWeight > yesWeight ? "no" : "tie";
+  let tiebreakByHand = false;
+  const handVote = hand ? votes[hand]?.choice : undefined;
+  if (outcome === "tie" && (yesWeight > 0 || noWeight > 0) && (handVote === "yes" || handVote === "no")) {
+    outcome = handVote;
+    tiebreakByHand = true;
+  }
+  return { outcome, yesWeight, noWeight, tiebreakByHand };
 }
 
 export function pickVariant(card: Dilemma, outcome: Outcome, s: GameState): Variant {
@@ -192,23 +239,44 @@ export function pickVariant(card: Dilemma, outcome: Outcome, s: GameState): Vari
   return v;
 }
 
-export function resolveRound(
-  s: GameState,
-  card: Dilemma,
-  votes: Record<string, Vote>,
-): { state: GameState; outcome: Outcome; yesWeight: number; noWeight: number; variant: Variant; deltas: Partial<Resources> } {
-  const { outcome, yesWeight, noWeight } = tally(votes);
-  const variant = pickVariant(card, outcome, s);
+export interface RoundResult {
+  state: GameState;
+  outcome: Outcome;
+  yesWeight: number;
+  noWeight: number;
+  tiebreakByHand: boolean;
+  variant: Variant;
+  deltas: Partial<Resources>; // variação total (roubos + carta)
+  steals: { playerId: string; resource: Resource }[];
+  favorGains: Record<string, number>;
+  handChange: HandChange | null;
+  princess: { winnerId: string | null } | null;
+}
 
+const clamp = (v: number) => Math.max(MIN_RES, Math.min(MAX_RES, v));
+
+export function resolveRound(s: GameState, card: Dilemma, votes: Record<string, Vote>): RoundResult {
+  // 1. Roubos do Reino: cada um tira 1 ponto do recurso escolhido e já rendeu 1 ficha ao ladrão.
   const resources = { ...s.resources };
-  const deltas: Partial<Resources> = {};
+  const steals: RoundResult["steals"] = [];
+  for (const [pid, v] of Object.entries(votes)) {
+    if (v.steal && v.choice !== "abstain") {
+      resources[v.steal] = clamp(resources[v.steal] - 1);
+      steals.push({ playerId: pid, resource: v.steal });
+    }
+  }
+
+  // 2. Votação (empate: decide a Mão do Rei).
+  const { outcome, yesWeight, noWeight, tiebreakByHand } = tally(votes, s.hand);
+  const variant = pickVariant(card, outcome, { ...s, resources });
+
+  // 3. Efeitos da carta.
   for (const r of RESOURCES) {
     const d = variant.effects[r];
-    if (!d) continue;
-    const before = resources[r];
-    resources[r] = Math.max(MIN_RES, Math.min(MAX_RES, before + d));
-    deltas[r] = resources[r] - before;
+    if (d) resources[r] = clamp(resources[r] + d);
   }
+  const deltas: Partial<Resources> = {};
+  for (const r of RESOURCES) if (resources[r] !== s.resources[r]) deltas[r] = resources[r] - s.resources[r];
 
   const flags = { ...s.flags };
   for (const [k, v] of Object.entries(variant.setFlags ?? {})) {
@@ -222,12 +290,73 @@ export function resolveRound(
     }
   }
 
+  // 4. Fichas de voto: abster rende 1; votar gasta as fichas apostadas; roubar rende 1.
   const tokens = { ...s.tokens };
   for (const [pid, v] of Object.entries(votes)) {
-    tokens[pid] = v.choice === "abstain" ? (tokens[pid] ?? 0) + 1 : (tokens[pid] ?? 0) - v.tokens;
+    const t = tokens[pid] ?? 0;
+    tokens[pid] = v.choice === "abstain" ? t + 1 : t - v.tokens + (v.steal ? 1 : 0);
   }
 
-  return { state: { ...s, resources, flags, queue, tokens }, outcome, yesWeight, noWeight, variant, deltas };
+  // 5. Favor do Rei: quem votou no lado que agrada ao Rei ganha favor, vença ou perca.
+  let favor = { ...s.favor };
+  const favorGains: Record<string, number> = {};
+  if (card.kingFavor) {
+    for (const [pid, v] of Object.entries(votes)) {
+      if (v.choice === card.kingFavor.side) {
+        favor[pid] = (favor[pid] ?? 0) + card.kingFavor.amount;
+        favorGains[pid] = card.kingFavor.amount;
+      }
+    }
+  }
+
+  // 6. Mão do Rei.
+  let hand = s.hand;
+  let handLocked = s.handLocked;
+  let handChange: HandChange | null = null;
+  let princess: RoundResult["princess"] = null;
+  const giveHand = (to: string, reason: HandChange["reason"]) => {
+    const bonus = to === hand ? 0 : s.handBonus;
+    tokens[to] = (tokens[to] ?? 0) + bonus;
+    handChange = { from: hand, to, reason, bonus };
+    hand = to;
+  };
+
+  if (card.special === "princess" && outcome === "yes") {
+    // Quem apostou mais fichas no SIM se casa com a princesa; empate: maior Favor do Rei; persistindo, ninguém.
+    const yesVoters = Object.entries(votes).filter(([, v]) => v.choice === "yes");
+    const top = Math.max(...yesVoters.map(([, v]) => v.tokens));
+    let tied = yesVoters.filter(([, v]) => v.tokens === top).map(([pid]) => pid);
+    if (tied.length > 1) {
+      const bestFavor = Math.max(...tied.map((pid) => favor[pid] ?? 0));
+      tied = tied.filter((pid) => (favor[pid] ?? 0) === bestFavor);
+    }
+    const winnerId = tied.length === 1 ? tied[0] : null;
+    princess = { winnerId };
+    if (winnerId) {
+      giveHand(winnerId, "princess");
+      handLocked = true;
+      favor = Object.fromEntries(Object.keys(favor).map((pid) => [pid, 0]));
+    }
+  } else if (!handLocked) {
+    // Quem tiver sozinho o maior Favor do Rei toma o token; empate com a Mão atual não muda nada.
+    const max = Math.max(...Object.values(favor));
+    const leaders = Object.keys(favor).filter((pid) => favor[pid] === max);
+    if (leaders.length === 1 && leaders[0] !== hand) giveHand(leaders[0], "favor");
+  }
+
+  return {
+    state: { ...s, resources, flags, queue, tokens, favor, hand, handLocked },
+    outcome,
+    yesWeight,
+    noWeight,
+    tiebreakByHand,
+    variant,
+    deltas,
+    steals,
+    favorGains,
+    handChange,
+    princess,
+  };
 }
 
 export function isCollapsed(s: Pick<GameState, "resources">): boolean {
