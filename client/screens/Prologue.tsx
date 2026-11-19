@@ -19,12 +19,15 @@ export function Prologue({ view, room }: { view: ClientView; room: Room }) {
 
   return (
     <main className="page prologue">
-      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <p className="kicker">O conselho se reúne diante do trono</p>
-        <h1>
-          Rei {KING.name}, {KING.epithet}
-        </h1>
-        <p className="lead">{KING.intro}</p>
+      <motion.header className="king-head" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <img className="king-portrait" src="/art/king.webp" alt={`Retrato do Rei ${KING.name}`} width={240} height={320} />
+        <div>
+          <p className="kicker">O conselho se reúne diante do trono</p>
+          <h1>
+            Rei {KING.name}, {KING.epithet}
+          </h1>
+          <p className="lead">{KING.intro}</p>
+        </div>
       </motion.header>
 
       <div className="king-grid">

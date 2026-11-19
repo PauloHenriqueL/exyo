@@ -69,6 +69,13 @@ export function Table({ view, room }: { view: ClientView; room: Room }) {
                 exit={{ x: 300, opacity: 0, rotate: 8 }}
                 transition={{ type: "spring", stiffness: 120, damping: 16 }}
               >
+                <div className="card-art">
+                  <img
+                    src={card.special === "princess" ? "/art/cards/princess.webp" : `/art/cards/${card.category}.webp`}
+                    alt=""
+                    decoding="async"
+                  />
+                </div>
                 <div className="badges">
                   <span className="cat" style={{ background: cat.color }}>
                     {cat.icon} {cat.label}
@@ -254,6 +261,7 @@ function RevealPanel({ view }: { view: ClientView }) {
           {OUTCOME_LABEL[r.outcome]} <span className="muted">(SIM {r.yesWeight} × NÃO {r.noWeight})</span>
         </h3>
         {r.tiebreakByHand && <p className="event">⚖ Empate! Decidiu o voto da Mão do Rei.</p>}
+        <KingReaction view={view} />
         <p className="narrative">{r.text}</p>
         <p className="deltas">
           {Object.entries(r.deltas).map(([k, d]) => (
@@ -290,6 +298,33 @@ function RevealPanel({ view }: { view: ClientView }) {
   );
 }
 
+/** Nas cartas de Favor do Rei, o Rei reage ao desfecho; na carta da princesa, ela aparece. */
+function KingReaction({ view }: { view: ClientView }) {
+  const r = view.reveal!;
+  const card = view.card;
+  if (card?.special === "princess" && r.princess) {
+    return (
+      <div className="king-reaction">
+        <img src="/art/princess.webp" alt="A princesa Elara" width={72} height={96} />
+        <p>{r.princess.winnerId ? "A princesa Elara aceita o pretendente." : "A princesa Elara recusa todos os pretendentes."}</p>
+      </div>
+    );
+  }
+  if (!card?.kingFavor) return null;
+  const pleased = r.outcome === card.kingFavor.side;
+  return (
+    <motion.div
+      className={`king-reaction ${pleased ? "pleased" : "displeased"}`}
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.3 }}
+    >
+      <img src={pleased ? "/art/king-pleased.webp" : "/art/king.webp"} alt="O Rei Osric" width={72} height={96} />
+      <p>{pleased ? "O Rei Osric sorri. O conselho decidiu como ele queria." : "O Rei Osric franze a testa. Não era isso que ele queria."}</p>
+    </motion.div>
+  );
+}
+
 function Players({ view }: { view: ClientView }) {
   const maxFavor = Math.max(10, ...view.players.map((p) => p.favor));
   return (
@@ -300,7 +335,7 @@ function Players({ view }: { view: ClientView }) {
         return (
           <li key={p.id} className={`${p.connected ? "" : "off"} ${p.id === view.me.id ? "me" : ""} ${p.isHand ? "hand" : ""}`}>
             <span className="crest-wrap">
-              <Crest house={h} size={30} />
+              <Crest house={h} size={44} />
               {p.isHand && <HandCrown />}
             </span>
             <span className="favor-meter" title={`Favor do Rei: ${p.favor}`} aria-label={`Favor do Rei de ${p.name}: ${p.favor}`}>
