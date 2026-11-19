@@ -4,7 +4,7 @@
     {
       "name": "dev-rapido",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "DISCUSSION_SEC=60 VOTE_SEC=30 REVEAL_SEC=5 TOTAL_ROUNDS=3 npm run dev"],
+      "runtimeArgs": ["-c", "DISCUSSION_SEC=60 VOTE_SEC=30 REVEAL_SEC=5 TOTAL_ROUNDS=3 TOTAL_MATCHES=2 INTERMISSION_SEC=30 npm run dev"],
       "port": 5173
     }
   ]

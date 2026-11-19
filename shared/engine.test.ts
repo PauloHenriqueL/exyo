@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { DILEMMAS, DILEMMA_BY_ID, HOUSES } from "./content";
-import { createGame, drawCard, evalCond, isCollapsed, isValidVote, resolveRound, scoreGoal, tally } from "./engine";
+import {
+  campaignPoints,
+  createGame,
+  drawCard,
+  evalCond,
+  isCollapsed,
+  isMatchOver,
+  isValidVote,
+  matchRound,
+  resolveRound,
+  scoreGoal,
+  startNextMatch,
+  tally,
+} from "./engine";
 import type { Vote } from "./types";
 
 const players = [
@@ -95,5 +108,72 @@ describe("partida", () => {
       s = resolveRound(d.state, d.card, { a: { choice: i % 2 ? "yes" : "no", tokens: 0 } }).state;
     }
     expect(s.round).toBeGreaterThan(0);
+  });
+});
+
+describe("campanha de 2 partidas", () => {
+  function playMatch(s: ReturnType<typeof createGame>) {
+    while (!isMatchOver(s)) {
+      const d = drawCard(s, DILEMMA_BY_ID);
+      s = resolveRound(d.state, d.card!, { a: { choice: "abstain", tokens: 0 }, b: { choice: "yes", tokens: 0 } }).state;
+    }
+    return s;
+  }
+
+  it("a partida acaba depois de 12 rodadas e a próxima herda o Reino", () => {
+    let s = createGame(DILEMMAS, HOUSES, players, 11, 12, 2);
+    s = playMatch(s);
+    expect(s.round).toBe(12);
+    expect(matchRound(s)).toBe(12);
+
+    const before = s;
+    const next = startNextMatch(s, HOUSES);
+    expect(next.match).toBe(2);
+    expect(matchRound(next)).toBe(0);
+    expect(isMatchOver(next)).toBe(false);
+    // Reino herdado: recursos, fichas, flags, fila e cartas jogadas.
+    expect(next.resources).toEqual(before.resources);
+    expect(next.tokens).toEqual(before.tokens);
+    expect(next.flags).toEqual(before.flags);
+    expect(next.queue).toEqual(before.queue);
+    expect(next.played).toEqual(before.played);
+    expect(next.tokens.a).toBeGreaterThan(0); // "a" absteve-se 12 vezes
+  });
+
+  it("cada jogador recebe o outro objetivo da própria Casa", () => {
+    const s = createGame(DILEMMAS, HOUSES, players, 5, 12, 2);
+    const next = startNextMatch(s, HOUSES);
+    for (const p of players) {
+      const house = HOUSES.houses.find((h) => h.id === p.houseId)!;
+      expect(next.goals[p.id].id).not.toBe(s.goals[p.id].id);
+      expect(house.goals.map((g) => g.id)).toContain(next.goals[p.id].id);
+    }
+    expect(next.history).toHaveLength(1);
+    expect(next.history[0].goals).toEqual(s.goals);
+  });
+
+  it("os pontos da campanha somam as partidas", () => {
+    let s = createGame(DILEMMAS, HOUSES, players, 9, 12, 2);
+    s = playMatch(s);
+    const first = Object.fromEntries(players.map((p) => [p.id, scoreGoal(s.goals[p.id], s.resources, HOUSES.ranges)]));
+    s = playMatch(startNextMatch(s, HOUSES));
+    const second = Object.fromEntries(players.map((p) => [p.id, scoreGoal(s.goals[p.id], s.resources, HOUSES.ranges)]));
+    const total = campaignPoints(s, HOUSES.ranges);
+    for (const p of players) expect(total[p.id]).toBe(first[p.id] + second[p.id]);
+  });
+
+  it("nenhuma carta se repete nas 24 rodadas", () => {
+    let s = playMatch(createGame(DILEMMAS, HOUSES, players, 21, 12, 2));
+    s = playMatch(startNextMatch(s, HOUSES));
+    expect(s.round).toBe(24);
+    expect(new Set(s.played).size).toBe(24);
+  });
+
+  it("carta cujo requisito ainda não vale fica no baralho para depois", () => {
+    let s = createGame(DILEMMAS, HOUSES, players, 1);
+    s = { ...s, resources: { ...s.resources, food: -5 }, deck: ["banquete_da_colheita", "cometa", ...s.deck.filter((d) => d !== "banquete_da_colheita" && d !== "cometa")] };
+    const d = drawCard(s, DILEMMA_BY_ID);
+    expect(d.card?.id).toBe("cometa");
+    expect(d.state.deck[0]).toBe("banquete_da_colheita");
   });
 });

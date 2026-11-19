@@ -6,12 +6,15 @@ import {
   createGame,
   drawCard,
   isCollapsed,
+  isMatchOver,
   isValidVote,
+  matchRound,
   resolveRound,
-  scoreGoal,
+  scoreMatch,
+  startNextMatch,
   type GameState,
 } from "../shared/engine";
-import type { ClientView, Dilemma, FinalInfo, Phase, RevealInfo, Vote } from "../shared/types";
+import type { ClientView, Dilemma, FinalInfo, IntermissionInfo, Phase, RevealInfo, Vote } from "../shared/types";
 import { endMatch, logEvent, playerByToken, startMatch, type PlayerRow } from "./db";
 
 const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 3); // mesa mínima (humanos + bots)
@@ -20,7 +23,9 @@ const MAX_PLAYERS = Number(process.env.MAX_PLAYERS ?? 4);
 const DISCUSSION_MS = Number(process.env.DISCUSSION_SEC ?? 180) * 1000;
 const VOTE_MS = Number(process.env.VOTE_SEC ?? 45) * 1000;
 const REVEAL_MS = Number(process.env.REVEAL_SEC ?? 12) * 1000;
-const TOTAL_ROUNDS = Number(process.env.TOTAL_ROUNDS ?? 12);
+const TOTAL_ROUNDS = Number(process.env.TOTAL_ROUNDS ?? 12); // rodadas por partida
+const TOTAL_MATCHES = Number(process.env.TOTAL_MATCHES ?? 2); // partidas por campanha (o Reino é herdado)
+const INTERMISSION_MS = Number(process.env.INTERMISSION_SEC ?? 60) * 1000;
 const IDLE_DISPOSE_MS = 30 * 60 * 1000;
 
 interface Seat {
@@ -44,6 +49,7 @@ export class KingdomRoom extends Room {
   private votes: Record<string, Vote> = {};
   private ready = new Set<string>(); // quem já clicou "Pronto para votar" nesta rodada
   private reveal: RevealInfo | null = null;
+  private intermission: IntermissionInfo | null = null;
   private final: FinalInfo | null = null;
   private deadline: number | null = null;
   private timer: Delayed | null = null;
@@ -119,11 +125,12 @@ export class KingdomRoom extends Room {
 
   private markReady(client: Client) {
     const seat = this.seatOf(client);
-    if (!seat || this.phase !== "discussion") return;
+    if (!seat || (this.phase !== "discussion" && this.phase !== "intermission")) return;
     this.ready.add(seat.id);
-    // Todos os humanos prontos (bots contam como prontos): a votação abre já.
-    if (this.seats.every((s) => s.isBot || this.ready.has(s.id))) this.startVoting();
-    else this.broadcastViews();
+    // Todos os humanos prontos (bots contam como prontos): avança já.
+    if (!this.seats.every((s) => s.isBot || this.ready.has(s.id))) return this.broadcastViews();
+    if (this.phase === "discussion") this.startVoting();
+    else this.nextRound();
   }
 
   private castVote(client: Client, vote: Vote) {
@@ -149,6 +156,7 @@ export class KingdomRoom extends Room {
       this.seats.map((s) => ({ id: s.id, houseId: s.houseId! })),
       seed,
       TOTAL_ROUNDS,
+      TOTAL_MATCHES,
     );
     this.lock();
     startMatch(this.matchId, this.roomCode, seed);
@@ -192,7 +200,9 @@ export class KingdomRoom extends Room {
 
   private nextRound() {
     if (!this.game) return;
-    if (this.game.round >= this.game.totalRounds) return this.finish(false);
+    if (isMatchOver(this.game)) {
+      return this.game.match < this.game.totalMatches ? this.startIntermission() : this.finish(false);
+    }
     const { state, card } = drawCard(this.game, DILEMMA_BY_ID);
     if (!card) return this.finish(false);
     this.game = state;
@@ -200,7 +210,8 @@ export class KingdomRoom extends Room {
     this.votes = {};
     this.ready = new Set();
     this.reveal = null;
-    logEvent(this.matchId, "draw", { round: state.round, card: card.id });
+    this.intermission = null;
+    logEvent(this.matchId, "draw", { match: state.match, round: matchRound(state), card: card.id });
     this.setPhase("discussion", DISCUSSION_MS, () => this.startVoting());
   }
 
@@ -227,16 +238,40 @@ export class KingdomRoom extends Room {
     this.setPhase("reveal", REVEAL_MS, () => (collapsed ? this.finish(true) : this.nextRound()));
   }
 
+  /** Fim de uma partida que não é a última: placar parcial (sem objetivos) e o Reino segue para a próxima. */
+  private startIntermission() {
+    if (!this.game) return;
+    const points = scoreMatch(this.game, HOUSES.ranges);
+    const finishedMatch = this.game.match;
+    this.game = startNextMatch(this.game, HOUSES);
+    const history = this.game.history;
+    const total = (pid: string) => history.reduce((acc, m) => acc + (m.points[pid] ?? 0), 0);
+    this.intermission = {
+      finishedMatch,
+      scores: this.seats.map((s) => ({ playerId: s.id, points: points[s.id] ?? 0, total: total(s.id) })),
+    };
+    this.card = null;
+    this.reveal = null;
+    this.votes = {};
+    this.ready = new Set();
+    logEvent(this.matchId, "intermission", { finishedMatch, points, newGoals: this.game.goals, resources: this.game.resources });
+    this.setPhase("intermission", INTERMISSION_MS, () => this.nextRound());
+  }
+
   private finish(collapsed: boolean) {
     if (!this.game) return;
+    const g = this.game;
+    const current = scoreMatch(g, HOUSES.ranges);
     const scores = this.seats.map((s) => {
-      const goal = this.game!.goals[s.id];
+      const goals = [...g.history.map((m) => m.goals[s.id]), g.goals[s.id]];
+      const matchPoints = [...g.history.map((m) => m.points[s.id] ?? 0), current[s.id] ?? 0];
       return {
         playerId: s.id,
         houseId: s.houseId!,
-        goal,
-        points: collapsed ? 0 : scoreGoal(goal, this.game!.resources, HOUSES.ranges),
-        tokens: this.game!.tokens[s.id] ?? 0,
+        goals,
+        matchPoints: collapsed ? matchPoints.map(() => 0) : matchPoints,
+        points: collapsed ? 0 : matchPoints.reduce((a, b) => a + b, 0),
+        tokens: g.tokens[s.id] ?? 0,
       };
     });
     let winnerIds: string[] = [];
@@ -248,6 +283,7 @@ export class KingdomRoom extends Room {
     }
     this.final = { collapsed, scores, winnerIds };
     this.card = null;
+    this.intermission = null;
     endMatch(this.matchId, { ...this.final, resources: this.game.resources });
     this.setPhase("end", null);
   }
@@ -259,8 +295,10 @@ export class KingdomRoom extends Room {
     return {
       roomCode: this.roomCode,
       phase: this.phase,
-      round: g?.round ?? 0,
+      round: g ? matchRound(g) : 0,
       totalRounds: g?.totalRounds ?? TOTAL_ROUNDS,
+      match: g?.match ?? 1,
+      totalMatches: g?.totalMatches ?? TOTAL_MATCHES,
       minPlayers: MIN_PLAYERS,
       minHumans: MIN_HUMANS,
       maxPlayers: MAX_PLAYERS,
@@ -280,6 +318,7 @@ export class KingdomRoom extends Room {
         ? { id: this.card.id, category: this.card.category, title: this.card.title, prompt: this.card.prompt, question: this.card.question }
         : null,
       reveal: this.reveal,
+      intermission: this.intermission,
       final: this.final,
       me: {
         id: seat?.id ?? "",

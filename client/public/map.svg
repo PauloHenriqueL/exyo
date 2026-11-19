@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+  <!-- Mapa provisório do Reino. Substitua client/public/map.jpg pela ilustração definitiva. -->
+  <defs>
+    <radialGradient id="parch" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#e9d6a8"/>
+      <stop offset="0.7" stop-color="#d4b87e"/>
+      <stop offset="1" stop-color="#a8844a"/>
+    </radialGradient>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="14"/></filter>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.12  0 0 0 0.18 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <pattern id="waves" width="60" height="24" patternUnits="userSpaceOnUse">
+      <path d="M0 12 q15 -8 30 0 t30 0" fill="none" stroke="#5b7b86" stroke-width="1.4" opacity=".5"/>
+    </pattern>
+    <g id="mtn"><path d="M-34 18 L-8 -26 L4 -8 L14 -20 L36 18 Z" fill="#b39060" stroke="#4a3520" stroke-width="2.4"/><path d="M-8 -26 L-2 18 M14 -20 L8 18" stroke="#4a3520" stroke-width="1.4" opacity=".6"/></g>
+    <g id="tree"><circle r="13" fill="#6f7d43" stroke="#33391c" stroke-width="2"/><path d="M0 12 V24" stroke="#33391c" stroke-width="3"/></g>
+    <g id="keep"><path d="M-22 16 V-10 h8 v-8 h6 v8 h16 v-8 h6 v8 h8 V16 Z" fill="#cdb07a" stroke="#3b2814" stroke-width="2.6"/><path d="M-4 16 v-12 h8 v12" fill="#3b2814"/></g>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#parch)"/>
+
+  <!-- mar a leste e ao sul -->
+  <path filter="url(#rough)" d="M1600 0 H1240 C1200 120 1290 210 1230 330 C1170 450 1280 520 1230 640 C1190 740 1050 790 980 860 C930 910 820 940 760 1000 H1600 Z" fill="#8fa7a8" stroke="#3e5459" stroke-width="4"/>
+  <path d="M1600 0 H1240 C1200 120 1290 210 1230 330 C1170 450 1280 520 1230 640 C1190 740 1050 790 980 860 C930 910 820 940 760 1000 H1600 Z" fill="url(#waves)" opacity=".8"/>
+
+  <!-- montanhas do norte -->
+  <g opacity=".95">
+    <use href="#mtn" x="220" y="120"/><use href="#mtn" x="300" y="95"/><use href="#mtn" x="380" y="125"/>
+    <use href="#mtn" x="470" y="90"/><use href="#mtn" x="560" y="115"/><use href="#mtn" x="650" y="85"/>
+    <use href="#mtn" x="740" y="118"/><use href="#mtn" x="830" y="92"/><use href="#mtn" x="920" y="122"/>
+    <use href="#mtn" x="1010" y="98"/><use href="#mtn" x="1090" y="130"/>
+  </g>
+  <!-- Muralha do Norte -->
+  <path d="M170 205 C420 175 760 215 1140 190" fill="none" stroke="#3b2814" stroke-width="9" stroke-linecap="round"/>
+  <path d="M170 205 C420 175 760 215 1140 190" fill="none" stroke="#cdb07a" stroke-width="4" stroke-dasharray="10 8"/>
+
+  <!-- Floresta a oeste -->
+  <g>
+    <use href="#tree" x="120" y="380"/><use href="#tree" x="160" y="420"/><use href="#tree" x="110" y="460"/>
+    <use href="#tree" x="200" y="380"/><use href="#tree" x="230" y="440"/><use href="#tree" x="170" y="500"/>
+    <use href="#tree" x="90" y="540"/><use href="#tree" x="250" y="510"/><use href="#tree" x="140" y="580"/>
+    <use href="#tree" x="210" y="590"/><use href="#tree" x="280" y="460"/><use href="#tree" x="80" y="420"/>
+    <use href="#tree" x="300" y="560"/><use href="#tree" x="120" y="640"/><use href="#tree" x="190" y="660"/>
+  </g>
+
+  <!-- Rio Lento -->
+  <path d="M560 215 C540 320 640 380 610 470 C580 560 700 640 760 700 C830 770 900 800 990 850" fill="none" stroke="#5b7b86" stroke-width="10" stroke-linecap="round"/>
+  <path d="M560 215 C540 320 640 380 610 470 C580 560 700 640 760 700 C830 770 900 800 990 850" fill="none" stroke="#a9c1c2" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Estrada do Rei -->
+  <path d="M260 760 C420 700 560 560 700 520 C840 480 980 470 1150 430" fill="none" stroke="#7a5a32" stroke-width="5" stroke-dasharray="14 10"/>
+
+  <!-- vale e campos -->
+  <g stroke="#7a6a2c" stroke-width="2" opacity=".55">
+    <path d="M660 600 h70 M650 616 h90 M664 632 h66"/><path d="M820 560 h60 M812 576 h80 M824 592 h58"/><path d="M470 640 h60 M462 656 h80"/>
+  </g>
+
+  <!-- capital, Pedravento, porto, aldeias -->
+  <g transform="translate(720 470) scale(1.6)"><use href="#keep"/></g>
+  <use href="#keep" x="1150" y="410"/>
+  <use href="#keep" x="1000" y="830"/>
+  <g fill="#3b2814"><circle cx="470" cy="610" r="7"/><circle cx="880" cy="640" r="7"/><circle cx="360" cy="300" r="7"/><circle cx="960" cy="300" r="7"/></g>
+
+  <!-- nomes -->
+  <g font-family="Georgia, serif" fill="#3b2814" text-anchor="middle">
+    <text x="660" y="58" font-size="30" letter-spacing="8" font-variant="small-caps">Montes do Norte</text>
+    <text x="680" y="238" font-size="20" font-style="italic">Muralha do Norte</text>
+    <text x="190" y="340" font-size="24" font-style="italic">Floresta do Rei</text>
+    <text x="740" y="545" font-size="30" font-weight="bold" letter-spacing="3">A Capital</text>
+    <text x="1150" y="460" font-size="22">Pedravento</text>
+    <text x="1000" y="880" font-size="22">O Porto</text>
+    <text x="640" y="680" font-size="20" font-style="italic">O Vale</text>
+    <text x="555" y="430" font-size="18" font-style="italic" transform="rotate(-70 555 430)">Rio Lento</text>
+    <text x="430" y="705" font-size="18" font-style="italic" transform="rotate(-22 430 705)">Estrada do Rei</text>
+    <text x="1430" y="560" font-size="28" font-style="italic" fill="#2d4146">Mar Cinzento</text>
+    <text x="1380" y="140" font-size="18" font-style="italic" fill="#2d4146">rumo ao Leste</text>
+    <text x="1250" y="960" font-size="18" font-style="italic" fill="#2d4146">rumo ao Sul</text>
+  </g>
+
+  <!-- rosa dos ventos -->
+  <g transform="translate(150 860)" stroke="#3b2814" stroke-width="2">
+    <circle r="56" fill="none"/><circle r="44" fill="none" stroke-dasharray="3 5"/>
+    <path d="M0 -70 L10 0 L0 70 L-10 0 Z" fill="#7a5a32"/><path d="M-70 0 L0 10 L70 0 L0 -10 Z" fill="#cdb07a"/>
+    <text y="-78" font-family="Georgia, serif" font-size="20" text-anchor="middle" fill="#3b2814" stroke="none">N</text>
+  </g>
+
+  <rect width="1600" height="1000" filter="url(#grain)" fill="#000"/>
+  <rect x="14" y="14" width="1572" height="972" fill="none" stroke="#4a3520" stroke-width="6"/>
+  <rect x="26" y="26" width="1548" height="948" fill="none" stroke="#4a3520" stroke-width="2"/>
+</svg>

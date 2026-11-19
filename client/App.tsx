@@ -6,6 +6,9 @@ import { Login } from "./screens/Login";
 import { Lobby } from "./screens/Lobby";
 import { Table } from "./screens/Table";
 import { Final } from "./screens/Final";
+import { Intermission } from "./screens/Intermission";
+import { MuteButton } from "./components/MuteButton";
+import { useGameSounds } from "./useGameSounds";
 
 export function App() {
   const [session, setSession] = useState<Session | null>(loadSession);
@@ -13,6 +16,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "connecting" | "connected" | "lost">("idle");
   const roomRef = useRef<Room | null>(null);
+  useGameSounds(view);
 
   // Garante uma URL /sala/CODIGO compartilhável.
   const [roomCode] = useState(() => {
@@ -62,7 +66,9 @@ export function App() {
 
   if (!session) {
     return (
-      <Login
+      <>
+        <MuteButton />
+        <Login
         roomCode={roomCode}
         error={error}
         onLogin={(s) => {
@@ -70,12 +76,14 @@ export function App() {
           setSession(s);
         }}
       />
+      </>
     );
   }
 
   const room = roomRef.current;
   return (
     <>
+      <MuteButton />
       {status !== "connected" && (
         <div className="banner" role="status">
           {status === "lost" ? `Conexão perdida${error ? `: ${error}` : ""}. Tentando de novo…` : "Conectando à sala…"}
@@ -86,6 +94,8 @@ export function App() {
           <Lobby view={view} room={room} />
         ) : view.phase === "end" ? (
           <Final view={view} />
+        ) : view.phase === "intermission" ? (
+          <Intermission view={view} room={room} />
         ) : (
           <Table view={view} room={room} />
         )
