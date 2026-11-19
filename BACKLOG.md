@@ -66,7 +66,7 @@
 - [ ] Ajustes pós-playtest
 
 ## Futuro (fora do protótipo)
-- [ ] Brasões finais gerados a partir dos prompts (`PROMPTS_IMAGENS.md`) + trocar o componente `Crest`
-- [ ] Ilustrações por categoria de carta (prompts em `PROMPTS_IMAGENS.md`)
+- [x] Arte gerada no Gemini (2026-11-19): retrato do Rei (sério na abertura, sorrindo quando o conselho o agrada), princesa, 5 brasões recortados e 8 ilustrações de categoria no topo das cartas, em WebP leve (1,2 MB no total)
+- [ ] Mapa definitivo (pedido 1 de `PROMPTS_IMAGENS.md`)
 - [ ] Trilha sonora própria (Suno/Udio)
 - [ ] 5ª Casa como NPC

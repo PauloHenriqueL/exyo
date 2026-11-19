@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { House } from "../../shared/types";
 
 const SYMBOL: Record<string, string> = {
@@ -8,8 +9,27 @@ const SYMBOL: Record<string, string> = {
   corvalis: "✦",
 };
 
-/** Brasão de protótipo em SVG: escudo dividido nas cores da Casa + símbolo. */
+/** Brasão da Casa: ilustração em client/public/art/crests/<id>.webp; se faltar, o escudo desenhado em SVG. */
 export function Crest({ house, size = 64 }: { house: House; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  if (!failed) {
+    return (
+      <img
+        className="crest-img"
+        src={`/art/crests/${house.id}.webp`}
+        width={size}
+        height={size}
+        alt={`Brasão da ${house.name}`}
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return <SvgCrest house={house} size={size} />;
+}
+
+function SvgCrest({ house, size }: { house: House; size: number }) {
   const { primary, secondary, accent } = house.colors;
   const id = `c-${house.id}`;
   return (

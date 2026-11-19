@@ -1,83 +1,96 @@
 # Prompts de imagem do Exyo
 
-## Onde gerar
+> **Situação (2026-11-19):** já estão no jogo o Rei (sério e sorrindo), a princesa, os 5 brasões e as 8 ilustrações de categoria, em `client/public/art/` (versões leves em WebP; os originais ficam em `arte-original/`, fora do git). **Falta o mapa** (pedido 1): o fundo ainda é o provisório.
 
-| Site | Custo | Bom para |
-|---|---|---|
-| [ImageFX (Google)](https://labs.google/fx/tools/image-fx) | grátis com conta Google | mapa e cenários; segue bem descrições longas |
-| [Bing Image Creator / Microsoft Designer](https://www.bing.com/images/create) | grátis com conta Microsoft | brasões e ícones |
-| [ChatGPT](https://chatgpt.com) (gerar imagem) | grátis com limite diário | ajustes por conversa ("agora sem o texto") |
-| [Leonardo.ai](https://leonardo.ai) | créditos grátis por dia | manter o mesmo estilo em várias imagens |
-| [Ideogram](https://ideogram.ai) | grátis com limite | quando a imagem **precisa** de texto legível (faixa do brasão) |
-| [Adobe Firefly](https://firefly.adobe.com) | créditos grátis por mês | uso comercial mais seguro |
+## Como usar no Gemini
 
-Os prompts estão em inglês porque esses geradores costumam obedecer melhor em inglês. Gere 3 ou 4 variações e escolha uma.
+Abra o [Gemini](https://gemini.google.com) e comece **uma conversa nova só para a arte do jogo**.
 
----
+1. Mande primeiro o **Prompt mestre** abaixo. Ele fixa o estilo para todas as imagens.
+2. Depois peça **uma imagem por mensagem**, colando os pedidos da lista na ordem. Na mesma conversa, o Gemini mantém o estilo.
+3. Se uma imagem sair com letras ou nomes escritos, responda: `refaça igual, mas sem nenhum texto, letra ou número`.
+4. Se ficar escura ou contrastada demais para fundo de tela, responda: `refaça mais clara e desbotada, com pouco contraste`.
+5. Baixe cada imagem e salve com o nome indicado. Depois é só me pedir para encaixar as imagens no jogo. O mapa entra sozinho: basta trocar o arquivo.
 
-## 1. Mapa de fundo (obrigatório para trocar o provisório)
-
-- **Formato:** paisagem 16:9, de preferência 1920×1080 ou maior.
-- **Onde salvar:** substitua `client/public/map.jpg`, mantendo esse nome. Se o site entregar PNG ou WEBP, converta para JPG (qualquer conversor on-line serve) ou me peça para trocar a extensão no CSS.
-- **Sem texto:** o jogo escurece o mapa e ele fica atrás das cartas, então nomes escritos pela IA viram borrões. O prompt já pede isso.
+### Prompt mestre (mande primeiro)
 
 ```
-Hand-drawn medieval fantasy kingdom map on aged parchment, top-down view, ink and soft watercolor, muted sepia, ochre and faded teal palette. A mountain range along the northern edge with a long defensive stone wall at its foot. A dense royal forest on the west side. A slow winding river flowing from the northern mountains through a fertile valley with patchwork farm fields down to a small harbor town on the southeastern coast. A walled capital city with a castle in the center of the map. A frontier fortress on the eastern coast. A dashed dirt road crossing from the southwest to the east. A grey sea along the eastern and southern edges with small stylized waves and a tiny sailing ship. Compass rose in the bottom-left corner, ornate thin border. No text, no labels, no letters, no words. Low contrast, even lighting, soft vignette, 16:9 widescreen.
+Você vai criar a arte de um jogo de tabuleiro digital chamado "Exyo", sobre um conselho medieval que aconselha um rei velho e desconfiado. Vou pedir várias imagens, uma por vez, e todas precisam parecer da mesma coleção.
+
+Estilo fixo para TODAS as imagens:
+- pintura digital com cara de ilustração de jogo de tabuleiro de fantasia medieval, pinceladas visíveis, leve textura de pergaminho e gravura antiga;
+- paleta terrosa e quente: ocre, sépia, vinho, dourado envelhecido, verde-musgo e azul-acinzentado desbotado;
+- luz suave de vela ou de fim de tarde, contraste moderado;
+- NUNCA escreva texto, letras, números, assinaturas, marcas d'água ou molduras com palavras;
+- nada de estilo anime, cartoon ou foto realista.
+
+Responda apenas "Entendido" e espere meu primeiro pedido.
 ```
 
-Se sair escuro ou contrastado demais, acrescente: `very light and faded, washed out colors`.
+### Pedidos (um por mensagem, na ordem)
 
----
-
-## 2. Brasões das 5 Casas (opcional; exige uma mudança no código para usar)
-
-Hoje os brasões são SVG desenhados no código. Para usar imagens geradas, salve cada uma como `client/public/crests/<id>.png` (ids abaixo) e me peça para trocar o componente `Crest`. Formato quadrado (1:1), fundo liso. Em todos, troque o final por `plain flat background` se quiser recortar o fundo depois.
-
-**aurivel — Casa Aurivel, os Mercadores**
+**1. Mapa do Reino** → salvar como `client/public/map.jpg` (troca direta, sem código)
 ```
-Medieval heraldic coat of arms, shield divided per pale in burgundy wine red and polished gold, a golden balance scale held by a coiled serpent in the center, coins scattered at the base, ornate gold filigree mantling, rich velvet texture, warm candlelight, painterly fantasy board game art style, centered, symmetrical, isolated on parchment background, high detail, no text.
+Imagem 1, formato paisagem 16:9. Mapa do Reino visto de cima, desenhado à mão em pergaminho envelhecido, tinta e aquarela suave. Cordilheira ao norte com uma longa muralha de pedra no pé das montanhas. Floresta densa a oeste. Um rio lento e sinuoso desce das montanhas, atravessa um vale fértil com campos cultivados em retalhos e chega a uma pequena cidade portuária na costa sudeste. No centro, uma capital murada com um castelo. Uma fortaleza de fronteira na costa leste. Uma estrada de terra tracejada cruzando do sudoeste ao leste. Mar cinzento nas bordas leste e sul, com ondas estilizadas e um pequeno veleiro. Rosa dos ventos no canto inferior esquerdo e borda fina ornamentada. Cores bem desbotadas e pouco contraste, porque será fundo de tela atrás de textos. Sem nenhum nome escrito.
 ```
 
-**ferrobranco — Casa Ferrobranco, os Guerreiros**
+**2. O Rei Osric III, o Leão Grisalho** → `client/public/king.jpg` (precisa de código: aparece na tela de abertura)
 ```
-Medieval heraldic coat of arms, heater shield in dark steel grey with a blood-red chevron, a white iron wolf head with bared fangs above two crossed longswords, battle-scarred metal texture with dents and scratches, black iron mantling, cold northern light, gritty painterly fantasy board game art, centered, symmetrical, isolated on parchment background, high detail, no text.
-```
-
-**verdemar — Casa Verdemar, os Lavradores**
-```
-Medieval heraldic coat of arms, rounded shield in deep moss green with a golden wheat sheaf bound by a ribbon, an old oak tree with deep roots beneath it, embroidered fabric texture, mantling made of wheat stalks and oak leaves, warm golden-hour sunlight, painterly pastoral fantasy board game art, centered, symmetrical, isolated on parchment background, high detail, no text.
+Imagem 2, formato retrato 3:4. Retrato de busto do Rei Osric III, um rei de cerca de 70 anos, cabelos e barba grisalhos e volumosos como uma juba de leão, olhar duro e desconfiado, rugas profundas, cicatriz antiga no rosto. Usa uma coroa de ferro e ouro gasta e um manto vermelho-vinho com gola de pele, sentado num trono de pedra escura. Ao fundo, estandartes e a luz de velas de um salão de pedra. Expressão de quem lembra de cada traição. Composição centralizada, fundo escuro para destacar o rosto.
 ```
 
-**lumen — Casa Lumen, os Curandeiros**
+**3. A princesa Elara** → `client/public/princess.jpg` (precisa de código: aparece na carta "A Mão da Princesa")
 ```
-Medieval heraldic coat of arms, pearl-white shield with a celestial blue border, a radiant silver sun with a dove carrying a sprig of healing herbs in its center, subtle stained-glass glow, silver mantling shaped like flowing robes, soft divine light rays, serene painterly fantasy board game art, centered, symmetrical, isolated on parchment background, high detail, no text.
-```
-
-**corvalis — Casa Corvalis, os Sussurradores**
-```
-Medieval heraldic coat of arms, shield in midnight blue-black with a plum purple bend, a silver raven with an open eye on each wing perched on a closed key, smoky shadows and faint mist, tarnished silver mantling shaped like feathers, moonlit atmosphere, mysterious painterly fantasy board game art, centered, symmetrical, isolated on parchment background, high detail, no text.
+Imagem 3, formato retrato 3:4. A princesa Elara, filha única do velho rei, cerca de 20 anos, postura altiva e olhar inteligente e um pouco desafiador. Cabelo castanho trançado com fios dourados, vestido de veludo verde-escuro com bordados de ouro e um pequeno diadema. Ela está numa sacada do castelo ao entardecer, com o salão do conselho ao fundo, desfocado. Um anel de noivado sobre uma almofada de veludo vermelho em primeiro plano.
 ```
 
-Quer a faixa com o lema escrita? Use o Ideogram e acrescente `scroll banner below reading "<lema>"` (lemas em `content/houses.json`).
+**4 a 8. Brasões das 5 Casas** → `client/public/crests/<id>.png` (precisa de código: substitui os brasões desenhados)
 
----
-
-## 3. Ilustrações por categoria de carta (opcional; exige código para usar)
-
-Uma ilustração por categoria pode aparecer no topo da carta. Formato 3:2, salve como `client/public/cards/<categoria>.jpg`. Comece cada prompt pelo **estilo comum** e acrescente a **cena**.
-
-**Estilo comum (cole antes de cada cena):**
+Mande um de cada vez. Formato quadrado 1:1, com fundo liso de pergaminho claro.
 ```
-Painterly medieval fantasy board game card illustration, muted earthy palette, soft warm light, slightly vintage engraved texture, no text, no letters, 3:2 landscape, scene:
+Imagem 4, quadrada 1:1. Brasão heráldico medieval da Casa Aurivel, os Mercadores: escudo dividido ao meio em vermelho-vinho e dourado polido, uma balança dourada segurada por uma serpente enrolada no centro, moedas espalhadas na base, ornamentos de filigrana dourada. Centralizado, simétrico, isolado sobre fundo liso de pergaminho claro. Sem faixa com lema e sem texto.
 ```
+```
+Imagem 5, quadrada 1:1. Brasão heráldico medieval da Casa Ferrobranco, os Guerreiros: escudo de aço cinza-escuro com uma divisa em V vermelho-sangue, cabeça de lobo branca de dentes à mostra sobre duas espadas longas cruzadas, metal marcado por amassados e arranhões de batalha. Centralizado, simétrico, isolado sobre fundo liso de pergaminho claro. Sem texto.
+```
+```
+Imagem 6, quadrada 1:1. Brasão heráldico medieval da Casa Verdemar, os Lavradores: escudo arredondado verde-musgo com um feixe de trigo dourado amarrado por uma fita e um carvalho antigo de raízes profundas abaixo, ornamentos de espigas e folhas de carvalho. Centralizado, simétrico, isolado sobre fundo liso de pergaminho claro. Sem texto.
+```
+```
+Imagem 7, quadrada 1:1. Brasão heráldico medieval da Casa Lumen, os Curandeiros: escudo branco-pérola com borda azul-celeste, um sol de prata radiante com uma pomba levando um ramo de ervas medicinais no centro, brilho suave de vitral. Centralizado, simétrico, isolado sobre fundo liso de pergaminho claro. Sem texto.
+```
+```
+Imagem 8, quadrada 1:1. Brasão heráldico medieval da Casa Corvalis, os Sussurradores: escudo azul-meia-noite quase preto com uma faixa diagonal roxa, um corvo de prata pousado sobre uma chave fechada, com um olho aberto desenhado em cada asa, névoa e sombras ao redor. Centralizado, simétrico, isolado sobre fundo liso de pergaminho claro. Sem texto.
+```
+
+**9 a 16. Ilustrações das categorias de carta** → `client/public/cards/<categoria>.jpg` (precisa de código: aparece no topo das cartas)
+
+Formato paisagem 3:2. Comece cada pedido com `Imagem N, paisagem 3:2, ilustração de carta:` e cole a cena:
 
 | Arquivo | Cena |
 |---|---|
-| `war.jpg` | `two armies clashing below a stone fortress at dusk, banners and crossed swords in the foreground` |
-| `feast.jpg` | `a long royal banquet table in a candlelit great hall, nobles toasting, roasted boar and wine` |
-| `plague.jpg` | `a foggy harbor street at night, plague doctors with beaked masks carrying lanterns` |
-| `diplomacy.jpg` | `two envoys exchanging a sealed scroll across a council table with maps and wax seals` |
-| `trade.jpg` | `a bustling medieval market by the docks, merchants weighing coins and spices on scales` |
-| `faith.jpg` | `a cathedral interior with rays of light falling on a stone altar and kneeling pilgrims` |
-| `crime.jpg` | `a hooded figure slipping a dagger behind a tavern curtain, candlelight and deep shadows` |
-| `nature.jpg` | `a river flooding a valley village under storm clouds, wolves watching from the forest edge` |
+| `war.jpg` | dois exércitos se chocando ao pé de uma fortaleza de pedra ao entardecer, estandartes e lanças em primeiro plano |
+| `feast.jpg` | longa mesa de banquete real num grande salão iluminado por velas, nobres brindando, javali assado e vinho |
+| `plague.jpg` | rua do porto coberta de neblina à noite, médicos da peste com máscaras de bico carregando lanternas |
+| `diplomacy.jpg` | dois embaixadores trocando um pergaminho lacrado sobre uma mesa de conselho com mapas e selos de cera |
+| `trade.jpg` | mercado movimentado junto às docas, mercadores pesando moedas e especiarias em balanças |
+| `faith.jpg` | interior de catedral com raios de luz sobre um altar de pedra e peregrinos ajoelhados |
+| `crime.jpg` | figura encapuzada escondendo um punhal atrás da cortina de uma taverna, luz de vela e sombras fortes |
+| `nature.jpg` | rio transbordando sobre uma aldeia no vale sob nuvens de tempestade, lobos observando da borda da floresta |
+
+---
+
+## Outras IAs para gerar imagens
+
+| IA | Custo | Melhor para |
+|---|---|---|
+| [Gemini](https://gemini.google.com) | grátis com conta Google, com limite diário | a série toda numa conversa só, mantendo o estilo; edita a imagem com pedidos ("deixe mais claro") |
+| [ChatGPT](https://chatgpt.com) | grátis com limite; mais no plano pago | segue muito bem descrições longas e correções por conversa; bom para o Rei e a princesa |
+| [Midjourney](https://www.midjourney.com) | pago (a partir de ~US$ 10/mês) | a arte mais bonita e "de capa de jogo"; ótimo para o mapa e os retratos |
+| [Leonardo.ai](https://leonardo.ai) | créditos grátis por dia | manter o mesmo personagem e estilo em várias imagens (Rei e princesa em cenas diferentes) |
+| [Ideogram](https://ideogram.ai) | grátis com limite | quando a imagem **precisa** de texto legível, como a faixa com o lema no brasão |
+| [Recraft](https://www.recraft.ai) | créditos grátis | brasões e ícones em **vetor (SVG)**, que ficam nítidos em qualquer tamanho |
+| [Adobe Firefly](https://firefly.adobe.com) | créditos grátis por mês | uso comercial mais seguro (treinado em imagens licenciadas) |
+| [Bing Image Creator](https://www.bing.com/images/create) | grátis com conta Microsoft | alternativa grátis rápida para testar ideias |
+
+Para os brasões, a melhor combinação é gerar no Gemini ou no ChatGPT e, se quiser a versão final em vetor, refazer no Recraft com o mesmo texto.
