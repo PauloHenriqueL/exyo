@@ -70,7 +70,7 @@ export interface Vote {
   tokens: number;
 }
 
-export type Phase = "lobby" | "discussion" | "voting" | "reveal" | "end";
+export type Phase = "lobby" | "discussion" | "voting" | "reveal" | "intermission" | "end";
 
 /** Carta como o cliente a vê: sem efeitos. */
 export interface PublicCard {
@@ -103,16 +103,25 @@ export interface RevealInfo {
 
 export interface FinalInfo {
   collapsed: boolean;
-  scores: { playerId: string; houseId: string; goal: Goal; points: number; tokens: number }[];
+  /** `goals[i]` e `matchPoints[i]` são da partida i+1; `points` é a soma. */
+  scores: { playerId: string; houseId: string; goals: Goal[]; matchPoints: number[]; points: number; tokens: number }[];
   winnerIds: string[];
+}
+
+/** Intervalo entre partidas: só pontos, sem revelar objetivos (o da próxima é o outro da mesma Casa). */
+export interface IntermissionInfo {
+  finishedMatch: number;
+  scores: { playerId: string; points: number; total: number }[];
 }
 
 /** Estado enviado a um jogador específico. */
 export interface ClientView {
   roomCode: string;
   phase: Phase;
-  round: number;
-  totalRounds: number;
+  round: number; // rodada dentro da partida atual
+  totalRounds: number; // rodadas por partida
+  match: number;
+  totalMatches: number;
   minPlayers: number;
   maxPlayers: number;
   minHumans: number;
@@ -121,6 +130,7 @@ export interface ClientView {
   resources: Resources;
   card: PublicCard | null;
   reveal: RevealInfo | null;
+  intermission: IntermissionInfo | null;
   final: FinalInfo | null;
   me: { id: string; goal: Goal | null; vote: Vote | null };
   ranges: HousesFile["ranges"];

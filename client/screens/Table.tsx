@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Room } from "colyseus.js";
 import { HOUSES } from "../../shared/content";
 import { RESOURCE_LABEL, type Choice, type ClientView } from "../../shared/types";
+import { play } from "../audio";
 import { Crest } from "../components/Crest";
+import { Chatter, SwordClash } from "../components/Effects";
+import { GoalText } from "../components/GoalText";
 import { ResourceBoard } from "../components/ResourceBoard";
 import { sendVote } from "../net";
+import { useCountdown } from "../useCountdown";
 
 const CATEGORY: Record<string, { label: string; icon: string; color: string }> = {
   war: { label: "Guerra", icon: "⚔", color: "#9e1b1b" },
@@ -21,26 +25,23 @@ const CATEGORY: Record<string, { label: string; icon: string; color: string }> =
 const CHOICE_LABEL: Record<Choice, string> = { yes: "SIM", no: "NÃO", abstain: "ABSTER" };
 const OUTCOME_LABEL = { yes: "O conselho disse SIM", no: "O conselho disse NÃO", tie: "Indecisão do Conselho" };
 
-function useCountdown(deadline: number | null) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(t);
-  }, []);
-  if (!deadline) return null;
-  const s = Math.max(0, Math.ceil((deadline - now) / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
-
 export function Table({ view, room }: { view: ClientView; room: Room }) {
   const timer = useCountdown(view.deadline);
   const me = view.players.find((p) => p.id === view.me.id);
   const cat = view.card ? CATEGORY[view.card.category] : null;
+  const war = view.card?.category === "war";
+  // Espadas cruzam quando uma carta de Guerra entra na mesa e de novo na revelação.
+  const clashKey = war && (view.phase === "discussion" || view.phase === "reveal") ? `${view.match}-${view.round}-${view.phase}` : null;
 
   return (
     <main className="table">
       <header className="table-head">
         <span>
+          {view.totalMatches > 1 && (
+            <>
+              Partida <strong>{view.match}</strong>/{view.totalMatches} ·{" "}
+            </>
+          )}
           Rodada <strong>{view.round}</strong>/{view.totalRounds}
         </span>
         <span className="phase">
@@ -55,10 +56,11 @@ export function Table({ view, room }: { view: ClientView; room: Room }) {
 
       <div className="table-grid">
         <section className="card-area">
+          <SwordClash trigger={clashKey} />
           <AnimatePresence mode="wait">
             {view.card && cat && (
               <motion.article
-                key={view.card.id + view.round}
+                key={`${view.card.id}-${view.match}-${view.round}`}
                 className="card"
                 style={{ borderColor: cat.color }}
                 initial={{ rotateY: 180, y: -120, opacity: 0, scale: 0.6 }}
@@ -98,7 +100,14 @@ function ReadyPanel({ view, room }: { view: ClientView; room: Room }) {
   return (
     <div className="panel ready">
       <p className="muted">Debatam na chamada. Quando todos clicarem, a votação abre na hora — ou quando o tempo acabar.</p>
-      <button className="btn primary" disabled={me.isReady} onClick={() => room.send("ready")}>
+      <button
+        className="btn primary"
+        disabled={me.isReady}
+        onClick={() => {
+          play("confirm");
+          room.send("ready");
+        }}
+      >
         {me.isReady ? "Aguardando os outros…" : "Pronto para votar"}
       </button>
       <p className="muted">
@@ -114,7 +123,12 @@ function VotePanel({ view, room, tokens }: { view: ClientView; room: Room; token
   const voted = view.me.vote;
   const votedCount = view.players.filter((p) => p.hasVoted).length;
 
-  const submit = () => choice && sendVote(room, { choice, tokens: choice === "abstain" ? 0 : spend });
+  const submit = () => {
+    if (!choice) return;
+    play("seal");
+    if (choice !== "abstain" && spend > 0) play("coins", 150);
+    sendVote(room, { choice, tokens: choice === "abstain" ? 0 : spend });
+  };
 
   return (
     <div className="panel vote">
@@ -197,10 +211,11 @@ function Players({ view }: { view: ClientView }) {
         return (
           <li key={p.id} className={`${p.connected ? "" : "off"} ${p.id === view.me.id ? "me" : ""}`}>
             <Crest house={h} size={28} />
-            <span>
+            <span className="name-slot">
               {p.name}
               {p.isBot && " 🤖"}
               {!p.connected && " (desconectado)"}
+              <Chatter active={view.phase === "discussion" && p.id !== view.me.id} motto={h.motto} />
             </span>
             <span title="Fichas de Favor">🎖 {p.tokens}</span>
             {view.phase === "voting" && <span>{p.hasVoted ? "✔" : "…"}</span>}
@@ -215,18 +230,12 @@ function Players({ view }: { view: ClientView }) {
 function GoalPanel({ view }: { view: ClientView }) {
   const g = view.me.goal;
   if (!g) return null;
-  const [hl, hh] = view.ranges.high;
-  const [ml, mh] = view.ranges.moderate;
-  const fmt = (n: number) => (n > 0 ? `+${n}` : `${n}`);
   return (
     <details className="panel goal">
-      <summary>Seu objetivo secreto</summary>
-      <p>
-        Entre {fmt(hl)} e {fmt(hh)}: <strong>{g.high.map((r) => RESOURCE_LABEL[r]).join(", ")}</strong>
-      </p>
-      <p>
-        Entre {fmt(ml)} e {fmt(mh)}: <strong>{g.moderate.map((r) => RESOURCE_LABEL[r]).join(", ")}</strong>
-      </p>
+      <summary>
+        Seu objetivo secreto{view.totalMatches > 1 && ` · Partida ${view.match}`}
+      </summary>
+      <GoalText goal={g} ranges={view.ranges} />
     </details>
   );
 }

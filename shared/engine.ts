@@ -20,9 +20,19 @@ export interface Scheduled {
   atRound: number;
 }
 
+export interface MatchResult {
+  goals: Record<string, Goal>;
+  points: Record<string, number>;
+}
+
 export interface GameState {
-  round: number; // 0 = nenhuma rodada jogada ainda
-  totalRounds: number;
+  round: number; // contador global da campanha; 0 = nenhuma rodada jogada ainda
+  totalRounds: number; // rodadas por partida
+  match: number; // partida atual (1, 2, …)
+  totalMatches: number;
+  matchStartRound: number; // valor de `round` quando a partida atual começou
+  houses: Record<string, string>; // jogador → Casa
+  history: MatchResult[]; // partidas já encerradas
   resources: Resources;
   flags: Record<string, FlagValue>;
   deck: string[]; // ids de cartas raiz, na ordem de compra
@@ -71,11 +81,14 @@ export function createGame(
   players: { id: string; houseId: string }[],
   seed: number,
   totalRounds = 12,
+  totalMatches = 1,
 ): GameState {
   const rand = rng(seed);
   const goals: Record<string, Goal> = {};
   const tokens: Record<string, number> = {};
+  const houseOf: Record<string, string> = {};
   for (const p of players) {
+    houseOf[p.id] = p.houseId;
     const house = houses.houses.find((h) => h.id === p.houseId);
     if (!house) throw new Error(`Casa desconhecida: ${p.houseId}`);
     goals[p.id] = house.goals[Math.floor(rand() * house.goals.length)];
@@ -84,6 +97,11 @@ export function createGame(
   return {
     round: 0,
     totalRounds,
+    match: 1,
+    totalMatches,
+    matchStartRound: 0,
+    houses: houseOf,
+    history: [],
     resources: { ...houses.initialResources },
     flags: {},
     deck: shuffle(dilemmas.filter((d) => d.kind === "root").map((d) => d.id), rand),
@@ -94,7 +112,45 @@ export function createGame(
   };
 }
 
-/** Compra a próxima carta: primeiro consequências vencidas, depois o baralho (pulando as que não cumprem `requires`). */
+/** Rodada atual dentro da partida (1..totalRounds). */
+export function matchRound(s: Pick<GameState, "round" | "matchStartRound">): number {
+  return s.round - s.matchStartRound;
+}
+
+export function isMatchOver(s: GameState): boolean {
+  return matchRound(s) >= s.totalRounds;
+}
+
+export function scoreMatch(s: GameState, ranges: HousesFile["ranges"]): Record<string, number> {
+  return Object.fromEntries(Object.entries(s.goals).map(([pid, g]) => [pid, scoreGoal(g, s.resources, ranges)]));
+}
+
+/**
+ * Encerra a partida atual (guardando metas e pontos no histórico) e abre a próxima.
+ * O Reino continua como está: recursos, fichas, flags, consequências pendentes e cartas já jogadas.
+ * Cada jogador recebe um objetivo da própria Casa que ainda não teve.
+ */
+export function startNextMatch(s: GameState, houses: HousesFile): GameState {
+  const history = [...s.history, { goals: s.goals, points: scoreMatch(s, houses.ranges) }];
+  const goals: Record<string, Goal> = {};
+  for (const [pid, houseId] of Object.entries(s.houses)) {
+    const house = houses.houses.find((h) => h.id === houseId)!;
+    const used = new Set(history.map((m) => m.goals[pid]?.id));
+    const fresh = house.goals.filter((g) => !used.has(g.id));
+    goals[pid] = (fresh.length ? fresh : house.goals.filter((g) => g.id !== s.goals[pid]?.id))[0] ?? s.goals[pid];
+  }
+  return { ...s, match: s.match + 1, matchStartRound: s.round, history, goals };
+}
+
+/** Pontos somados de todas as partidas (encerradas + a atual). */
+export function campaignPoints(s: GameState, ranges: HousesFile["ranges"]): Record<string, number> {
+  const current = scoreMatch(s, ranges);
+  return Object.fromEntries(
+    Object.keys(s.houses).map((pid) => [pid, s.history.reduce((acc, m) => acc + (m.points[pid] ?? 0), 0) + (current[pid] ?? 0)]),
+  );
+}
+
+/** Compra a próxima carta: primeiro consequências vencidas, depois o baralho. Cartas que ainda não cumprem `requires` ficam no baralho para depois. */
 export function drawCard(s: GameState, byId: Record<string, Dilemma>): { state: GameState; card: Dilemma | null } {
   const round = s.round + 1;
   const queue = [...s.queue].sort((a, b) => a.atRound - b.atRound);
@@ -103,14 +159,13 @@ export function drawCard(s: GameState, byId: Record<string, Dilemma>): { state: 
     const [next] = queue.splice(qi, 1);
     return { state: { ...s, round, queue, played: [...s.played, next.card] }, card: byId[next.card] };
   }
-  const deck = [...s.deck];
-  while (deck.length) {
-    const id = deck.shift()!;
-    if (evalCond(byId[id].requires, s)) {
-      return { state: { ...s, round, deck, queue, played: [...s.played, id] }, card: byId[id] };
-    }
+  const idx = s.deck.findIndex((id) => evalCond(byId[id].requires, s));
+  if (idx >= 0) {
+    const id = s.deck[idx];
+    const deck = s.deck.filter((_, i) => i !== idx);
+    return { state: { ...s, round, deck, queue, played: [...s.played, id] }, card: byId[id] };
   }
-  return { state: { ...s, round, deck, queue }, card: null };
+  return { state: { ...s, round, queue }, card: null };
 }
 
 export function isValidVote(v: Vote, available: number): boolean {
