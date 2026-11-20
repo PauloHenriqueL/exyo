@@ -365,3 +365,12 @@ section { margin-bottom: 20px; }
 .chat-line input { min-width: 0; padding: 8px; background: rgba(255,250,240,.7); }
 .bubble.chat { background: #fff6d8; border-color: var(--gold); font-style: normal; font-weight: 600; max-width: 220px; white-space: normal; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- ícones dos recursos (game-icons.net) ---------- */
+.res-icon { display: inline-block; vertical-align: -.2em; flex: none; }
+.track-label .res-icon { color: #e3c25a; }
+.goal-label .res-icon, .deltas .res-icon, .steal .res-icon, .chat-quick .res-icon { color: #5b3d1a; }
+.deltas .up .res-icon { color: #2e6b2a; }
+.deltas .down .res-icon { color: #9e1b1b; }
+.bubble.chat .res-icon { color: #6b4a10; margin: 0 1px; }
+.chat-quick .quick .res-icon { width: 1.25em; height: 1.25em; }

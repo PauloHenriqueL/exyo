@@ -11,6 +11,7 @@ import { HandCrown } from "../components/HandCrown";
 import { ResourceBoard } from "../components/ResourceBoard";
 import { sendVote, type ChatMessage } from "../net";
 import { ChatBox } from "../components/ChatBox";
+import { ChatText, ResourceIcon } from "../components/ResourceIcon";
 import { useCountdown } from "../useCountdown";
 
 const CATEGORY: Record<string, { label: string; icon: string; color: string }> = {
@@ -225,7 +226,7 @@ function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: Publi
               </button>
               {RESOURCES.map((r) => (
                 <button key={r} className={`btn small ${steal === r ? "on" : ""}`} onClick={() => setSteal(r)} aria-pressed={steal === r}>
-                  {RESOURCE_LABEL[r]} −1
+                  <ResourceIcon r={r} /> {RESOURCE_LABEL[r]} −1
                 </button>
               ))}
             </div>
@@ -269,7 +270,11 @@ function RevealPanel({ view }: { view: ClientView }) {
               </span>
               <strong>{v ? CHOICE_LABEL[v.choice] : "—"}</strong>
               {v?.tokens ? <small>+{v.tokens} fichas</small> : null}
-              {v?.steal ? <small>🗡 {RESOURCE_LABEL[v.steal]} −1</small> : null}
+              {v?.steal ? (
+                <small>
+                  🗡 <ResourceIcon r={v.steal} /> {RESOURCE_LABEL[v.steal]} −1
+                </small>
+              ) : null}
             </motion.div>
           );
         })}
@@ -284,7 +289,7 @@ function RevealPanel({ view }: { view: ClientView }) {
         <p className="deltas">
           {Object.entries(r.deltas).map(([k, d]) => (
             <span key={k} className={d! > 0 ? "up" : "down"}>
-              {RESOURCE_LABEL[k as Resource]} {d! > 0 ? `+${d}` : d}
+              <ResourceIcon r={k as Resource} /> {RESOURCE_LABEL[k as Resource]} {d! > 0 ? `+${d}` : d}
             </span>
           ))}
         </p>
@@ -378,7 +383,7 @@ function Players({ view, chat }: { view: ClientView; chat: Record<string, ChatMe
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                     >
-                      {chat[p.id].text}
+                      <ChatText text={chat[p.id].text} />
                     </motion.span>
                   )}
                 </AnimatePresence>

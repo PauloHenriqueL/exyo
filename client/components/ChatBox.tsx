@@ -1,8 +1,11 @@
 import { useRef, useState } from "react";
 import type { Room } from "colyseus.js";
 
-/** Atalhos: os símbolos dos recursos e algumas reações, para falar rápido durante o debate. */
-const QUICK = ["✚", "🛡", "⚔", "🌾", "🪙", "▲", "▼", "👍", "👎", "🤝", "👑", "🗡", "?", "!"];
+import { RESOURCES, RESOURCE_LABEL } from "../../shared/types";
+import { CHAT_SYMBOL, ResourceIcon } from "./ResourceIcon";
+
+/** Atalhos: os símbolos dos recursos (viram ícone no balão) e algumas reações, para falar rápido durante o debate. */
+const QUICK = ["▲", "▼", "👍", "👎", "🤝", "👑", "🗡", "?", "!"];
 
 /** Chat dos jogadores: a mensagem aparece por alguns segundos no balão ao lado do brasão de quem falou. */
 export function ChatBox({ room }: { room: Room }) {
@@ -16,6 +19,16 @@ export function ChatBox({ room }: { room: Room }) {
     room.send("chat", { text: msg });
     setText("");
     input.current?.focus();
+  };
+
+  const insert = (q: string) => {
+    const next = (text + q).slice(0, 80);
+    setText(next);
+    // volta o foco ao campo com o cursor no fim, para continuar escrevendo depois do símbolo
+    requestAnimationFrame(() => {
+      input.current?.focus();
+      input.current?.setSelectionRange(next.length, next.length);
+    });
   };
 
   if (!open) {
@@ -41,20 +54,17 @@ export function ChatBox({ room }: { room: Room }) {
       }}
     >
       <div className="chat-quick" aria-label="Atalhos">
+        {RESOURCES.map((r) => (
+          <button key={r} type="button" className="quick" onClick={() => insert(CHAT_SYMBOL[r])} aria-label={`Inserir ${RESOURCE_LABEL[r]}`} title={RESOURCE_LABEL[r]}>
+            <ResourceIcon r={r} />
+          </button>
+        ))}
         {QUICK.map((q) => (
           <button
             key={q}
             type="button"
             className="quick"
-            onClick={() => {
-              const next = (text + q).slice(0, 80);
-              setText(next);
-              // volta o foco ao campo com o cursor no fim, para continuar escrevendo depois do símbolo
-              requestAnimationFrame(() => {
-                input.current?.focus();
-                input.current?.setSelectionRange(next.length, next.length);
-              });
-            }}
+            onClick={() => insert(q)}
             aria-label={`Inserir ${q}`}
           >
             {q}
@@ -70,7 +80,7 @@ export function ChatBox({ room }: { room: Room }) {
           ref={input}
           value={text}
           maxLength={80}
-          placeholder="Ex.: 🌾▲ voto SIM se vocês protegerem a Comida"
+          placeholder="Ex.: ▲ voto SIM se vocês protegerem a Comida"
           onChange={(e) => setText(e.target.value)}
         />
         <button type="submit" className="btn small" disabled={!text.trim()}>
