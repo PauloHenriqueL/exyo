@@ -10,7 +10,7 @@ for (let i = 0; i < Number(process.env.BOTS ?? 3); i++) {
   let picked = false, votedRound = -1;
   room.onMessage("view", (v) => {
     if (v.phase === "lobby" && !picked) { picked = true; room.send("pickHouse", { houseId: houses[i] }); }
-    if ((v.phase === "prologue" || v.phase === "discussion" || v.phase === "intermission") && !v.players.find((p) => p.id === v.me.id)?.isReady) setTimeout(() => room.send("ready"), 1000);
+    if ((v.phase === "discussion" || v.phase === "reveal" || v.phase === "intermission") && !v.players.find((p) => p.id === v.me.id)?.isReady) setTimeout(() => room.send("ready"), 1000);
     if (v.phase === "voting" && votedRound !== v.round) {
       votedRound = v.round; const c = ["yes", "no", "abstain"][Math.floor(Math.random() * 3)];
       const me = v.players.find((p) => p.id === v.me.id);

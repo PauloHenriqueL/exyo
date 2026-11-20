@@ -6,12 +6,10 @@ import { play } from "../audio";
 import { Crest } from "../components/Crest";
 import { GoalBoard } from "../components/GoalBoard";
 import { ResourceBoard } from "../components/ResourceBoard";
-import { useCountdown } from "../useCountdown";
 
 /** Intervalo entre partidas: pontos (sem revelar objetivos), o Reino herdado e o novo objetivo secreto. */
 export function Intermission({ view, room }: { view: ClientView; room: Room }) {
   const info = view.intermission!;
-  const timer = useCountdown(view.deadline);
   const me = view.players.find((p) => p.id === view.me.id);
   const humans = view.players.filter((p) => !p.isBot);
   const readyCount = humans.filter((p) => p.isReady).length;
@@ -24,7 +22,7 @@ export function Intermission({ view, room }: { view: ClientView; room: Room }) {
           Fim da Partida {info.finishedMatch} de {view.totalMatches}
         </p>
         <h1>O Reino segue</h1>
-        <p className="lead">Os recursos, as fichas de voto, o Favor do Rei, a Mão do Rei e tudo o que foi decidido continuam. Só os objetivos mudam.</p>
+        <p className="lead">Os recursos, as fichas de voto, a fila da Mão do Rei e tudo o que foi decidido continuam. Só os objetivos mudam.</p>
       </motion.header>
 
       <div className="final-grid">
@@ -84,7 +82,7 @@ export function Intermission({ view, room }: { view: ClientView; room: Room }) {
                 {me.isReady ? "Aguardando os outros…" : `Começar a Partida ${view.match}`}
               </button>
               <p className="muted">
-                {readyCount}/{humans.length} prontos · começa sozinho em {timer}
+                {readyCount}/{humans.length} prontos
               </p>
             </div>
           )}

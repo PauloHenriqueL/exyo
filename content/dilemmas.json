@@ -1,6 +1,6 @@
 {
-  "version": "0.3.0",
-  "notes": "31 cartas raiz + 20 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. kingFavor = lado que agrada ao Rei (quem vota nele ganha Favor do Rei); openVote = votos visíveis na hora e definitivos; a_mao_da_princesa tem regra especial.",
+  "version": "0.5.0",
+  "notes": "27 cartas raiz + 17 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. openVote = votos visíveis na hora e definitivos. Sem cartas de religião, sem Favor do Rei e sem a carta da princesa (2026-11-20). A Mão do Rei só desempata e passa ao próximo da mesa a cada rodada.",
   "dilemmas": [
     {
       "id": "viajantes_do_leste",
@@ -20,7 +20,7 @@
         "no": [{
           "text": "A caravana segue para o reino vizinho, levando seus ofícios e seu rancor.",
           "effects": { "security": 1 },
-          "setFlags": { "viajantes_recusados": true, "rei_reputacao": { "add": -1 } },
+          "setFlags": { "viajantes_recusados": true },
           "inject": [{ "card": "mercenarios_do_leste", "inRounds": 4 }]
         }],
         "tie": [{
@@ -108,9 +108,8 @@
       "title": "O Banquete da Colheita",
       "prompt": "A colheita foi generosa e o Rei Osric quer que o mundo saiba. Sonha com um banquete de três dias no Grande Salão: javalis assados, vinho do Sul, menestréis e toda a nobreza do Reino — e, principalmente, os embaixadores dos reinos vizinhos, para verem com os próprios olhos a fartura da Coroa. Os despenseiros, porém, lembram que cada saca servida à mesa é uma saca a menos para o inverno.",
       "question": "O banquete deve acontecer?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei adora mostrar ao mundo a fartura da Coroa." },
-      "openVote": true,
       "requires": { "res": "food", "gte": -3 },
+      "openVote": true,
       "outcomes": {
         "yes": [
           {
@@ -134,8 +133,7 @@
         ],
         "no": [{
           "text": "O Rei come sozinho. Os embaixadores tomam a recusa como desfeita.",
-          "effects": { "food": 1 },
-          "setFlags": { "rei_reputacao": { "add": -1 } }
+          "effects": { "food": 1 }
         }],
         "tie": [{
           "text": "Um banquete pela metade: caro demais para ser modesto, modesto demais para impressionar.",
@@ -182,13 +180,11 @@
         "no": [{
           "text": "As mercadorias circulam, e com elas a febre. Os primeiros sinos de luto tocam no bairro do cais.",
           "effects": { "wealth": 1, "health": -2 },
-          "setFlags": { "peste_espalhada": true },
           "inject": [{ "card": "segunda_onda", "inRounds": 2 }]
         }],
         "tie": [{
           "text": "O porto fecha só à noite. A doença aprende o horário.",
           "effects": { "health": -1, "wealth": -1 },
-          "setFlags": { "peste_espalhada": true },
           "inject": [{ "card": "segunda_onda", "inRounds": 2 }]
         }]
       }
@@ -232,60 +228,24 @@
     {
       "id": "hospital_real",
       "kind": "root",
-      "category": "faith",
+      "category": "plague",
       "title": "O Hospital Real",
-      "prompt": "A Casa Lumen apresenta um plano ambicioso: transformar o antigo mosteiro de São Bérnio, abandonado há décadas, no primeiro hospital do Reino. Leitos para quinhentos doentes, pagos pelo tesouro e pelas terras da Igreja que cercam o mosteiro. Há um detalhe: ninguém consultou o Bispo, que considera aquelas terras sagradas e intocáveis.",
+      "prompt": "A Casa Lumen apresenta um plano ambicioso: transformar o velho mosteiro abandonado de São Bérnio no primeiro hospital do Reino, com leitos para quinhentos doentes. As paredes já existem, mas camas, remédios e curandeiros sairiam do tesouro real. Os nobres resmungam que dinheiro de impostos não deveria cuidar de plebeus doentes.",
       "question": "O Reino deve construir o hospital?",
       "openVote": true,
       "outcomes": {
         "yes": [{
-          "text": "As primeiras camas são ocupadas em semanas. O povo abençoa o Rei.",
+          "text": "As primeiras camas são ocupadas em semanas. O povo abençoa o nome do Rei.",
           "effects": { "wealth": -2, "health": 2 },
           "setFlags": { "hospital_construido": true }
         }],
         "no": [{
-          "text": "O mosteiro segue vazio. O Bispo, que queria o prédio para si, se sente igualmente ofendido pela discussão.",
-          "effects": { "wealth": 1, "health": -1 },
-          "setFlags": { "clero_ofendido": true },
-          "inject": [{ "card": "bispo_exige_dizimo", "inRounds": 3 }]
+          "text": "O mosteiro segue vazio. Os doentes continuam morrendo em casa, e o ouro continua no cofre.",
+          "effects": { "wealth": 1, "health": -1 }
         }],
         "tie": [{
-          "text": "Metade do mosteiro vira hospital, metade continua capela. Ninguém fica satisfeito.",
+          "text": "Meio hospital é construído: camas sem curandeiros, curandeiros sem remédios.",
           "effects": { "wealth": -1, "health": 1, "security": -1 }
-        }]
-      }
-    },
-    {
-      "id": "bispo_exige_dizimo",
-      "kind": "consequence",
-      "category": "faith",
-      "title": "O Bispo Exige o Dízimo",
-      "prompt": "O Bispo atravessa o salão do trono de báculo em punho, seguido por doze padres em silêncio. Ofendido, exige que a Coroa pague de uma vez o dízimo atrasado de dez anos, até a última moeda. Se o conselho recusar, promete que em todas as paróquias do Reino os sermões de domingo serão sobre reis que roubam de Deus.",
-      "question": "A Coroa deve pagar o dízimo?",
-      "outcomes": {
-        "yes": [{
-          "text": "Os cofres sangram, mas os sermões voltam a pedir saúde ao Rei.",
-          "effects": { "wealth": -2, "health": 1, "security": 1 }
-        }],
-        "no": [
-          {
-            "when": { "flag": "bruxa_protegida", "eq": true },
-            "text": "O Bispo acusa o Rei de proteger bruxas. Fiéis armados marcham até o castelo.",
-            "effects": { "security": -3, "health": -1 }
-          },
-          {
-            "when": { "flag": "rei_reputacao", "lte": -2 },
-            "text": "Com a reputação do Rei já em frangalhos, os sermões incendeiam o povo.",
-            "effects": { "security": -3, "wealth": 1 }
-          },
-          {
-            "text": "Os sermões são duros, mas o povo ainda confia no Rei.",
-            "effects": { "security": -2, "health": -1, "wealth": 1 }
-          }
-        ],
-        "tie": [{
-          "text": "Paga-se metade. O Bispo considera isso metade de uma ofensa.",
-          "effects": { "wealth": -1, "security": -1 }
         }]
       }
     },
@@ -296,7 +256,6 @@
       "title": "O Torneio Real",
       "prompt": "Os cavaleiros do Reino pedem algo que não se vê há uma geração: um grande torneio, com justas, lutas a pé e um banquete para o campeão. O Rei Osric, que venceu três torneios na juventude, já sorri só de imaginar. Seria caro — arquibancadas, prêmios, hospedagem para centenas de nobres —, mas atrairia espadas de todo o continente e juramentos de lealdade à Coroa.",
       "question": "O Reino deve sediar o torneio?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei Osric ama a glória das justas." },
       "openVote": true,
       "outcomes": {
         "yes": [{
@@ -351,7 +310,6 @@
       "title": "A Invasão do Norte",
       "prompt": "O rio do norte congelou, e com o gelo vieram os clãs. Milhares de guerreiros vestidos de peles e armados de machados atravessam a fronteira, queimando as primeiras aldeias. No salão de guerra, os generais gritam uns com os outros: metade quer marchar agora e enfrentar o inimigo em campo aberto; a outra metade quer esperar atrás das muralhas até que a fome vença os invasores.",
       "question": "O exército deve marchar ao encontro do inimigo?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei despreza quem se esconde atrás de muralhas." },
       "outcomes": {
         "yes": [
           {
@@ -371,7 +329,7 @@
         ],
         "no": [
           {
-            "when": { "all": [ { "flag": "alianca_vizinhos", "eq": true }, { "not": { "flag": "alianca_rompida", "eq": true } } ] },
+            "when": { "all": [{ "flag": "alianca_vizinhos", "eq": true }, { "not": { "flag": "alianca_rompida", "eq": true } }] },
             "text": "Atrás das muralhas, o Reino resiste até que os aliados vizinhos atacam o inimigo pela retaguarda.",
             "effects": { "security": 1, "military": 1, "food": -1 }
           },
@@ -400,7 +358,7 @@
       "kind": "consequence",
       "category": "diplomacy",
       "title": "Os Refugiados do Norte",
-      "prompt": "Pelas estradas do norte chega uma procissão de gente sem nada: as famílias das vilas saqueadas, com crianças enroladas em mantas e o cheiro de fumaça ainda nas roupas. Pedem pão e um teto para o inverno. Muitos dos homens, de olhos duros, oferecem-se para a milícia — querem voltar ao norte e cobrar o que lhes foi tirado.",
+      "prompt": "Pelas estradas do norte chega uma fila sem fim de gente sem nada: as famílias das vilas saqueadas, com crianças enroladas em mantas e o cheiro de fumaça ainda nas roupas. Pedem pão e um teto para o inverno. Muitos dos homens, de olhos duros, oferecem-se para a milícia — querem voltar ao norte e cobrar o que lhes foi tirado.",
       "question": "A capital deve acolher os refugiados?",
       "outcomes": {
         "yes": [
@@ -418,13 +376,11 @@
           {
             "when": { "flag": "viajantes_recusados", "eq": true },
             "text": "Primeiro os estrangeiros, agora o próprio povo. O Reino ganha fama de cruel.",
-            "effects": { "security": -2, "health": -1 },
-            "setFlags": { "rei_reputacao": { "add": -1 } }
+            "effects": { "security": -2, "health": -1 }
           },
           {
             "text": "Os refugiados acampam fora dos muros. A doença e o rancor crescem no acampamento.",
-            "effects": { "security": -1, "health": -1 },
-            "setFlags": { "rei_reputacao": { "add": -1 } }
+            "effects": { "security": -1, "health": -1 }
           }
         ],
         "tie": [{
@@ -440,7 +396,6 @@
       "title": "A Liga Mercante",
       "prompt": "Embaixadores da Liga das Cidades Livres desembarcam com baús de presentes e um tratado em pergaminho fino: tarifas zeradas para os navios dos dois lados por vinte anos. O porto ficaria abarrotado de especiarias, sedas e ouro estrangeiro. Mas os fiscais do Rei já avisam que, sem tarifas, ninguém mais saberá o que entra nos porões dos navios.",
       "question": "O Reino deve assinar o tratado?",
-      "kingFavor": { "side": "no", "amount": 1, "reason": "O Rei detesta mercadores estrangeiros mandando no seu porto." },
       "outcomes": {
         "yes": [{
           "text": "O porto ferve de navios. Especiarias, tecidos… e mercadorias que ninguém declara.",
@@ -545,11 +500,6 @@
             "effects": { "food": -1, "wealth": 1 }
           },
           {
-            "when": { "flag": "bruxa_queimada", "eq": true },
-            "text": "Sem grãos e sem chuva, o povo diz que é a maldição da bruxa queimada. Há tumultos nas aldeias.",
-            "effects": { "food": -2, "security": -2, "health": -1 }
-          },
-          {
             "text": "O racionamento é duro. Os mais fracos adoecem.",
             "effects": { "food": -2, "health": -1 }
           }
@@ -590,69 +540,12 @@
       }
     },
     {
-      "id": "bruxa_da_floresta",
-      "kind": "root",
-      "category": "faith",
-      "title": "A Bruxa da Floresta",
-      "prompt": "Os aldeões da Floresta do Rei trazem uma velha acorrentada até a praça do castelo. Ela curou febres com ervas e partos difíceis com rezas que ninguém entende — e agora uma criança morreu em suas mãos. O clero a declara bruxa e exige a fogueira ao pôr do sol. A velha não chora nem implora; apenas olha para o conselho, um por um.",
-      "question": "A acusada deve ir para a fogueira?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei é devoto e odeia bruxaria." },
-      "openVote": true,
-      "outcomes": {
-        "yes": [{
-          "text": "A fogueira ilumina a praça. O clero aplaude. As aldeias perdem sua curandeira.",
-          "effects": { "security": 1, "health": -1 },
-          "setFlags": { "bruxa_queimada": true }
-        }],
-        "no": [{
-          "text": "O Rei a liberta. Ela desaparece na floresta, sem dizer obrigado — ainda.",
-          "effects": { "health": 1, "security": -1 },
-          "setFlags": { "bruxa_protegida": true },
-          "inject": [{ "card": "favor_da_bruxa", "inRounds": 4 }]
-        }],
-        "tie": [{
-          "text": "Ela é presa indefinidamente. A aldeia fica sem curandeira e o clero, sem sua fogueira.",
-          "effects": { "security": -1, "health": -1 }
-        }]
-      }
-    },
-    {
-      "id": "favor_da_bruxa",
-      "kind": "consequence",
-      "category": "faith",
-      "title": "O Favor da Bruxa",
-      "prompt": "A velha que o Reino libertou volta ao castelo numa noite de lua cheia, sem que nenhum guarda a veja entrar. Traz um frasco de vidro escuro e diz que é um elixir para os males do Reino: força para os fracos e vigor para as plantações. Os sacerdotes, pálidos, juram que é veneno ou coisa pior. Ela só sorri e espera uma resposta.",
-      "question": "O Reino deve distribuir o elixir?",
-      "outcomes": {
-        "yes": [
-          {
-            "when": { "flag": "peste_espalhada", "eq": true },
-            "text": "O elixir cura a peste em dias. O povo chama a velha de santa.",
-            "effects": { "health": 3, "security": -1 }
-          },
-          {
-            "text": "O elixir fortalece os fracos e faz as plantações vingarem.",
-            "effects": { "health": 1, "food": 1, "security": -1 }
-          }
-        ],
-        "no": [{
-          "text": "O frasco é quebrado diante dela. Ela sorri e diz que o Reino ainda vai pedir de volta.",
-          "effects": { "health": -1, "security": 1 }
-        }],
-        "tie": [{
-          "text": "Dão o elixir só aos nobres. O povo fica sabendo.",
-          "effects": { "health": -1, "security": -1 }
-        }]
-      }
-    },
-    {
       "id": "casamento_real",
       "kind": "root",
       "category": "diplomacy",
       "title": "O Casamento Real",
       "prompt": "Um mensageiro do reino vizinho chega com um selo de cera dourada. O rei vizinho propõe casar seu filho primogênito com Lady Mirela, sobrinha do Rei Osric, unindo as duas casas reais. Seria a aliança mais sólida em gerações e o fim das escaramuças na fronteira. Há só um problema: o costume exige um dote, e ele sairia do nosso tesouro.",
       "question": "O casamento deve ser aceito?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei acredita em alianças seladas com sangue." },
       "openVote": true,
       "outcomes": {
         "yes": [{
@@ -663,8 +556,7 @@
         }],
         "no": [{
           "text": "A recusa é educada, mas o rei vizinho guarda rancor.",
-          "effects": { "wealth": 1, "security": -1 },
-          "setFlags": { "rei_reputacao": { "add": -1 } }
+          "effects": { "wealth": 1, "security": -1 }
         }],
         "tie": [{
           "text": "O conselho pede mais tempo. O príncipe casa com outra.",
@@ -703,7 +595,6 @@
       "title": "O Herdeiro",
       "prompt": "Os sinos tocam no meio da madrugada: nasceu o filho de Lady Mirela, sangue das duas casas reais e herdeiro de dois tronos. O Rei Osric segura o bebê no colo e, pela primeira vez em anos, a corte o vê sorrir. O povo já se aglomera nos portões, esperando três dias de festa, com pão e vinho de graça, como manda a tradição.",
       "question": "O Reino deve celebrar com festas públicas?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "Nada importa mais ao Rei que o sangue da família real." },
       "openVote": true,
       "outcomes": {
         "yes": [{
@@ -846,37 +737,6 @@
         "tie": [{
           "text": "O resgate começa tarde demais.",
           "effects": { "health": -2 }
-        }]
-      }
-    },
-    {
-      "id": "cometa",
-      "kind": "root",
-      "category": "faith",
-      "title": "O Cometa",
-      "prompt": "Há sete noites um cometa vermelho cruza o céu, com uma cauda que parece sangue. Nas aldeias, as galinhas param de botar, crianças acordam gritando e profetas de rua anunciam o fim dos tempos. Os sacerdotes pedem uma grande procissão por todas as cidades do Reino, com velas, relíquias e o próprio Rei à frente, para afastar o mau presságio.",
-      "question": "O Reino deve financiar a procissão?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei quer liderar a procissão da fé." },
-      "openVote": true,
-      "outcomes": {
-        "yes": [{
-          "text": "Milhares rezam juntos. O medo dá lugar à esperança.",
-          "effects": { "wealth": -1, "security": 1, "health": 1 }
-        }],
-        "no": [
-          {
-            "when": { "flag": "clero_ofendido", "eq": true },
-            "text": "O clero, já ofendido, anuncia que o cometa é castigo pelos pecados do Rei.",
-            "effects": { "security": -2, "wealth": 1 }
-          },
-          {
-            "text": "O cometa passa. O medo, não tão rápido.",
-            "effects": { "security": -1, "wealth": 1 }
-          }
-        ],
-        "tie": [{
-          "text": "Uma procissão sem velas, sem coro e sem fé.",
-          "effects": { "wealth": -1, "security": -1 }
         }]
       }
     },
@@ -1024,7 +884,6 @@
       "title": "O Barão Sem-Terra",
       "prompt": "Os bandidos da estrada já não são um bando: são um exército. Seguem um líder carismático, filho bastardo de um nobre falido, que se intitula Barão Sem-Terra. Ele envia uma carta respeitosa ao conselho: oferece trezentos homens armados ao exército do Rei, em troca de perdão para todos os crimes e de terras para o seu povo.",
       "question": "O Reino deve perdoar o Barão e seus homens?",
-      "kingFavor": { "side": "no", "amount": 1, "reason": "Perdoar foras da lei? O Rei jamais." },
       "outcomes": {
         "yes": [
           {
@@ -1063,8 +922,7 @@
         }],
         "no": [{
           "text": "O navio parte com o tesoureiro e o baú. Na corte, ninguém mais confia no cofre do Rei.",
-          "effects": { "wealth": -2 },
-          "setFlags": { "rei_reputacao": { "add": -1 } }
+          "effects": { "wealth": -2 }
         }],
         "tie": [{
           "text": "Metade da guarda vai ao porto, metade fica. O tesoureiro escapa pelas brechas das duas.",
@@ -1079,7 +937,6 @@
       "title": "As Torres da Fronteira",
       "prompt": "Batedores voltam da fronteira leste com notícias inquietantes: um senhor da guerra está erguendo torres de pedra no alto das colinas, de onde se avistam nossas aldeias. Ainda não há soldados nelas, só pedreiros trabalhando dia e noite. Atacar agora pode impedir uma guerra antes que ela comece — ou começar exatamente a guerra que se queria evitar.",
       "question": "O Reino deve atacar primeiro?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei prefere esmagar o inimigo antes que ele cresça." },
       "outcomes": {
         "yes": [
           {
@@ -1145,13 +1002,11 @@
       "title": "Os Desertores",
       "prompt": "Vinte soldados desertaram depois de seis meses sem receber soldo e foram encontrados bebendo e cantando numa taverna da capital. O capitão, furioso, exige um castigo que ninguém esqueça: forca na praça, diante de todo o quartel. Os presos dizem que só querem o que lhes devem — e muitos dos que ainda estão nas fileiras pensam o mesmo.",
       "question": "O Reino deve enforcá-los como exemplo?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei exige justiça exemplar para desertores." },
       "openVote": true,
       "outcomes": {
         "yes": [{
           "text": "Vinte cordas na praça. Ninguém mais deserta — e ninguém mais se alista por vontade própria.",
-          "effects": { "military": 1, "security": 1, "health": -1 },
-          "setFlags": { "rei_reputacao": { "add": -1 } }
+          "effects": { "military": 1, "security": 1, "health": -1 }
         }],
         "no": [
           {
@@ -1208,11 +1063,6 @@
         }],
         "no": [
           {
-            "when": { "flag": "bruxa_protegida", "eq": true },
-            "text": "A mulher da floresta, protegida pelo Reino, aparece com ervas amargas. A febre recua.",
-            "effects": { "health": 1, "security": -1 }
-          },
-          {
             "when": { "flag": "medico_aceito", "eq": true },
             "text": "O médico estrangeiro já conhece esta febre. Com a pasta de mofo, poucos morrem.",
             "effects": { "health": -1 }
@@ -1240,7 +1090,6 @@
       "title": "Os Lobos do Inverno",
       "prompt": "Um inverno feroz desceu das montanhas e trouxe matilhas de lobos famintos às aldeias. Ovelhas somem à noite, e ontem uma criança foi atacada perto do moinho. Os camponeses pedem licença para caçar nas florestas reservadas ao Rei, onde ninguém além da corte pode erguer um arco. O guarda-caça real avisa: quem entra para caçar lobos sai carregando cervos.",
       "question": "O Reino deve liberar a caça nas florestas reais?",
-      "kingFavor": { "side": "no", "amount": 1, "reason": "A floresta é do Rei, e só dele." },
       "outcomes": {
         "yes": [{
           "text": "Os camponeses caçam lobos — e também cervos, javalis e lebres. As panelas se enchem; a coutada do Rei, nem tanto.",
@@ -1261,9 +1110,8 @@
       "kind": "root",
       "category": "plague",
       "title": "O Médico do Sul",
-      "prompt": "Um médico vindo do Sul, de turbante e mãos manchadas de tinta, afirma curar a varíola com uma pasta feita de mofo de pão. Já salvou três crianças numa aldeia do Vale, e os pais choram de gratidão. O Bispo, porém, o chama de herege e feiticeiro e exige que seja expulso do Reino antes que espalhe suas práticas pagãs.",
+      "prompt": "Um médico vindo do Sul, de turbante e mãos manchadas de tinta, afirma curar a varíola com uma pasta feita de mofo de pão. Já salvou três crianças numa aldeia do Vale, e os pais choram de gratidão. Os médicos da corte, porém, juram que é um charlatão estrangeiro e pedem que seja expulso antes que alguém morra nas mãos dele.",
       "question": "O Reino deve permitir que ele trate os doentes?",
-      "kingFavor": { "side": "no", "amount": 1, "reason": "O Rei confia no Bispo, não em curas pagãs." },
       "outcomes": {
         "yes": [
           {
@@ -1273,19 +1121,13 @@
             "setFlags": { "medico_aceito": true }
           },
           {
-            "when": { "flag": "clero_ofendido", "eq": true },
-            "text": "O clero, já ofendido, prega contra o Rei nos púlpitos. Mas os doentes se levantam.",
-            "effects": { "health": 2, "security": -2 },
-            "setFlags": { "medico_aceito": true }
-          },
-          {
-            "text": "A pasta fede, mas funciona. O bispo resmunga no púlpito.",
+            "text": "A pasta fede, mas funciona. Os médicos da corte resmungam pelos corredores.",
             "effects": { "health": 2, "security": -1 },
             "setFlags": { "medico_aceito": true }
           }
         ],
         "no": [{
-          "text": "O médico é escoltado até a fronteira. O bispo agradece em missa solene.",
+          "text": "O médico é escoltado até a fronteira. Os médicos da corte brindam à própria vitória.",
           "effects": { "health": -1, "security": 1 }
         }],
         "tie": [{
@@ -1301,7 +1143,6 @@
       "title": "O Festival das Máscaras",
       "prompt": "A nobreza da capital está entediada e pede um Festival das Máscaras: três noites de bailes, música nas praças e vinho jorrando das fontes, todos com o rosto coberto por máscaras douradas. O Rei adora a ideia. O capitão da guarda, nem tanto: mascarados nas ruas são um presente para ladrões, assassinos e qualquer um que queira chegar perto demais da Coroa.",
       "question": "O Reino deve realizar o festival?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei adora as festas da corte." },
       "openVote": true,
       "outcomes": {
         "yes": [
@@ -1319,8 +1160,7 @@
         ],
         "no": [{
           "text": "O festival é cancelado. A nobreza guarda as máscaras — e o ressentimento.",
-          "effects": { "wealth": 1 },
-          "setFlags": { "rei_reputacao": { "add": -1 } }
+          "effects": { "wealth": 1 }
         }],
         "tie": [{
           "text": "Metade dos nobres faz o festival por conta própria, sem guarda nem ordem.",
@@ -1341,13 +1181,11 @@
           {
             "when": { "flag": "alianca_vizinhos", "eq": true },
             "text": "Um criado é entregue e enforcado. O reino vizinho aceita a oferenda, e a aliança sobrevive.",
-            "effects": { "security": 2, "health": -1 },
-            "setFlags": { "rei_reputacao": { "add": -1 } }
+            "effects": { "security": 2, "health": -1 }
           },
           {
             "text": "Um criado qualquer é entregue. O reino vizinho finge acreditar.",
-            "effects": { "security": 1, "health": -1 },
-            "setFlags": { "rei_reputacao": { "add": -1 } }
+            "effects": { "security": 1, "health": -1 }
           }
         ],
         "no": [
@@ -1428,7 +1266,6 @@
       "title": "O Sobrinho Refém",
       "prompt": "Piratas da Costa Cinzenta capturaram o sobrinho do Rei durante uma viagem pelo litoral. Mandaram de volta o anel dele, um cacho de cabelo e um bilhete: o rapaz está vivo, por enquanto, e será devolvido em troca de um resgate que esvaziaria metade do cofre real. O Rei Osric amassa o bilhete no punho e olha para o conselho.",
       "question": "O Reino deve pagar o resgate?",
-      "kingFavor": { "side": "no", "amount": 1, "reason": "O Rei não paga resgate a piratas: para ele, isso é covardia." },
       "outcomes": {
         "yes": [{
           "text": "O sobrinho volta magro, mas vivo. Os piratas voltam para o mar, ricos e animados.",
@@ -1448,8 +1285,7 @@
         ],
         "tie": [{
           "text": "Os piratas cansam de esperar e vendem o sobrinho para um reino rival.",
-          "effects": { "security": -1, "wealth": -1 },
-          "setFlags": { "rei_reputacao": { "add": -1 } }
+          "effects": { "security": -1, "wealth": -1 }
         }]
       }
     },
@@ -1479,92 +1315,6 @@
         "tie": [{
           "text": "Os piratas tomam a decisão sozinhos: levam metade da pesca do mês.",
           "effects": { "food": -1, "wealth": -1 }
-        }]
-      }
-    },
-    {
-      "id": "reliquia_do_santo",
-      "kind": "root",
-      "category": "faith",
-      "title": "A Relíquia do Santo",
-      "prompt": "Um monge descalço chega à corte carregando um relicário de prata. Dentro dele, diz, está o osso do dedo de São Anselmo, que curava cegos e acalmava tempestades. Se for verdadeiro, peregrinos de todo o continente pagariam fortunas para vê-lo. O monge pede apenas um santuário digno. O Rei Osric, devoto, já se ajoelhou diante do relicário.",
-      "question": "O Reino deve construir um santuário para a relíquia?",
-      "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei é devoto e já se ajoelhou diante da relíquia." },
-      "openVote": true,
-      "outcomes": {
-        "yes": [{
-          "text": "O santuário é erguido em pedra branca. O monge sorri; as primeiras velas se acendem.",
-          "effects": { "wealth": -1, "health": 1 },
-          "inject": [{ "card": "os_peregrinos", "inRounds": 3 }]
-        }],
-        "no": [
-          {
-            "when": { "flag": "clero_ofendido", "eq": true },
-            "text": "O clero, já ofendido, vê na recusa uma afronta à fé. Sermões inflamados enchem as igrejas.",
-            "effects": { "security": -2 }
-          },
-          {
-            "text": "O monge parte com o osso para o reino vizinho, falando mal do Rei pelo caminho.",
-            "effects": { "security": -1 }
-          }
-        ],
-        "tie": [{
-          "text": "A relíquia fica num baú do castelo, nem venerada nem devolvida. Os monges murmuram.",
-          "effects": { "wealth": -1 }
-        }]
-      }
-    },
-    {
-      "id": "os_peregrinos",
-      "kind": "consequence",
-      "category": "faith",
-      "title": "Os Peregrinos",
-      "prompt": "A fama da relíquia correu o continente. Milhares de peregrinos chegam ao santuário todos os dias: nobres em liteiras, camponeses descalços, doentes carregados em macas. Trazem moedas de muitos reinos — e também doenças de terras distantes. As ruas ao redor do santuário já não comportam tanta gente, e os hospitais começam a encher.",
-      "question": "O Reino deve limitar a entrada de peregrinos?",
-      "outcomes": {
-        "yes": [{
-          "text": "Só entram grupos pequenos, depois de dias de espera fora dos muros. O clero reclama da cobiça do Rei.",
-          "effects": { "wealth": 1, "security": -1 }
-        }],
-        "no": [
-          {
-            "when": { "flag": "quarentena", "eq": true },
-            "text": "A quarentena do porto ainda funciona: os doentes são separados na chegada.",
-            "effects": { "wealth": 3, "health": -1 }
-          },
-          {
-            "text": "As portas ficam abertas. O cofre enche, e os hospitais também.",
-            "effects": { "wealth": 3, "health": -2 }
-          }
-        ],
-        "tie": [{
-          "text": "Uns portões abrem, outros fecham. Os peregrinos se amontoam onde dá.",
-          "effects": { "health": -1, "wealth": 1 }
-        }]
-      }
-    },
-    {
-      "id": "a_mao_da_princesa",
-      "kind": "root",
-      "category": "feast",
-      "title": "A Mão da Princesa",
-      "prompt": "O Rei Osric III bate o cetro no chão três vezes, e o salão inteiro se cala. Está velho, diz, e não tem filho homem; a princesa Elara precisa de um marido digno do Trono de Pedra. Em vez de entregá-la a um príncipe estrangeiro, quer casá-la com um membro deste conselho — aquele que mais se empenhar por ela. O escolhido se tornará a Mão do Rei, e todo o favor que os outros acumularam até hoje deixará de valer.",
-      "question": "O conselho aprova que a princesa se case com um de seus membros?",
-      "special": "princess",
-      "ruleText": "Se o SIM vencer, quem apostar mais fichas votando SIM se casa com a princesa e se torna a Mão do Rei até o fim desta partida, e o Favor do Rei de todos os jogadores volta a zero. Em empate de apostas, vence quem tiver mais Favor do Rei; se o empate continuar, a princesa recusa todos.",
-      "placement": { "from": 0.25, "to": 0.75 },
-      "outcomes": {
-        "yes": [{
-          "text": "Os sinos tocam por três dias. A princesa Elara caminha até o altar pelo braço de um conselheiro, e a corte inteira entende quem fala agora ao ouvido do Rei.",
-          "effects": { "security": 1, "wealth": -1 }
-        }],
-        "no": [{
-          "text": "O conselho recusa. O Rei engole a raiva e promete a filha a um príncipe estrangeiro; um dote pesado sai do Reino junto com ela.",
-          "effects": { "wealth": -2, "security": 1 }
-        }],
-        "tie": [{
-          "text": "O conselho não decide. Cansada de esperar, a princesa foge com um capitão da guarda, e o Rei passa semanas sem falar com ninguém.",
-          "effects": { "security": -1 }
         }]
       }
     }

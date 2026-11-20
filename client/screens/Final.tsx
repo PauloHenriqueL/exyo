@@ -52,8 +52,8 @@ export function Final({ view }: { view: ClientView }) {
             Nova sala
           </button>
           <p className="hint on-dark credits">
-            Ilustrações: pinturas em domínio público de Dürer, Bruegel, Holbein, Uccello, Matsys, Van Eyck, Caravaggio, Petrus Christus,
-            Irmãos Limbourg e Olaus Magnus (via Wikimedia Commons). Brasões das Casas: gerados com IA (Gemini). Ícones dos recursos: Lorc, Delapouite e Zeromancer /{" "}
+            Ilustrações: pinturas em domínio público de Bruegel, Holbein, Uccello, Matsys, Caravaggio e Olaus Magnus (via Wikimedia
+            Commons). Brasões das Casas: gerados com IA (Gemini). Ícones dos recursos: Lorc, Delapouite e Zeromancer /{" "}
             <a href="https://game-icons.net" target="_blank" rel="noreferrer">game-icons.net</a> (CC BY 3.0). Sons:{" "}
             <a href="https://kenney.nl" target="_blank" rel="noreferrer">Kenney.nl</a> (CC0). Ambientes e músicas:{" "}
             <a href="https://opengameart.org" target="_blank" rel="noreferrer">OpenGameArt</a> — StarNinjas, TinyWorlds, syncopika, RandomMind e

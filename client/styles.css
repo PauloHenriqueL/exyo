@@ -204,7 +204,7 @@ section { margin-bottom: 20px; }
 .card .princess-rule { background: rgba(138,47,94,.12); border-color: #8a2f5e; }
 .card.princess::before { filter: url(#papel-rasgado) drop-shadow(0 0 10px rgba(232,194,74,.75)) drop-shadow(0 12px 16px rgba(0,0,0,.55)); }
 
-.players li { grid-template-columns: 46px 12px 1fr auto auto; }
+.players li { grid-template-columns: 46px 1fr auto auto; }
 .players li.hand { background: rgba(201,162,39,.18); }
 .crest-wrap { position: relative; display: inline-grid; place-items: center; }
 .crest-wrap.big { width: 72px; }
@@ -244,7 +244,7 @@ section { margin-bottom: 20px; }
 @media (max-width: 820px) {
   .king-grid { grid-template-columns: 1fr; }
   .side .players { order: -1; } /* no celular, coroa e Favor do Rei logo abaixo da carta */
-  .players li { grid-template-columns: 44px 12px 1fr auto auto; gap: 6px; }
+  .players li { grid-template-columns: 44px 1fr auto auto; gap: 6px; }
 }
 
 /* ---------- arte ---------- */
@@ -374,3 +374,20 @@ section { margin-bottom: 20px; }
 .deltas .down .res-icon { color: #9e1b1b; }
 .bubble.chat .res-icon { color: #6b4a10; margin: 0 1px; }
 .chat-quick .quick .res-icon { width: 1.25em; height: 1.25em; }
+
+/* ---------- prévia do resultado na carta ---------- */
+.preview { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.preview-side { padding: 8px 12px 10px; border-top: 3px solid; background: rgba(255,255,255,.28); }
+.preview-side.yes { border-color: var(--green); }
+.preview-side.no { border-color: var(--red); }
+.preview-title { font-family: "Cinzel", serif; font-size: .9rem; letter-spacing: .04em; display: block; margin-bottom: 4px; }
+.preview-side.yes .preview-title { color: var(--green); }
+.preview-side.no .preview-title { color: var(--red); }
+.preview ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.preview li { display: grid; grid-template-columns: 1.3em 2.2em 1fr; align-items: center; gap: 4px; font-size: .98rem; }
+.preview li.up { color: #2e6b2a; }
+.preview li.down { color: #9e1b1b; }
+.preview-num { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.preview-none, .preview-later { font-size: .85rem; font-style: italic; color: var(--muted); display: block; }
+.preview-later { margin-top: 4px; }
+@media (max-width: 420px) { .preview { grid-template-columns: 1fr; } }

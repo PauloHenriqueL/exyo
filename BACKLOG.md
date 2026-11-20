@@ -24,6 +24,9 @@
 - [x] Simulação inicial (20 mil partidas com votos aleatórios): 0,8% de colapso
 - [x] Faixas das metas baixadas para alto = +3..+10 e moderado = −2..+2 (melhor caso simulado: ~3,6/5; votos aleatórios: maioria entre 1 e 3 pontos)
 - [ ] Revisitar o balanceamento depois do primeiro playtest
+- [x] Playtest com amigos (2026-11-20) → mudanças: sem roubo do Reino; a carta mostra o resultado de SIM e NÃO antes do voto; sem cartas de religião; sem tempo nas fases (avança quando todos clicam; "Continuar" depois do resultado); sem Favor do Rei, Mão do Rei, carta da princesa e tela de abertura do Rei
+- [x] Mão do Rei de volta só como desempate (2026-11-20): passa ao próximo da mesa a cada rodada (a primeira é sorteada; o bot entra na fila; a fila continua na 2ª partida). Num empate vale o voto dela; se ela se absteve, é Indecisão do Conselho. Sem bônus de fichas. Simulação: empates caem de ~27% para ~20% das rodadas, e a Mão decide ~8%
+- [ ] Observar no próximo teste: ~1 em 5 rodadas ainda termina em Indecisão do Conselho (a Mão se absteve ou todos se abstiveram)
 - [x] Mão do Rei e Favor do Rei (2026-11-19): token de desempate que passa entre jogadores; 16 cartas dão Favor do Rei ao lado que agrada ao Rei; maior Favor (sozinho) toma a coroa (+5 fichas). Rei Osric III com gostos e desgostos mostrados na abertura
 - [x] Economia balanceada por simulação (`scripts/balance.ts`, ver `BALANCEAMENTO.md`): 15 fichas iniciais, +5 para a Mão, Favor inicial 5
 - [x] Roubar do Reino (recurso −1 → +1 ficha, só votando SIM/NÃO) e Voto aberto em 15 cartas (voto visível na hora e definitivo)
