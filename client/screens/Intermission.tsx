@@ -4,7 +4,7 @@ import { HOUSES } from "../../shared/content";
 import type { ClientView } from "../../shared/types";
 import { play } from "../audio";
 import { Crest } from "../components/Crest";
-import { GoalText } from "../components/GoalText";
+import { GoalBoard } from "../components/GoalBoard";
 import { ResourceBoard } from "../components/ResourceBoard";
 import { useCountdown } from "../useCountdown";
 
@@ -67,7 +67,7 @@ export function Intermission({ view, room }: { view: ClientView; room: Room }) {
               transition={{ delay: 0.9, type: "spring", stiffness: 120, damping: 14 }}
             >
               <h2>Seu novo objetivo secreto</h2>
-              <GoalText goal={view.me.goal} ranges={view.ranges} />
+              <GoalBoard goal={view.me.goal} ranges={view.ranges} resources={view.resources} />
             </motion.div>
           )}
           <ResourceBoard resources={view.resources} />
@@ -77,7 +77,7 @@ export function Intermission({ view, room }: { view: ClientView; room: Room }) {
                 className="btn primary"
                 disabled={me.isReady}
                 onClick={() => {
-                  play("confirm");
+                  play("seal");
                   room.send("ready");
                 }}
               >

@@ -103,7 +103,7 @@ export function Prologue({ view, room }: { view: ClientView; room: Room }) {
             className="btn primary"
             disabled={me.isReady}
             onClick={() => {
-              play("confirm");
+              play("seal");
               room.send("ready");
             }}
           >

@@ -6,10 +6,11 @@ import { RESOURCES, RESOURCE_LABEL, type Choice, type ClientView, type PublicPla
 import { play } from "../audio";
 import { Crest } from "../components/Crest";
 import { Chatter } from "../components/Effects";
-import { GoalText } from "../components/GoalText";
+import { GoalBoard } from "../components/GoalBoard";
 import { HandCrown } from "../components/HandCrown";
 import { ResourceBoard } from "../components/ResourceBoard";
-import { sendVote } from "../net";
+import { sendVote, type ChatMessage } from "../net";
+import { ChatBox } from "../components/ChatBox";
 import { useCountdown } from "../useCountdown";
 
 const CATEGORY: Record<string, { label: string; icon: string; color: string }> = {
@@ -42,7 +43,7 @@ const SIDE_LABEL = { yes: "SIM", no: "NÃO" };
 
 const nameOf = (view: ClientView, id: string | null | undefined) => view.players.find((p) => p.id === id)?.name ?? "—";
 
-export function Table({ view, room }: { view: ClientView; room: Room }) {
+export function Table({ view, room, chat }: { view: ClientView; room: Room; chat: Record<string, ChatMessage> }) {
   const timer = useCountdown(view.deadline);
   const me = view.players.find((p) => p.id === view.me.id);
   const card = view.card;
@@ -128,7 +129,8 @@ export function Table({ view, room }: { view: ClientView; room: Room }) {
 
         <aside className="side">
           <ResourceBoard resources={view.resources} deltas={view.phase === "reveal" ? view.reveal?.deltas : null} />
-          <Players view={view} />
+          <Players view={view} chat={chat} />
+          <ChatBox room={room} />
           <GoalPanel view={view} />
         </aside>
       </div>
@@ -148,7 +150,7 @@ function ReadyPanel({ view, room }: { view: ClientView; room: Room }) {
         className="btn primary"
         disabled={me.isReady}
         onClick={() => {
-          play("confirm");
+          play("seal");
           room.send("ready");
         }}
       >
@@ -193,10 +195,12 @@ function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: Publi
             role="radio"
             aria-checked={choice === c}
             disabled={locked}
-            className={`btn choice ${c} ${choice === c ? "on" : ""}`}
+            className={`selo ${c} ${choice === c ? "on" : ""}`}
             onClick={() => setChoice(c)}
           >
-            {CHOICE_LABEL[c]}
+            <span className="selo-cera" aria-hidden="true" />
+            {me.houseId && <img className="selo-sinete" src={`/art/crests/${me.houseId}.webp`} alt="" aria-hidden="true" />}
+            <span className="selo-txt">{CHOICE_LABEL[c]}</span>
           </button>
         ))}
       </div>
@@ -339,7 +343,10 @@ function KingReaction({ view }: { view: ClientView }) {
   );
 }
 
-function Players({ view }: { view: ClientView }) {
+const CHAT_SHOW_MS = 7000;
+
+function Players({ view, chat }: { view: ClientView; chat: Record<string, ChatMessage> }) {
+  const now = Date.now();
   const maxFavor = Math.max(10, ...view.players.map((p) => p.favor));
   return (
     <ul className="players">
@@ -360,7 +367,21 @@ function Players({ view }: { view: ClientView }) {
                 {p.name}
                 {p.isBot && " 🤖"}
                 {!p.connected && " (desconectado)"}
-                <Chatter active={view.phase === "discussion" && p.id !== view.me.id} motto={h.motto} />
+                {/* Falas automáticas só para bots; jogadores falam pelo chat. */}
+                {p.isBot && <Chatter active={view.phase === "discussion"} motto={h.motto} />}
+                <AnimatePresence>
+                  {chat[p.id] && now - chat[p.id].at < CHAT_SHOW_MS && (
+                    <motion.span
+                      key={chat[p.id].at}
+                      className="bubble chat"
+                      initial={{ opacity: 0, y: 6, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                    >
+                      {chat[p.id].text}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </span>
               <small className="sub">
                 <b className="favor-txt">Favor {p.favor}</b> · {p.isHand ? (view.handLocked ? "Mão do Rei 💍" : "Mão do Rei") : h.name}
@@ -387,7 +408,7 @@ function GoalPanel({ view }: { view: ClientView }) {
       <summary>
         Seu objetivo secreto{view.totalMatches > 1 && ` · Partida ${view.match}`}
       </summary>
-      <GoalText goal={g} ranges={view.ranges} />
+      <GoalBoard goal={g} ranges={view.ranges} resources={view.resources} />
     </details>
   );
 }

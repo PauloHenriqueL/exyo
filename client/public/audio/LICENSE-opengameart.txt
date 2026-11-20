@@ -1,0 +1,10 @@
+Ambientes e músicas — todos CC0 1.0 (domínio público), via OpenGameArt.org (licença conferida em 2026-11-20).
+
+ambiente/conselho.ogg   "Crowd Shouting/Speaking Ambience", StarNinjas — https://opengameart.org/content/crowd-shoutingspeaking-ambience
+ambiente/floresta.mp3   "Forest Ambience", TinyWorlds — https://opengameart.org/content/forest-ambience
+ambiente/passaros.mp3   "Bird chirping sounds", syncopika — https://opengameart.org/content/bird-chirping-sounds
+musica/kings-feast.mp3  "Medieval: King's Feast", RandomMind — https://opengameart.org/content/medieval-kings-feast
+musica/minstrel-dance.mp3 "Medieval: Minstrel Dance", RandomMind — https://opengameart.org/content/medieval-minstrel-dance
+musica/peasantry.ogg    "Peasant Theme", nihilocrat — https://opengameart.org/content/peasant-theme
+
+https://creativecommons.org/publicdomain/zero/1.0/

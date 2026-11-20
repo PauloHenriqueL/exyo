@@ -1,6 +1,19 @@
 import { useEffect, useRef } from "react";
 import type { ClientView } from "../shared/types";
-import { play, startMurmur, stopMurmur } from "./audio";
+import { play, setAmbience, setMusic, type Ambience, type Music } from "./audio";
+
+/** Ambiente de fundo de cada tipo de carta: conversa do conselho, ou natureza lá fora. */
+const AMBIENCE_BY_CATEGORY: Record<string, Ambience> = {
+  nature: "floresta",
+  plague: "passaros",
+  war: "conselho",
+  feast: "conselho",
+  diplomacy: "conselho",
+  trade: "conselho",
+  faith: "conselho",
+  crime: "conselho",
+};
+const SOMETIMES: Music[] = ["minstrel-dance", "peasantry"];
 
 /** Toca os sons de cada transição da partida, a partir da visão que chega do servidor. */
 export function useGameSounds(view: ClientView | null) {
@@ -25,15 +38,28 @@ export function useGameSounds(view: ClientView | null) {
       }
     }
 
-    if (view.phase === "discussion") startMurmur();
-    else stopMurmur();
+    // Ambiente e música: ambiente na discussão e na votação; música na abertura, no intervalo, no fim,
+    // nas cartas de Banquete e, de vez em quando (1 em 4 cartas), baixinho durante a discussão.
+    if (view.phase === "discussion" || view.phase === "voting") {
+      setAmbience(AMBIENCE_BY_CATEGORY[view.card?.category ?? ""] ?? "conselho");
+    } else if (view.phase === "reveal") {
+      // mantém o ambiente da carta
+    } else {
+      setAmbience(null);
+    }
+    if (view.phase === "prologue") setMusic("minstrel-dance");
+    else if (view.phase === "intermission") setMusic("peasantry");
+    else if (view.phase === "end") setMusic(view.final?.collapsed ? null : "kings-feast");
+    else if (view.phase === "discussion" && newCard) {
+      const pick: Music | null =
+        view.card?.category === "feast" ? "kings-feast" : Math.random() < 0.25 ? SOMETIMES[Math.floor(Math.random() * SOMETIMES.length)] : null;
+      setMusic(pick);
+    } else if (view.phase === "lobby") setMusic(null);
 
-    if (phaseChanged && view.phase === "voting") play("confirm");
 
     if (phaseChanged && view.phase === "reveal" && view.reveal) {
       view.players.forEach((_, i) => play("seal", i * 400));
       const after = view.players.length * 400 + 200;
-      play("bell", after);
       if (war) {
         play("swordClash", after);
         play("swordRing", after + 60);
@@ -45,21 +71,18 @@ export function useGameSounds(view: ClientView | null) {
 
     if (phaseChanged && view.phase === "prologue") {
       play("door");
-      play("bell", 900);
     }
 
     if (phaseChanged && view.phase === "reveal" && (view.reveal?.handChange || view.reveal?.princess?.winnerId)) {
       const t = view.players.length * 400 + 900;
       play("coins", t);
-      play("bell", t + 150);
     }
 
     if (phaseChanged && view.phase === "intermission") {
       play("door");
-      play("bell", 700);
     }
 
-    if (phaseChanged && view.phase === "end") play(view.final?.collapsed ? "swordRing" : "bell");
+    if (phaseChanged && view.phase === "end" && view.final?.collapsed) play("swordRing");
   }, [view]);
 
   // Tique-taque nos últimos 5 segundos da votação.
@@ -74,5 +97,11 @@ export function useGameSounds(view: ClientView | null) {
     return () => timers.forEach(clearTimeout);
   }, [deadline]);
 
-  useEffect(() => () => stopMurmur(), []);
+  useEffect(
+    () => () => {
+      setAmbience(null);
+      setMusic(null);
+    },
+    [],
+  );
 }

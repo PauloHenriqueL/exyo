@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo B — livro de registros</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Cormorant+SC:wght@500;600&family=UnifrakturMaguntia&display=swap">
+<style>
+/* Direção B: o jogo é o livro de registros do conselho. Uma página contínua, sem caixas;
+   a hierarquia vem de fios, ornamentos, capitulares e tinta vermelha (rubrica), como num manuscrito. */
+:root {
+  --fundo: #15100b;
+  --folha: #efe5cf;
+  --tinta: #231a10;
+  --tinta-suave: #6d5a3f;
+  --rubrica: #9b2318;
+  --fio: #b9a37a;
+  --texto: "Cormorant Garamond", Garamond, Georgia, serif;
+  --versal: "Cormorant SC", Garamond, Georgia, serif;
+  --capitular: "UnifrakturMaguntia", "Cormorant Garamond", serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--tinta); font-family: var(--texto); font-size: 20px; line-height: 1.5; }
+.livro {
+  max-width: 1180px; margin: 32px auto; display: grid; grid-template-columns: 1fr 1fr;
+  background:
+    linear-gradient(90deg, transparent 49.2%, rgba(60,40,20,.28) 50%, transparent 50.8%),
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.4), transparent 60%),
+    var(--folha);
+  box-shadow: 0 30px 60px rgba(0,0,0,.6), inset 0 0 120px rgba(120,85,40,.25);
+}
+.folio { padding: 56px 64px 48px; min-width: 0; }
+.folio + .folio { border-left: 0; }
+.cabeco { display: flex; justify-content: space-between; font-family: var(--versal); font-size: .8rem; letter-spacing: .14em; color: var(--tinta-suave); border-bottom: 1px solid var(--fio); padding-bottom: 6px; }
+h1, h2 { font-family: var(--versal); font-weight: 600; margin: 0; line-height: 1.15; }
+h1 { font-size: 2.3rem; color: var(--rubrica); margin-top: 26px; }
+h2 { font-size: 1.7rem; margin-top: 18px; }
+.ornamento { text-align: center; color: var(--rubrica); font-size: 1.3rem; margin: 22px 0; letter-spacing: .6em; }
+.rubrica { color: var(--rubrica); }
+p { margin: 10px 0; }
+.capitular::first-letter { font-family: var(--capitular); float: left; font-size: 3.9rem; line-height: .82; color: var(--rubrica); padding: 4px 8px 0 0; }
+.registro { display: grid; gap: 18px; margin-top: 18px; }
+.campo { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; }
+.campo label { font-family: var(--versal); letter-spacing: .05em; }
+.campo input { font: inherit; font-style: italic; background: transparent; border: 0; border-bottom: 1px solid var(--tinta); padding: 0 4px 2px; color: var(--tinta); outline: none; min-width: 0; }
+.campo input:focus { border-bottom: 2px solid var(--rubrica); }
+.acao {
+  font: inherit; font-family: var(--versal); font-size: 1.15rem; letter-spacing: .08em; color: var(--rubrica);
+  background: none; border: 0; padding: 4px 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px;
+}
+.acao:hover { text-decoration-thickness: 2px; }
+.acao:focus-visible { outline: 1px dashed var(--rubrica); outline-offset: 4px; }
+.miuda { font-size: .85rem; font-style: italic; color: var(--tinta-suave); }
+
+.miniatura { margin: 18px 0 6px; padding: 5px; border: 1px solid var(--tinta); outline: 1px solid var(--tinta); outline-offset: 3px; }
+.miniatura img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; filter: sepia(.18); }
+.legenda { font-size: .8rem; font-style: italic; color: var(--tinta-suave); text-align: center; margin-top: 8px; }
+.glosa { margin-top: 14px; padding-left: 14px; border-left: 1px solid var(--rubrica); font-style: italic; color: var(--tinta-suave); font-size: .95rem; }
+
+.voto { display: flex; gap: 34px; flex-wrap: wrap; margin-top: 18px; font-family: var(--versal); font-size: 1.25rem; }
+.voto label { display: inline-flex; gap: 10px; align-items: center; cursor: pointer; }
+.voto input { appearance: none; width: 22px; height: 22px; border: 1.5px solid var(--tinta); margin: 0; display: grid; place-items: center; }
+.voto input:checked::after { content: "✗"; color: var(--rubrica); font-size: 1.3rem; line-height: 1; transform: translateY(-2px); }
+.aposta { margin-top: 12px; }
+.marcas { letter-spacing: .25em; color: var(--rubrica); }
+
+.lista { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 12px; }
+.lista li { display: grid; grid-template-columns: 46px 1fr; gap: 12px; align-items: center; }
+.lista img { width: 46px; height: 46px; object-fit: contain; }
+.lancamento { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.lancamento .quem { white-space: nowrap; }
+.lancamento .pontilhado { flex: 1; border-bottom: 1px dotted var(--tinta-suave); transform: translateY(-5px); min-width: 20px; }
+.lancamento .quanto { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lista .casa { font-size: .85rem; font-style: italic; color: var(--tinta-suave); }
+
+@media (max-width: 860px) {
+  .livro { grid-template-columns: 1fr; margin: 0; background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.4), transparent 60%), var(--folha); }
+  .folio { padding: 36px 22px; }
+  .folio + .folio { border-top: 1px solid var(--fio); }
+}
+</style>
+</head>
+<body>
+<div class="livro">
+  <section class="folio">
+    <div class="cabeco"><span>Livro do Conselho</span><span>Fólio I</span></div>
+    <h1>Conselho do Rei</h1>
+    <p class="capitular">Na sala C3VZD reúnem-se os conselheiros de Sua Majestade, Osric III. Quem chega assina o livro e jura servir ao Reino, mesmo quando serve primeiro à própria Casa.</p>
+    <form class="registro" onsubmit="event.preventDefault()">
+      <div class="campo"><label for="nome">Nome</label><input id="nome" maxlength="24" placeholder="assine aqui"></div>
+      <div class="campo"><label for="tel">Telefone</label><input id="tel" inputmode="tel" placeholder="(31) 99999-9999"></div>
+      <div><button class="acao" type="submit">Entrar no salão</button></div>
+      <p class="miuda">O telefone só serve para você voltar ao seu lugar se a página fechar.</p>
+    </form>
+    <div class="ornamento" aria-hidden="true">❧ ❧ ❧</div>
+    <div class="cabeco"><span>Os conselheiros</span><span>Favor · fichas</span></div>
+    <ul class="lista">
+      <li><img src="../client/public/art/crests/corvalis.webp" alt=""><div><div class="lancamento"><span class="quem">Tester <span class="rubrica">♛ Mão do Rei</span></span><span class="pontilhado"></span><span class="quanto">7 · 20</span></div><div class="casa">Casa Corvalis</div></div></li>
+      <li><img src="../client/public/art/crests/ferrobranco.webp" alt=""><div><div class="lancamento"><span class="quem">Bruna</span><span class="pontilhado"></span><span class="quanto">5 · 14</span></div><div class="casa">Casa Ferrobranco</div></div></li>
+      <li><img src="../client/public/art/crests/verdemar.webp" alt=""><div><div class="lancamento"><span class="quem">Caio</span><span class="pontilhado"></span><span class="quanto">4 · 16</span></div><div class="casa">Casa Verdemar</div></div></li>
+    </ul>
+  </section>
+
+  <section class="folio">
+    <div class="cabeco"><span>Guerra · Favor do Rei</span><span>Rodada 3 de 12</span></div>
+    <figure class="miniatura"><img src="../client/public/art/cards/war.webp" alt=""></figure>
+    <p class="legenda">Paolo Uccello, A Batalha de San Romano (c. 1438)</p>
+    <h2>A Invasão do Norte</h2>
+    <p class="capitular">O rio do norte congelou, e com o gelo vieram os clãs. Milhares de guerreiros vestidos de peles atravessam a fronteira, queimando as primeiras aldeias. No salão de guerra, os generais gritam uns com os outros.</p>
+    <p><span class="rubrica">Pergunta-se:</span> o exército deve marchar ao encontro do inimigo?</p>
+    <p class="glosa">Quem votar sim ganha o Favor do Rei. O Rei despreza quem se esconde atrás de muralhas.</p>
+    <div class="ornamento" aria-hidden="true">✠</div>
+    <div class="voto" role="radiogroup" aria-label="Seu voto">
+      <label><input type="radio" name="v" checked> Sim</label>
+      <label><input type="radio" name="v"> Não</label>
+      <label><input type="radio" name="v"> Abster</label>
+    </div>
+    <p class="aposta">Aposto <span class="marcas">I I</span> fichas · peso do voto 3</p>
+    <button class="acao">Selar o voto</button>
+  </section>
+</div>
+</body>
+</html>

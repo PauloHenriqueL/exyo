@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo A — papel sobre a mesa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap">
+<style>
+/* Direção A: nada é "caixa". Cada elemento é um objeto sobre a mesa: papel rasgado, selo de cera, tinta. */
+:root {
+  --mesa: #1d1410;
+  --papel: #e9dcc0;
+  --papel-escuro: #d8c49c;
+  --tinta: #2a1d12;
+  --tinta-suave: #6b5639;
+  --cera-vermelha: #8b1e1a;
+  --cera-verde: #2f5a32;
+  --cera-marrom: #5a4126;
+  --ouro: #b8902e;
+  --titulo: "IM Fell English SC", Georgia, serif;
+  --texto: "IM Fell English", Georgia, serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; color: var(--tinta); font-family: var(--texto); font-size: 19px; line-height: 1.5;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255,210,150,.10), transparent 60%),
+    repeating-linear-gradient(92deg, rgba(0,0,0,.18) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(88deg, rgba(255,255,255,.025) 0 1px, transparent 1px 23px),
+    linear-gradient(#2a1c14, var(--mesa));
+}
+.mesa { max-width: 1180px; margin: 0 auto; padding: 48px 20px 80px; display: grid; gap: 56px; }
+.rotulo { color: #cdb68a; font-family: var(--titulo); letter-spacing: .12em; font-size: .85rem; opacity: .8; margin: 0 0 14px; }
+
+/* Papel com borda rasgada: o fundo é deformado por ruído; o conteúdo fica nítido por cima. */
+.papel { position: relative; padding: 34px 38px; isolation: isolate; }
+.papel::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(255,255,255,.35), transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(120,80,30,.22), transparent 60%),
+    linear-gradient(var(--papel), var(--papel-escuro));
+  filter: url(#rasgado) drop-shadow(0 10px 14px rgba(0,0,0,.55));
+}
+.inclina-e { transform: rotate(-1.2deg); }
+.inclina-d { transform: rotate(.9deg); }
+
+/* Convocação (login) */
+.convocacao { max-width: 520px; justify-self: center; text-align: center; }
+.convocacao h1 { font-family: var(--titulo); font-weight: 400; font-size: 2.4rem; margin: 0; letter-spacing: .02em; }
+.convocacao .sub { font-style: italic; color: var(--tinta-suave); margin: 6px 0 26px; }
+.linha { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: end; text-align: left; margin: 18px 0; }
+.linha label { font-variant: small-caps; color: var(--tinta-suave); }
+.linha input {
+  font: inherit; font-style: italic; color: var(--tinta); background: transparent; border: 0;
+  border-bottom: 1.5px dotted var(--tinta-suave); padding: 2px 4px; outline: none;
+}
+.linha input:focus { border-bottom: 1.5px solid var(--tinta); }
+.nota { font-size: .85rem; font-style: italic; color: var(--tinta-suave); margin-top: 22px; }
+
+/* Selo de cera (botão) */
+.selo {
+  --cera: var(--cera-vermelha);
+  font: inherit; font-family: var(--titulo); font-size: .95rem; color: #f3e3c3; cursor: pointer; border: 0;
+  width: 108px; height: 108px; border-radius: 47% 53% 49% 51% / 52% 46% 54% 48%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--cera) 70%, #fff), var(--cera) 45%, color-mix(in srgb, var(--cera) 70%, #000));
+  box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--cera) 85%, #000), inset 0 0 0 9px rgba(255,255,255,.12), 0 6px 10px rgba(0,0,0,.45);
+  display: inline-grid; place-items: center; text-align: center; line-height: 1.1; padding: 14px;
+  transition: transform .15s;
+}
+.selo:hover { transform: rotate(-4deg) scale(1.03); }
+.selo:focus-visible { outline: 2px dashed var(--ouro); outline-offset: 6px; }
+.selo.verde { --cera: var(--cera-verde); }
+.selo.marrom { --cera: var(--cera-marrom); }
+.selo.pequeno { width: 84px; height: 84px; font-size: .85rem; }
+.selo[aria-pressed="true"] { transform: rotate(-6deg) scale(1.08); box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--cera) 85%, #000), 0 0 0 3px var(--ouro), 0 6px 10px rgba(0,0,0,.45); }
+
+/* Mesa de jogo */
+.jogo { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.carta h2 { font-family: var(--titulo); font-weight: 400; font-size: 2rem; margin: 14px 0 8px; }
+.gravura { margin: -6px -8px 0; position: relative; }
+.gravura img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; filter: sepia(.25) contrast(1.05); mix-blend-mode: multiply; }
+.gravura figcaption { font-size: .78rem; font-style: italic; color: var(--tinta-suave); text-align: right; margin-top: 4px; }
+.carta p { margin: 10px 0; }
+.carta .pergunta { font-style: italic; font-size: 1.12rem; margin-top: 16px; }
+.carimbo {
+  display: inline-block; font-family: var(--titulo); font-size: .8rem; letter-spacing: .08em; color: var(--cera-vermelha);
+  border: 1.5px solid currentColor; padding: 1px 8px; transform: rotate(-3deg); opacity: .85; margin-right: 8px;
+}
+.carimbo.ouro { color: #8a6a12; }
+.margem { border-left: 2px solid rgba(139,30,26,.35); padding-left: 12px; font-size: .95rem; color: var(--tinta-suave); margin-top: 16px; }
+
+.votos { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+.aposta { text-align: center; margin-top: 18px; color: #e3cfa4; }
+.fichas { display: inline-flex; gap: 4px; vertical-align: middle; }
+.ficha { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f1d27a, #9a7414 70%); box-shadow: 0 2px 3px rgba(0,0,0,.5); }
+
+/* Conselho: tiras de papel presas na mesa */
+.conselho { display: grid; gap: 16px; }
+.tira { display: grid; grid-template-columns: 54px 1fr auto; gap: 14px; align-items: center; padding: 12px 18px; }
+.tira:nth-child(odd) { transform: rotate(-.6deg); }
+.tira:nth-child(even) { transform: rotate(.5deg); }
+.tira img { width: 54px; height: 54px; object-fit: contain; }
+.tira .nome { font-size: 1.1rem; }
+.tira .casa { font-size: .85rem; font-style: italic; color: var(--tinta-suave); }
+.favor { height: 5px; background: rgba(42,29,18,.15); margin-top: 6px; }
+.favor span { display: block; height: 100%; background: var(--ouro); }
+.tira .fx { font-variant-numeric: tabular-nums; color: var(--tinta-suave); white-space: nowrap; }
+.coroa { position: absolute; left: 20px; top: -14px; font-size: 1.3rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+
+@media (max-width: 820px) {
+  .jogo { grid-template-columns: 1fr; }
+  .papel { padding: 26px 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .selo { transition: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rasgado"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="7"/><feDisplacementMap in="SourceGraphic" scale="10"/></filter>
+</svg>
+<div class="mesa">
+  <section>
+    <p class="rotulo">Tela de entrada</p>
+    <form class="papel convocacao inclina-e" onsubmit="event.preventDefault()">
+      <h1>Conselho do Rei</h1>
+      <p class="sub">Sala C3VZD. O Rei convoca seus conselheiros.</p>
+      <div class="linha"><label for="nome">Nome</label><input id="nome" maxlength="24" placeholder="assine aqui"></div>
+      <div class="linha"><label for="tel">Telefone</label><input id="tel" inputmode="tel" placeholder="(31) 99999-9999"></div>
+      <button class="selo" type="submit">Entrar no salão</button>
+      <p class="nota">O telefone só serve para você voltar ao seu lugar se a página fechar.</p>
+    </form>
+  </section>
+
+  <section>
+    <p class="rotulo">Mesa: carta, votação e conselho</p>
+    <div class="jogo">
+      <div>
+        <article class="papel carta inclina-d">
+          <figure class="gravura">
+            <img src="../client/public/art/cards/war.webp" alt="">
+            <figcaption>Paolo Uccello, A Batalha de San Romano (c. 1438)</figcaption>
+          </figure>
+          <p><span class="carimbo">Guerra</span><span class="carimbo ouro">Favor do Rei</span></p>
+          <h2>A Invasão do Norte</h2>
+          <p>O rio do norte congelou, e com o gelo vieram os clãs. Milhares de guerreiros vestidos de peles atravessam a fronteira, queimando as primeiras aldeias. No salão de guerra, os generais gritam uns com os outros.</p>
+          <p class="pergunta">O exército deve marchar ao encontro do inimigo?</p>
+          <p class="margem">Quem votar SIM ganha o Favor do Rei. O Rei despreza quem se esconde atrás de muralhas.</p>
+        </article>
+        <div class="votos" role="radiogroup" aria-label="Seu voto">
+          <button class="selo verde" aria-pressed="true">Sim</button>
+          <button class="selo">Não</button>
+          <button class="selo marrom">Abster</button>
+        </div>
+        <p class="aposta">Apostar <span class="fichas"><span class="ficha"></span><span class="ficha"></span></span> 2 fichas · peso do voto 3</p>
+      </div>
+
+      <div class="conselho">
+        <div class="papel tira" style="position:relative">
+          <svg class="coroa" viewBox="0 0 64 48" width="34" height="26" role="img" aria-label="Mão do Rei"><path d="M4 40 L8 10 L22 24 L32 4 L42 24 L56 10 L60 40 Z" fill="#c9a23a" stroke="#4a3208" stroke-width="3" stroke-linejoin="round"/><rect x="4" y="38" width="56" height="8" rx="1" fill="#a8811f" stroke="#4a3208" stroke-width="3"/></svg>
+          <img src="../client/public/art/crests/corvalis.webp" alt="">
+          <div><div class="nome">Tester</div><div class="casa">Casa Corvalis · Mão do Rei</div><div class="favor"><span style="width:70%"></span></div></div>
+          <div class="fx">20 fichas</div>
+        </div>
+        <div class="papel tira">
+          <img src="../client/public/art/crests/ferrobranco.webp" alt="">
+          <div><div class="nome">Bruna</div><div class="casa">Casa Ferrobranco</div><div class="favor"><span style="width:50%"></span></div></div>
+          <div class="fx">14 fichas</div>
+        </div>
+        <div class="papel tira">
+          <img src="../client/public/art/crests/verdemar.webp" alt="">
+          <div><div class="nome">Caio</div><div class="casa">Casa Verdemar</div><div class="favor"><span style="width:40%"></span></div></div>
+          <div class="fx">16 fichas</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

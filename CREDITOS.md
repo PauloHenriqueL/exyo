@@ -25,7 +25,11 @@ Os brasões das 5 Casas foram **gerados com IA (Gemini)** e recortados do fundo 
 
 ## Sons
 
-[Kenney.nl](https://kenney.nl): pacotes *RPG Audio* e *Interface Sounds*, licença CC0 (ver `client/public/audio/LICENSE-*.txt`).
+- Efeitos: [Kenney.nl](https://kenney.nl), pacote *RPG Audio*, licença CC0 (ver `client/public/audio/LICENSE-kenney-rpg-audio.txt`).
+- Ambientes e músicas, todos CC0 via [OpenGameArt](https://opengameart.org) (ver `client/public/audio/LICENSE-opengameart.txt`):
+  - conversa do conselho: "Crowd Shouting/Speaking Ambience", StarNinjas;
+  - floresta: "Forest Ambience", TinyWorlds; pássaros: "Bird chirping sounds", syncopika;
+  - músicas: "Medieval: King's Feast" e "Medieval: Minstrel Dance", RandomMind; "Peasant Theme", nihilocrat.
 
 ## Arte antiga gerada por IA
 
