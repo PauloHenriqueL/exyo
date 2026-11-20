@@ -47,8 +47,7 @@ export function useGameSounds(view: ClientView | null) {
     } else {
       setAmbience(null);
     }
-    if (view.phase === "prologue") setMusic("minstrel-dance");
-    else if (view.phase === "intermission") setMusic("peasantry");
+    if (view.phase === "intermission") setMusic("peasantry");
     else if (view.phase === "end") setMusic(view.final?.collapsed ? null : "kings-feast");
     else if (view.phase === "discussion" && newCard) {
       const pick: Music | null =
@@ -67,15 +66,6 @@ export function useGameSounds(view: ClientView | null) {
       const meBefore = before?.players.find((p) => p.id === view.me.id)?.tokens;
       const meNow = view.players.find((p) => p.id === view.me.id)?.tokens;
       if (meBefore !== undefined && meNow !== undefined && meBefore !== meNow) play("coins", after + 300);
-    }
-
-    if (phaseChanged && view.phase === "prologue") {
-      play("door");
-    }
-
-    if (phaseChanged && view.phase === "reveal" && (view.reveal?.handChange || view.reveal?.princess?.winnerId)) {
-      const t = view.players.length * 400 + 900;
-      play("coins", t);
     }
 
     if (phaseChanged && view.phase === "intermission") {

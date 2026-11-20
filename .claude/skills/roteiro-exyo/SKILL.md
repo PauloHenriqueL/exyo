@@ -11,15 +11,15 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 ## 1. O mundo (use estes nomes; não invente outros sem necessidade)
 
-**O Rei Osric III, o Leão Grisalho.** Velho, desconfiado, orgulhoso. Venceu três guerras, enterrou duas rainhas, tem só a filha **princesa Elara**. Sobrinha: **Lady Mirela** (casou com o príncipe vizinho). Sobrinho capturado por piratas.
-- Gosta de: glória das armas, festas da corte, a Santa Fé, justiça exemplar, laços de sangue.
-- Detesta: covardia (resgates, tributos, pedágios), mercadores estrangeiros, mexerem no que é dele (florestas reais, perdão a foras da lei).
+**O Rei Osric III, o Leão Grisalho.** Velho, desconfiado, orgulhoso. Aparece só como personagem das histórias (não há mais mecânica de Favor do Rei; a Mão do Rei só desempata e passa de jogador em jogador a cada rodada). Sobrinha: **Lady Mirela** (casou com o príncipe vizinho). Sobrinho capturado por piratas.
 
-**Lugares** (estão no mapa e nas cartas): a Capital e o Trono de Pedra; a **Muralha do Norte** e os clãs do norte; a **Floresta do Rei**; o **Rio Lento** e **o Vale**; **o Porto** e a **Costa Cinzenta**; o castelo de **Pedravento** na fronteira leste; a **Estrada do Rei**; o mosteiro de São Bérnio.
+**Sem religião.** O jogo não tem recurso de fé: cartas sobre igreja, bispos, bruxas, milagres ou presságios confundem os jogadores, porque ninguém entende como afetam os recursos. Não escreva cartas assim.
+
+**Lugares** (estão no mapa e nas cartas): a Capital e o Trono de Pedra; a **Muralha do Norte** e os clãs do norte; a **Floresta do Rei**; o **Rio Lento** e **o Vale**; **o Porto** e a **Costa Cinzenta**; o castelo de **Pedravento** na fronteira leste; a **Estrada do Rei**; o hospital de São Bérnio.
 
 **Forças de fora:** o reino vizinho (aliado ou rival), o **Califado do Sul** (deserto, especiarias, remédios), a **Liga das Cidades Livres** (mercadores), piratas, clãs do norte.
 
-**Gente recorrente:** o Bispo, o tesoureiro, o capitão da guarda, a curandeira da floresta, o médico do Sul, o Barão Sem-Terra, a Guilda dos Ferreiros.
+**Gente recorrente:** o tesoureiro, o capitão da guarda, o médico do Sul, os médicos da corte, o Barão Sem-Terra, a Guilda dos Ferreiros.
 
 **As Casas** (nunca fale por elas no texto, só cite como proponentes): Aurivel (mercadores, "Tudo tem seu preço"), Ferrobranco (guerreiros, "O aço não negocia"), Verdemar (lavradores, "Quem planta, governa"), Lumen (curandeiros, "A luz cura o reino"), Corvalis (sussurradores, "Saber é sobreviver").
 
@@ -34,6 +34,8 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 4. Termine com **tensão**: um prazo, uma ameaça, um detalhe inquietante.
 
 **Pergunta (`question`)**: uma frase de SIM/NÃO, começando de preferência com "O Reino deve…?" ou "O conselho deve…?". O SIM precisa ser uma ação clara.
+
+**Os jogadores veem os efeitos antes de votar.** A carta mostra "Se SIM" e "Se NÃO" com os recursos que sobem e descem. Por isso a história tem que **combinar com os números**: se o SIM derruba Comida e sobe Força Militar, o texto precisa deixar claro por quê ("os soldados comem o trigo dos camponeses"). Dilemas morais abstratos, sem ligação visível com os recursos, confundem.
 
 **Desfechos (`text` de cada variante)**: 1 ou 2 frases com uma **virada**: o preço escondido, quem ficou ressentido, o detalhe irônico. Ex.: "Lanças se quebram e cavaleiros juram lealdade. O tesoureiro chora sozinho." O empate (`tie`) é a **Indecisão do Conselho**: alguém age sem ordem e costuma dar errado.
 
@@ -55,7 +57,6 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
   "title": "A Muralha do Norte",
   "prompt": "…",
   "question": "O Reino deve reforçar a muralha?",
-  "kingFavor": { "side": "yes", "amount": 1, "reason": "O Rei despreza quem se esconde atrás de muralhas." },
   "openVote": true,
   "outcomes": {
     "yes": [
@@ -74,7 +75,7 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 - `when`/`requires` aceitam `{ "flag": "x", "eq": true }`, `{ "flag": "rei_reputacao", "lte": -2 }`, `{ "res": "food", "lte": 0 }`, `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": {...} }`.
 - `setFlags`: `true` marca um acontecimento; `{ "add": -1 }` soma num contador (ex.: `rei_reputacao`).
 
-**Flags que já existem** (reaproveite para ligar cartas novas às antigas): `alianca_rompida`, `alianca_vizinhos`, `bandidos_perdoados`, `bandidos_tolerados`, `bruxa_protegida`, `bruxa_queimada`, `cavaleiros_leais`, `celeiro_real`, `clero_ofendido`, `comercio_aberto`, `espioes_fugidos`, `guarda_reforcada`, `hospital_construido`, `impostos_altos`, `medico_aceito`, `mercado_negro`, `norte_saqueado`, `peste_espalhada`, `povo_revoltado`, `quarentena`, `rede_desmantelada`, `rei_reputacao`, `rota_do_sul`, `traicao_viajantes`, `viajantes_aceitos`, `viajantes_clandestinos`, `viajantes_leais`, `viajantes_recusados`.
+**Flags que já existem** (reaproveite para ligar cartas novas às antigas): `alianca_rompida`, `alianca_vizinhos`, `bandidos_perdoados`, `bandidos_tolerados`, `cavaleiros_leais`, `celeiro_real`, `comercio_aberto`, `espioes_fugidos`, `guarda_reforcada`, `hospital_construido`, `impostos_altos`, `medico_aceito`, `mercado_negro`, `norte_saqueado`, `povo_revoltado`, `quarentena`, `rede_desmantelada`, `rota_do_sul`, `traicao_viajantes`, `viajantes_aceitos`, `viajantes_clandestinos`, `viajantes_leais`, `viajantes_recusados`.
 
 ## 4. Regras de equilíbrio (não quebre o jogo)
 
@@ -84,9 +85,8 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 - **Variantes com `when`** são a melhor forma de imersão: a carta lembra do que o conselho fez antes ("Com a guarda já reforçada…"). Prefira ler flags existentes a criar novas.
 - **Toda flag criada precisa ser lida** em alguma carta, e toda flag lida precisa ser criada (o teste falha se não for).
 - **Consequências:** `inRounds` entre 2 e 5. Toda carta `consequence` precisa ser injetada por alguém.
-- **Favor do Rei:** só quando um lado combina claramente com um gosto ou desgosto do Rei (seção 1). Escreva o `reason` como frase sobre o Rei. Mire em cerca de 1 a cada 3 cartas.
 - **Voto aberto:** decisões públicas ou cerimoniais (festas, julgamentos, juramentos). Cerca de 1 a cada 3 cartas.
-- Mantenha o equilíbrio de categorias. Hoje: Intriga 10, Guerra 8, Diplomacia 7, Fé 7, Banquete 5, Peste 5, Natureza 5, Comércio 4. **Comércio e Banquete pedem cartas.**
+- Mantenha o equilíbrio de categorias. Hoje (44 cartas): Intriga 10, Guerra 8, Diplomacia 7, Peste 6, Banquete 5, Natureza 5, Comércio 4. **Comércio e Banquete pedem cartas. A categoria Fé não é mais usada.** Todo SIM e todo NÃO precisam mudar ao menos um recurso (o teste exige).
 
 ## 5. Fluxo de trabalho
 

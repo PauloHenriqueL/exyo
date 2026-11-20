@@ -2,7 +2,7 @@
   "version": "0.1.0",
   "ranges": { "high": [3, 10], "moderate": [-2, 2] },
   "initialResources": { "health": 2, "security": 2, "military": 2, "food": 2, "wealth": 2 },
-  "economy": { "startingTokens": 15, "handBonus": 5, "startingFavor": 5 },
+  "economy": { "startingTokens": 15 },
   "houses": [
     {
       "id": "aurivel", "name": "Casa Aurivel", "epithet": "os Mercadores",

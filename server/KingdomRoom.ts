@@ -9,6 +9,7 @@ import {
   isMatchOver,
   isValidVote,
   matchRound,
+  previewOutcomes,
   resolveRound,
   scoreMatch,
   startNextMatch,
@@ -20,13 +21,9 @@ import { endMatch, logEvent, playerByToken, startMatch, type PlayerRow } from ".
 const MIN_PLAYERS = Number(process.env.MIN_PLAYERS ?? 3); // mesa mínima (humanos + bots)
 const MIN_HUMANS = Number(process.env.MIN_HUMANS ?? 2); // abaixo de MIN_PLAYERS, bots completam a mesa
 const MAX_PLAYERS = Number(process.env.MAX_PLAYERS ?? 4);
-const DISCUSSION_MS = Number(process.env.DISCUSSION_SEC ?? 180) * 1000;
-const VOTE_MS = Number(process.env.VOTE_SEC ?? 45) * 1000;
-const REVEAL_MS = Number(process.env.REVEAL_SEC ?? 12) * 1000;
+// Sem cronômetro: cada fase avança quando todos os jogadores conectados clicam (ou votam).
 const TOTAL_ROUNDS = Number(process.env.TOTAL_ROUNDS ?? 12); // rodadas por partida
 const TOTAL_MATCHES = Number(process.env.TOTAL_MATCHES ?? 2); // partidas por campanha (o Reino é herdado)
-const INTERMISSION_MS = Number(process.env.INTERMISSION_SEC ?? 60) * 1000;
-const PROLOGUE_MS = Number(process.env.PROLOGUE_SEC ?? 60) * 1000; // tela "O Rei" antes da 1ª rodada
 const IDLE_DISPOSE_MS = 30 * 60 * 1000;
 
 interface Seat {
@@ -48,12 +45,12 @@ export class KingdomRoom extends Room {
   private game: GameState | null = null;
   private card: Dilemma | null = null;
   private votes: Record<string, Vote> = {};
-  private ready = new Set<string>(); // quem já clicou "Pronto para votar" nesta rodada
+  private ready = new Set<string>(); // quem já clicou "pronto" na fase atual
+  private collapsePending = false; // o Reino caiu na última revelação
   private reveal: RevealInfo | null = null;
   private intermission: IntermissionInfo | null = null;
   private final: FinalInfo | null = null;
   private deadline: number | null = null;
-  private timer: Delayed | null = null;
   private idleTimer: Delayed | null = null;
 
   onCreate(options: { roomCode?: string }) {
@@ -103,7 +100,30 @@ export class KingdomRoom extends Room {
     if (this.seats.every((s) => s.isBot || !s.sessionId)) {
       this.idleTimer = this.clock.setTimeout(() => this.disconnect(), IDLE_DISPOSE_MS);
     }
-    this.broadcastViews();
+    // Quem caiu não segura a mesa: a fase pode avançar só com os que ficaram.
+    if (!this.checkProgress()) this.broadcastViews();
+  }
+
+  /** Jogadores que contam para avançar: bots e humanos conectados. */
+  private waitsFor(s: Seat) {
+    return !s.isBot && !!s.sessionId;
+  }
+
+  /** Avança a fase se todos os conectados já clicaram/votaram. Devolve true se avançou. */
+  private checkProgress(): boolean {
+    if (!this.seats.some((s) => this.waitsFor(s))) return false; // ninguém na mesa: fica parado
+    if (this.phase === "voting") {
+      // Todos votaram, menos quem está desconectado (o voto dele vira abstenção). Bots sempre votam.
+      const done = this.seats.every((s) => this.votes[s.id] || (!s.isBot && !s.sessionId));
+      if (done) this.endVoting();
+      return done;
+    }
+    if (!["discussion", "reveal", "intermission"].includes(this.phase)) return false;
+    if (!this.seats.every((s) => !this.waitsFor(s) || this.ready.has(s.id))) return false;
+    if (this.phase === "discussion") this.startVoting();
+    else if (this.phase === "reveal" && this.collapsePending) this.finish(true);
+    else this.nextRound();
+    return true;
   }
 
   // ---------- ações ----------
@@ -140,12 +160,9 @@ export class KingdomRoom extends Room {
 
   private markReady(client: Client) {
     const seat = this.seatOf(client);
-    if (!seat || !["prologue", "discussion", "intermission"].includes(this.phase)) return;
+    if (!seat || !["discussion", "reveal", "intermission"].includes(this.phase)) return;
     this.ready.add(seat.id);
-    // Todos os humanos prontos (bots contam como prontos): avança já.
-    if (!this.seats.every((s) => s.isBot || this.ready.has(s.id))) return this.broadcastViews();
-    if (this.phase === "discussion") this.startVoting();
-    else this.nextRound();
+    if (!this.checkProgress()) this.broadcastViews();
   }
 
   private castVote(client: Client, vote: Vote) {
@@ -153,12 +170,10 @@ export class KingdomRoom extends Room {
     if (!seat || this.phase !== "voting" || !this.game) return;
     // Voto aberto: o voto selado é definitivo.
     if (this.card?.openVote && this.votes[seat.id]) return;
-    const steal = RESOURCES.find((r) => r === vote?.steal);
-    const v = { choice: vote?.choice, tokens: Number(vote?.tokens ?? 0), ...(steal ? { steal } : {}) } as Vote;
+    const v = { choice: vote?.choice, tokens: Number(vote?.tokens ?? 0) } as Vote;
     if (!isValidVote(v, this.game.tokens[seat.id] ?? 0)) return;
     this.votes[seat.id] = v;
-    if (this.seats.every((s) => this.votes[s.id])) this.endVoting();
-    else this.broadcastViews();
+    if (!this.checkProgress()) this.broadcastViews();
   }
 
   // ---------- máquina de estados ----------
@@ -182,12 +197,9 @@ export class KingdomRoom extends Room {
     logEvent(this.matchId, "start", {
       seats: this.seats.map(({ id, houseId }) => ({ id, houseId })),
       goals: this.game.goals,
-      hand: this.game.hand,
       economy: HOUSES.economy,
     });
-    // Antes da 1ª carta: o Rei se apresenta (gostos, desgostos) e a primeira Mão do Rei é anunciada.
-    this.ready = new Set();
-    this.setPhase("prologue", PROLOGUE_MS, () => this.nextRound());
+    this.nextRound();
   }
 
   /** Com menos de MIN_PLAYERS humanos, bots ocupam Casas livres até completar a mesa. */
@@ -201,27 +213,24 @@ export class KingdomRoom extends Room {
     }
   }
 
-  /** Bot vota sozinho, com um pequeno atraso: SIM/NÃO/ABSTER ao acaso; aposta 0–2 fichas; às vezes rouba do Reino. */
+  /** Bot vota sozinho, com um pequeno atraso: SIM/NÃO/ABSTER ao acaso; aposta 0–2 fichas. */
   private scheduleBotVotes() {
     for (const bot of this.seats.filter((s) => s.isBot)) {
       this.clock.setTimeout(() => {
         if (this.phase !== "voting" || !this.game || this.votes[bot.id]) return;
         const choice = (["yes", "no", "abstain"] as const)[Math.floor(Math.random() * 3)];
-        const steal = choice !== "abstain" && Math.random() < 0.1 ? RESOURCES[Math.floor(Math.random() * RESOURCES.length)] : undefined;
-        const available = (this.game.tokens[bot.id] ?? 0) + (steal ? 1 : 0);
+        const available = this.game.tokens[bot.id] ?? 0;
         const tokens = choice === "abstain" ? 0 : Math.min(available, Math.floor(Math.random() * 3));
-        this.votes[bot.id] = { choice, tokens, ...(steal ? { steal } : {}) };
-        if (this.seats.every((s) => this.votes[s.id])) this.endVoting();
-        else this.broadcastViews();
+        this.votes[bot.id] = { choice, tokens };
+        if (!this.checkProgress()) this.broadcastViews();
       }, 1500 + Math.random() * 4000);
     }
   }
 
-  private setPhase(phase: Phase, ms: number | null, then?: () => void) {
-    this.timer?.clear();
+  private setPhase(phase: Phase) {
     this.phase = phase;
-    this.deadline = ms ? Date.now() + ms : null;
-    if (ms && then) this.timer = this.clock.setTimeout(then, ms);
+    this.ready = new Set();
+    this.deadline = null;
     this.broadcastViews();
   }
 
@@ -238,12 +247,12 @@ export class KingdomRoom extends Room {
     this.ready = new Set();
     this.reveal = null;
     this.intermission = null;
-    logEvent(this.matchId, "draw", { match: state.match, round: matchRound(state), card: card.id });
-    this.setPhase("discussion", DISCUSSION_MS, () => this.startVoting());
+    logEvent(this.matchId, "draw", { match: state.match, round: matchRound(state), card: card.id, hand: state.hand });
+    this.setPhase("discussion");
   }
 
   private startVoting() {
-    this.setPhase("voting", VOTE_MS, () => this.endVoting());
+    this.setPhase("voting");
     this.scheduleBotVotes();
   }
 
@@ -256,18 +265,14 @@ export class KingdomRoom extends Room {
       outcome: r.outcome,
       yesWeight: r.yesWeight,
       noWeight: r.noWeight,
+      tiebreakByHand: r.tiebreakByHand,
       votes: { ...this.votes },
       text: r.variant.text,
       deltas: r.deltas,
-      tiebreakByHand: r.tiebreakByHand,
-      steals: r.steals,
-      favorGains: r.favorGains,
-      handChange: r.handChange,
-      princess: r.princess,
     };
     logEvent(this.matchId, "resolve", { round: this.game.round, card: this.card.id, ...this.reveal, resources: this.game.resources });
-    const collapsed = isCollapsed(this.game);
-    this.setPhase("reveal", REVEAL_MS, () => (collapsed ? this.finish(true) : this.nextRound()));
+    this.collapsePending = isCollapsed(this.game);
+    this.setPhase("reveal");
   }
 
   /** Fim de uma partida que não é a última: placar parcial (sem objetivos) e o Reino segue para a próxima. */
@@ -287,7 +292,7 @@ export class KingdomRoom extends Room {
     this.votes = {};
     this.ready = new Set();
     logEvent(this.matchId, "intermission", { finishedMatch, points, newGoals: this.game.goals, resources: this.game.resources });
-    this.setPhase("intermission", INTERMISSION_MS, () => this.nextRound());
+    this.setPhase("intermission");
   }
 
   private finish(collapsed: boolean) {
@@ -317,7 +322,7 @@ export class KingdomRoom extends Room {
     this.card = null;
     this.intermission = null;
     endMatch(this.matchId, { ...this.final, resources: this.game.resources });
-    this.setPhase("end", null);
+    this.setPhase("end");
   }
 
   // ---------- visão por jogador ----------
@@ -344,7 +349,6 @@ export class KingdomRoom extends Room {
         isBot: !!s.isBot,
         hasVoted: !!this.votes[s.id],
         isReady: !!s.isBot || this.ready.has(s.id),
-        favor: g?.favor[s.id] ?? HOUSES.economy.startingFavor,
         isHand: g?.hand === s.id,
         openVote: (this.card?.openVote && this.phase === "voting" && this.votes[s.id]) || null,
       })),
@@ -356,10 +360,8 @@ export class KingdomRoom extends Room {
             title: this.card.title,
             prompt: this.card.prompt,
             question: this.card.question,
-            kingFavor: this.card.kingFavor,
             openVote: this.card.openVote,
-            special: this.card.special,
-            ruleText: this.card.ruleText,
+            preview: g ? previewOutcomes(g, this.card) : { yes: { effects: {}, later: false }, no: { effects: {}, later: false } },
           }
         : null,
       reveal: this.reveal,
@@ -371,8 +373,6 @@ export class KingdomRoom extends Room {
         vote: (seat && this.phase === "voting" && this.votes[seat.id]) || null,
       },
       ranges: HOUSES.ranges,
-      handId: g?.hand ?? null,
-      handLocked: g?.handLocked ?? false,
     };
   }
 

@@ -70,22 +70,19 @@ describe("conteúdo das cartas", () => {
   });
 });
 
-describe("Rei e cartas especiais", () => {
-  it("cartas de Favor do Rei têm lado, valor e motivo", () => {
-    const fav = DILEMMAS.filter((d) => d.kingFavor);
-    expect(fav.length).toBeGreaterThanOrEqual(10);
-    for (const d of fav) {
-      expect(["yes", "no"]).toContain(d.kingFavor!.side);
-      expect(d.kingFavor!.amount).toBeGreaterThan(0);
-      expect(d.kingFavor!.reason.length).toBeGreaterThan(10);
+describe("clareza das cartas", () => {
+  it("SIM e NÃO sempre mudam algum recurso (a prévia nunca fica vazia)", () => {
+    for (const d of DILEMMAS) {
+      for (const o of ["yes", "no"] as const) {
+        const padrao = d.outcomes[o][d.outcomes[o].length - 1];
+        expect(Object.keys(padrao.effects).length, `${d.id}.${o}`).toBeGreaterThan(0);
+      }
     }
   });
 
-  it("existe exatamente uma carta da princesa, com o texto da regra", () => {
-    const p = DILEMMAS.filter((d) => d.special === "princess");
-    expect(p).toHaveLength(1);
-    expect(p[0].ruleText).toMatch(/Mão do Rei/);
-    expect(p[0].ruleText).toMatch(/zero/);
+  it("sem cartas de religião", () => {
+    const texto = JSON.stringify(DILEMMAS).toLowerCase();
+    for (const palavra of ["bispo", "bruxa", "clero", "igreja", "relíquia", "herege"]) expect(texto, palavra).not.toContain(palavra);
   });
 
   it("textos das cartas são longos o bastante para imersão", () => {

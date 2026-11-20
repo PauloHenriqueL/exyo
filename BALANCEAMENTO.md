@@ -38,3 +38,50 @@ START=10,15,20 BONUS=3,5 npx tsx scripts/balance.ts  # só algumas combinações
 - O colapso quase não acontece com jogadores que votam pensando no objetivo. Com votos aleatórios, fica em cerca de 15% (teste em `shared/content.test.ts`).
 
 Revisitar depois do playtest: se a Mão ficar forte demais, baixe `handBonus` para 3. Se as fichas sobrarem, baixe `startingTokens` para 12.
+
+## Atualização (2026-11-20): sem roubo do Reino e sem cartas de religião
+
+2.000 campanhas por combinação, mesmos bots:
+
+| Fichas | Bônus | vit. Mão inicial | vit. Mão no fim | escassez |
+|---|---|---|---|---|
+| 15 | 0 | 31,4% (com 20 fichas) | 24,8% | 24% |
+| 15 | 1 | 30,8% | 27,5% | 31% |
+| 15 | 5 | 33,9% | 30,8% | 26% |
+| 20 | 3 | 32,2% | 27,0% | 20% |
+
+Sem o roubo e com menos cartas de Favor do Rei (13 em vez de 16), **a primeira Mão sorteada vence cerca de 31–34%**, acima do justo (25%). A vantagem continua mesmo com bônus 0: vem do poder de desempatar desde o início, não das fichas. Mantivemos 15 fichas e bônus 5 para não mudar regras no meio dos testes.
+
+**A observar no próximo playtest:** se a primeira Mão vencer demais, as alavancas certas são mais cartas de Favor do Rei (a coroa troca mais) ou a coroa começar sem dono, sendo dada ao primeiro jogador que ganhar Favor.
+
+## Atualização (2026-11-20, depois do playtest): sem Rei, sem Mão do Rei, sem princesa
+
+O Favor do Rei, a Mão do Rei (desempate e bônus) e a carta da princesa saíram. A economia agora é só `startingTokens`. `scripts/balance.ts` foi simplificado: bots votam olhando a mesma prévia de SIM/NÃO que os jogadores veem na carta.
+
+1.500 campanhas por valor:
+
+| Fichas iniciais | colapso | escassez | abstenção | empates |
+|---|---|---|---|---|
+| 8 | 0,1% | 39% | 38% | 27% |
+| 10 | 0,0% | 35% | 38% | 27% |
+| 12 | 0,1% | 32% | 38% | 27% |
+| **15** | **0,1%** | **26%** | **39%** | **26%** |
+| 20 | 0,0% | 17% | 38% | 26% |
+
+**Mantido: 15 fichas.** A observar: sem a Mão do Rei, cerca de 1 rodada em 4 termina em empate (Indecisão do Conselho), sobretudo quando muitos se abstêm.
+
+## Atualização (2026-11-20): Mão do Rei rotativa, só para desempate
+
+A Mão do Rei voltou, sem bônus nem Favor: a primeira é sorteada e a cada rodada passa ao próximo da mesa. Num empate vale o voto dela; se ela se absteve, é Indecisão do Conselho. `scripts/balance.ts` ganhou a coluna "desempate pela Mão".
+
+2.000 campanhas por valor:
+
+| Fichas iniciais | colapso | escassez | abstenção | empates | desempate pela Mão |
+|---|---|---|---|---|---|
+| 8 | 0,0% | 40% | 38% | 20% | 9% |
+| 10 | 0,1% | 36% | 38% | 20% | 8% |
+| 12 | 0,0% | 32% | 38% | 20% | 8% |
+| **15** | **0,0%** | **26%** | **39%** | **20%** | **8%** |
+| 20 | 0,0% | 17% | 39% | 20% | 7% |
+
+**Mantido: 15 fichas.** Os empates caem de ~27% para ~20% das rodadas; os que sobram são rodadas em que a Mão se absteve.
