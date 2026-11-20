@@ -23,6 +23,19 @@ const CATEGORY: Record<string, { label: string; icon: string; color: string }> =
   nature: { label: "Natureza", icon: "🌩", color: "#6b4a2b" },
 };
 
+/** Obras em domínio público usadas como ilustração de cada categoria (ver CREDITOS.md). */
+const ART_CAPTION: Record<string, string> = {
+  war: "Paolo Uccello, A Batalha de San Romano (c. 1438)",
+  feast: "Pieter Bruegel, o Velho, Casamento Camponês (1568)",
+  plague: "Pieter Bruegel, o Velho, O Triunfo da Morte (c. 1562)",
+  diplomacy: "Hans Holbein, o Jovem, Os Embaixadores (1533)",
+  trade: "Quentin Matsys, O Cambista e sua Mulher (1514)",
+  faith: "Jan van Eyck, Adoração do Cordeiro Místico (c. 1432)",
+  crime: "Caravaggio, Os Trapaceiros (c. 1595)",
+  nature: "Pieter Bruegel, o Velho, Caçadores na Neve (1565)",
+  princess: "Petrus Christus, Retrato de uma Jovem (c. 1470)",
+};
+
 const CHOICE_LABEL: Record<Choice, string> = { yes: "SIM", no: "NÃO", abstain: "ABSTER" };
 const OUTCOME_LABEL = { yes: "O conselho disse SIM", no: "O conselho disse NÃO", tie: "Indecisão do Conselho" };
 const SIDE_LABEL = { yes: "SIM", no: "NÃO" };
@@ -75,6 +88,7 @@ export function Table({ view, room }: { view: ClientView; room: Room }) {
                     alt=""
                     decoding="async"
                   />
+                  <small className="art-caption">{ART_CAPTION[card.special === "princess" ? "princess" : card.category]}</small>
                 </div>
                 <div className="badges">
                   <span className="cat" style={{ background: cat.color }}>
@@ -320,7 +334,7 @@ function KingReaction({ view }: { view: ClientView }) {
       transition={{ delay: 0.3 }}
     >
       <img src={pleased ? "/art/king-pleased.webp" : "/art/king.webp"} alt="O Rei Osric" width={72} height={96} />
-      <p>{pleased ? "O Rei Osric sorri. O conselho decidiu como ele queria." : "O Rei Osric franze a testa. Não era isso que ele queria."}</p>
+      <p>{pleased ? "O Rei Osric celebra com a corte: o conselho decidiu como ele queria." : "O Rei Osric franze a testa. Não era isso que ele queria."}</p>
     </motion.div>
   );
 }

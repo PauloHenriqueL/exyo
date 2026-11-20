@@ -66,7 +66,6 @@
 - [ ] Ajustes pós-playtest
 
 ## Futuro (fora do protótipo)
-- [x] Arte gerada no Gemini (2026-11-19): retrato do Rei (sério na abertura, sorrindo quando o conselho o agrada), princesa, 5 brasões recortados e 8 ilustrações de categoria no topo das cartas, em WebP leve (1,2 MB no total)
-- [ ] Mapa definitivo (pedido 1 de `PROMPTS_IMAGENS.md`)
+- [x] Arte sem IA (2026-11-19): pinturas em domínio público (Dürer, Bruegel, Holbein, Uccello, Matsys, Van Eyck, Caravaggio, Petrus Christus, Irmãos Limbourg) nas cartas, no Rei e na princesa; Carta Marina (1539) como mapa de fundo; os brasões continuam os gerados com IA (preferência do autor). Créditos em `CREDITOS.md` e no placar final
 - [ ] Trilha sonora própria (Suno/Udio)
 - [ ] 5ª Casa como NPC

@@ -52,7 +52,9 @@ export function Final({ view }: { view: ClientView }) {
             Nova sala
           </button>
           <p className="hint on-dark credits">
-            Sons: <a href="https://kenney.nl" target="_blank" rel="noreferrer">Kenney.nl</a> (CC0)
+            Ilustrações: pinturas em domínio público de Dürer, Bruegel, Holbein, Uccello, Matsys, Van Eyck, Caravaggio, Petrus Christus,
+            Irmãos Limbourg e Olaus Magnus (via Wikimedia Commons). Brasões das Casas: gerados com IA (Gemini). Sons:{" "}
+            <a href="https://kenney.nl" target="_blank" rel="noreferrer">Kenney.nl</a> (CC0).
           </p>
         </section>
         <ResourceBoard resources={view.resources} />
