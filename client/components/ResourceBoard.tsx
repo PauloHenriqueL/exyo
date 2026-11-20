@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { RESOURCES, RESOURCE_LABEL, type Resources } from "../../shared/types";
 
-const ICON: Record<string, string> = { health: "✚", security: "🛡", military: "⚔", food: "🌾", wealth: "🪙" };
+import { ResourceIcon } from "./ResourceIcon";
 const CELLS = Array.from({ length: 21 }, (_, i) => i - 10);
 
 export function ResourceBoard({ resources, deltas }: { resources: Resources; deltas?: Partial<Resources> | null }) {
@@ -14,7 +14,7 @@ export function ResourceBoard({ resources, deltas }: { resources: Resources; del
           <div key={r} className="track">
             <div className="track-label">
               <span>
-                {ICON[r]} {RESOURCE_LABEL[r]}
+                <ResourceIcon r={r} /> {RESOURCE_LABEL[r]}
               </span>
               <strong className={v <= -7 ? "danger" : ""}>
                 {v > 0 ? `+${v}` : v}

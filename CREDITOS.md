@@ -23,6 +23,11 @@ Todas as pinturas abaixo estão em **domínio público** (autores mortos há sé
 
 Os brasões das 5 Casas foram **gerados com IA (Gemini)** e recortados do fundo (`client/public/art/crests/`). São a única arte de IA que continua no jogo.
 
+## Ícones dos recursos
+
+De [game-icons.net](https://game-icons.net), licença [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/); só a cor foi alterada:
+Saúde `heart-plus` (Zeromancer), Segurança `checked-shield` (Lorc), Força Militar `crossed-swords` (Lorc), Comida `wheat` (Lorc), Riqueza `coins` (Delapouite).
+
 ## Sons
 
 - Efeitos: [Kenney.nl](https://kenney.nl), pacote *RPG Audio*, licença CC0 (ver `client/public/audio/LICENSE-kenney-rpg-audio.txt`).

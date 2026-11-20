@@ -1,6 +1,6 @@
 import { RESOURCES, RESOURCE_LABEL, type ClientView, type Goal, type Resources } from "../../shared/types";
 
-const ICON: Record<string, string> = { health: "✚", security: "🛡", military: "⚔", food: "🌾", wealth: "🪙" };
+import { ResourceIcon } from "./ResourceIcon";
 const CELLS = Array.from({ length: 21 }, (_, i) => i - 10);
 const fmt = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
@@ -20,7 +20,7 @@ export function GoalBoard({ goal, ranges, resources }: { goal: Goal; ranges: Cli
           <div key={r} className={`goal-track ${ok ? "ok" : ""}`}>
             <div className="goal-label">
               <span>
-                {ICON[r]} {RESOURCE_LABEL[r]}
+                <ResourceIcon r={r} /> {RESOURCE_LABEL[r]}
               </span>
               <span className="goal-range">
                 {kind === "high" ? "alto" : "moderado"} · {fmt(lo)} a {fmt(hi)} <b>{ok ? "✓" : fmt(v)}</b>
