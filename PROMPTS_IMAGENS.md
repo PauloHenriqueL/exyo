@@ -1,6 +1,6 @@
 # Prompts de imagem do Exyo
 
-> **Situação (2026-11-19):** já estão no jogo o Rei (sério e sorrindo), a princesa, os 5 brasões e as 8 ilustrações de categoria, em `client/public/art/` (versões leves em WebP; os originais ficam em `arte-original/`, fora do git). **Falta o mapa** (pedido 1): o fundo ainda é o provisório.
+> **Situação (2026-11-19):** só os **brasões** gerados por IA continuam no jogo. Rei, princesa, cartas e mapa agora são pinturas medievais em domínio público (ver `CREDITOS.md`); a arte de IA antiga fica em `arte-original/`, fora do git. Estes prompts ficam só como referência.
 
 ## Como usar no Gemini
 
