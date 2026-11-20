@@ -13,7 +13,7 @@
 - [x] GDD v0.1 (escrito na pasta antiga `kingdome/`, que não existe mais)
 - [ ] Recriar `GDD.md` nesta pasta
 - [ ] Revisão do GDD pelo time
-- [?] Nome final do jogo
+- [x] Nome final do jogo: **Asas do Rei** (2026-11-20). O repositório e o serviço do Render continuam como `exyo`
 - [?] Duração da votação: manter 45 s?
 
 ## Fase 2 — Conteúdo

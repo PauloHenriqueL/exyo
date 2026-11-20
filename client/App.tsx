@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Room } from "colyseus.js";
 import type { ClientView } from "../shared/types";
-import { joinRoom, loadSession, newRoomCode, roomCodeFromUrl, saveSession, type Session } from "./net";
+import { joinRoom, loadSession, newRoomCode, roomCodeFromUrl, saveSession, type ChatMessage, type Session } from "./net";
 import { Login } from "./screens/Login";
 import { Lobby } from "./screens/Lobby";
 import { Table } from "./screens/Table";
@@ -14,6 +14,8 @@ import { useGameSounds } from "./useGameSounds";
 export function App() {
   const [session, setSession] = useState<Session | null>(loadSession);
   const [view, setView] = useState<ClientView | null>(null);
+  // Última fala de cada jogador (balão ao lado do brasão).
+  const [chat, setChat] = useState<Record<string, ChatMessage>>({});
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "connecting" | "connected" | "lost">("idle");
   const roomRef = useRef<Room | null>(null);
@@ -34,7 +36,12 @@ export function App() {
     const connect = async () => {
       setStatus("connecting");
       try {
-        const room = await joinRoom(roomCode, session.token, (v) => !cancelled && setView(v));
+        const room = await joinRoom(
+          roomCode,
+          session.token,
+          (v) => !cancelled && setView(v),
+          (m) => !cancelled && setChat((c) => ({ ...c, [m.playerId]: m })),
+        );
         if (cancelled) return room.leave();
         roomRef.current = room;
         setStatus("connected");
@@ -100,7 +107,7 @@ export function App() {
         ) : view.phase === "prologue" ? (
           <Prologue view={view} room={room} />
         ) : (
-          <Table view={view} room={room} />
+          <Table view={view} room={room} chat={chat} />
         )
       ) : (
         <div className="center muted">Abrindo as portas do salão…</div>

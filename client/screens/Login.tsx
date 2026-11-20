@@ -23,7 +23,7 @@ export function Login({ roomCode, error, onLogin }: { roomCode: string; error: s
   return (
     <main className="center">
       <form className="panel login" onSubmit={submit}>
-        <h1>Conselho do Rei</h1>
+        <h1>Asas do Rei</h1>
         <p className="muted">
           Sala <strong>{roomCode}</strong>. O Rei convoca seus conselheiros.
         </p>

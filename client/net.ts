@@ -51,9 +51,21 @@ export function newRoomCode(): string {
 
 const client = new Client(SERVER_URL);
 
-export async function joinRoom(roomCode: string, token: string, onView: (v: ClientView) => void): Promise<Room> {
+export interface ChatMessage {
+  playerId: string;
+  text: string;
+  at: number;
+}
+
+export async function joinRoom(
+  roomCode: string,
+  token: string,
+  onView: (v: ClientView) => void,
+  onChat: (m: ChatMessage) => void,
+): Promise<Room> {
   const room = await client.joinOrCreate("kingdom", { roomCode, token });
   room.onMessage("view", onView);
+  room.onMessage("chat", onChat);
   return room;
 }
 

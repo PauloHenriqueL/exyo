@@ -1,5 +1,5 @@
-// AudioDirector: efeitos sonoros (Howler) + murmúrio do conselho sintetizado (Web Audio).
-// Sons: Kenney "RPG Audio" e "Interface Sounds" (CC0) — ver client/public/audio/LICENSE-*.txt.
+// AudioDirector: efeitos sonoros, ambiente de fundo e música (Howler).
+// Efeitos: Kenney "RPG Audio" (CC0). Ambientes e músicas: OpenGameArt (CC0). Ver client/public/audio/LICENSE-*.txt.
 import { Howl, Howler } from "howler";
 
 export type Sfx =
@@ -11,9 +11,7 @@ export type Sfx =
   | "seal"
   | "coins"
   | "door"
-  | "bell"
-  | "tick"
-  | "confirm";
+  | "tick";
 
 const FILES: Record<Sfx, { file: string; volume: number }> = {
   swordDraw: { file: "sword-draw", volume: 0.8 },
@@ -24,9 +22,7 @@ const FILES: Record<Sfx, { file: string; volume: number }> = {
   seal: { file: "seal", volume: 0.7 },
   coins: { file: "coins", volume: 0.6 },
   door: { file: "door", volume: 0.6 },
-  bell: { file: "bell", volume: 0.5 },
   tick: { file: "tick", volume: 0.35 },
-  confirm: { file: "confirm", volume: 0.5 },
 };
 
 const MUTE_KEY = "exyo.muted";
@@ -49,7 +45,10 @@ export function isMuted() {
 export function setMuted(m: boolean) {
   muted = m;
   Howler.mute(m);
-  if (m) stopMurmur();
+  if (m) {
+    setAmbience(null);
+    setMusic(null);
+  }
   try {
     localStorage.setItem(MUTE_KEY, m ? "1" : "0");
   } catch {
@@ -79,78 +78,59 @@ export function preload() {
   (Object.keys(FILES) as Sfx[]).forEach(howl);
 }
 
-// ---------- murmúrio do conselho ----------
-// Ruído marrom filtrado na faixa da voz, com volume oscilando como uma conversa distante.
+// ---------- ambiente de fundo e música ----------
+// Um ambiente por vez (conversa do conselho, floresta, pássaros) e uma música por vez, com fade.
 
-let murmur: { stop: () => void } | null = null;
+export type Ambience = "conselho" | "floresta" | "passaros";
+export type Music = "kings-feast" | "minstrel-dance" | "peasantry";
 
-export function startMurmur() {
-  if (muted || murmur) return;
-  preload(); // cria o AudioContext do Howler, se ainda não existir
-  const ctx = Howler.ctx as AudioContext | undefined;
-  if (!ctx) return;
-  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+const AMBIENCE: Record<Ambience, { src: string; volume: number }> = {
+  conselho: { src: "/audio/ambiente/conselho.ogg", volume: 0.16 },
+  floresta: { src: "/audio/ambiente/floresta.mp3", volume: 0.35 },
+  passaros: { src: "/audio/ambiente/passaros.mp3", volume: 0.25 },
+};
+const MUSIC: Record<Music, { src: string; volume: number }> = {
+  "kings-feast": { src: "/audio/musica/kings-feast.mp3", volume: 0.16 },
+  "minstrel-dance": { src: "/audio/musica/minstrel-dance.mp3", volume: 0.16 },
+  peasantry: { src: "/audio/musica/peasantry.ogg", volume: 0.18 },
+};
+const FADE_MS = 1500;
 
-  const seconds = 4;
-  const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  let last = 0;
-  for (let i = 0; i < data.length; i++) {
-    last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
-    data[i] = last * 3.5;
-  }
-  const src = ctx.createBufferSource();
-  src.buffer = buffer;
-  src.loop = true;
-
-  const band = ctx.createBiquadFilter();
-  band.type = "bandpass";
-  band.frequency.value = 420;
-  band.Q.value = 0.9;
-
-  const formant = ctx.createBiquadFilter();
-  formant.type = "peaking";
-  formant.frequency.value = 900;
-  formant.gain.value = 6;
-
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  src.connect(band).connect(formant).connect(gain).connect(Howler.masterGain ?? ctx.destination);
-  src.start();
-
-  // "Falas": o volume e o timbre sobem e descem em sílabas irregulares.
-  let alive = true;
-  const speak = () => {
-    if (!alive) return;
-    const t = ctx.currentTime;
-    const level = 0.05 + Math.random() * 0.07;
-    gain.gain.cancelScheduledValues(t);
-    gain.gain.setTargetAtTime(level, t, 0.08);
-    gain.gain.setTargetAtTime(0.015, t + 0.25 + Math.random() * 0.5, 0.15);
-    band.frequency.setTargetAtTime(320 + Math.random() * 260, t, 0.1);
-    setTimeout(speak, 350 + Math.random() * 900);
-  };
-  speak();
-
-  murmur = {
-    stop: () => {
-      alive = false;
-      const t = ctx.currentTime;
-      gain.gain.cancelScheduledValues(t);
-      gain.gain.setTargetAtTime(0, t, 0.3);
-      setTimeout(() => {
-        try {
-          src.stop();
-        } catch {
-          /* já parado */
-        }
-        src.disconnect();
-      }, 1500);
-    },
-  };
+function makeLoop(src: string, volume: number, stream: boolean) {
+  // html5 = streaming: a música toca enquanto baixa, sem carregar 5 MB antes.
+  return new Howl({ src: [src], loop: true, volume: 0, html5: stream, preload: !stream });
 }
 
-export function stopMurmur() {
-  murmur?.stop();
-  murmur = null;
+let ambienceNow: { name: Ambience; howl: Howl } | null = null;
+let musicNow: { name: Music; howl: Howl } | null = null;
+
+function fadeOutAndStop(h: Howl) {
+  h.fade(h.volume(), 0, FADE_MS);
+  setTimeout(() => h.stop(), FADE_MS + 50);
+}
+
+/** Troca o ambiente de fundo (null = silêncio). Repetir o mesmo ambiente não reinicia o som. */
+export function setAmbience(name: Ambience | null) {
+  if (ambienceNow?.name === name) return;
+  if (ambienceNow) fadeOutAndStop(ambienceNow.howl);
+  ambienceNow = null;
+  if (!name || muted) return;
+  const { src, volume } = AMBIENCE[name];
+  const h = makeLoop(src, volume, false);
+  h.play();
+  h.fade(0, volume, FADE_MS);
+  ambienceNow = { name, howl: h };
+}
+
+/** Troca a música (null = sem música). */
+export function setMusic(name: Music | null) {
+  if (musicNow?.name === name) return;
+  if (musicNow) fadeOutAndStop(musicNow.howl);
+  musicNow = null;
+  if (!name || muted) return;
+  const { src, volume } = MUSIC[name];
+  const h = makeLoop(src, volume, true);
+  h.play();
+  h.fade(0, volume, FADE_MS * 2);
+  musicNow = { name, howl: h };
 }

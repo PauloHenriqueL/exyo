@@ -64,6 +64,7 @@ export class KingdomRoom extends Room {
     this.onMessage("vote", (client, msg: Vote) => this.castVote(client, msg));
     this.onMessage("ready", (client) => this.markReady(client));
     this.onMessage("start", (client) => this.seatOf(client) && this.startGame());
+    this.onMessage("chat", (client, msg: { text?: string }) => this.chat(client, msg?.text));
   }
 
   onAuth(_client: Client, options: { token?: string }): PlayerRow {
@@ -122,6 +123,19 @@ export class KingdomRoom extends Room {
     if (this.seats.length === MAX_PLAYERS && this.seats.every((s) => s.houseId)) {
       this.clock.setTimeout(() => this.startGame(), 1500);
     }
+  }
+
+  /** Balão de fala: texto curto ou emoji, repassado a todos. Limite de tamanho e de 1 mensagem a cada 1,2 s. */
+  private lastChat = new Map<string, number>();
+  private chat(client: Client, raw: unknown) {
+    const seat = this.seatOf(client);
+    if (!seat || typeof raw !== "string") return;
+    const text = raw.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+    if (!text) return;
+    const now = Date.now();
+    if (now - (this.lastChat.get(seat.id) ?? 0) < 1200) return;
+    this.lastChat.set(seat.id, now);
+    this.broadcast("chat", { playerId: seat.id, text, at: now });
   }
 
   private markReady(client: Client) {

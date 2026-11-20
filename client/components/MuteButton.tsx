@@ -15,7 +15,7 @@ export function MuteButton() {
     setMuted(next);
     if (!next) {
       preload();
-      play("confirm");
+      play("cardPlace");
     }
   };
 
