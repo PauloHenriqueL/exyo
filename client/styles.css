@@ -397,3 +397,19 @@ section { margin-bottom: 20px; }
 .gcell.doom { background: #8f2f26; }
 .gcell.doom .doom-num { font-size: 9px; font-weight: 700; color: #f6e3dc; line-height: 1; pointer-events: none; }
 @media (max-width: 820px) { .gcell.doom .doom-num { font-size: 8px; } }
+
+/* Faixa na carta: de qual votação esta consequência veio */
+.card .origin { margin: 0 0 6px; padding: 5px 10px; border-radius: 6px; font-size: .88rem; background: #efe3c4; color: var(--ink); border-left: 4px solid var(--gold); }
+.card .origin span { font-family: "Cinzel", serif; text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; color: #7a5a14; }
+.card .origin.yes { border-left-color: #2f7a3a; } .card .origin.no { border-left-color: #a32525; } .card .origin.tie { border-left-color: #7d7466; }
+.card .origin.yes strong { color: #2f7a3a; } .card .origin.no strong { color: #a32525; }
+
+/* Intervalo: a morte do Rei e a crônica das histórias da roda */
+.intermission .king-death { font-size: 1.1rem; color: var(--parchment); margin-bottom: 8px; font-style: italic; }
+.chronicle { max-width: 900px; margin: 0 auto 20px; }
+.chronicle ol { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.chronicle li strong { display: block; }
+.chronicle .steps { font-size: .9rem; color: #5a4a2e; }
+.chronicle .step b { font-size: .8rem; }
+.chronicle .step.yes b { color: #2f7a3a; } .chronicle .step.no b { color: #a32525; } .chronicle .step.tie b { color: #7d7466; }
+.chronicle .arrow { color: #a08a5a; }

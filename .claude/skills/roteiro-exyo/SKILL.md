@@ -1,6 +1,6 @@
 ---
 name: roteiro-exyo
-description: Escrever, revisar ou ampliar cartas, dilemas, consequências e o roteiro do Exyo (o Reino do Rei Osric III) para deixar as partidas mais imersivas. Use sempre que o pedido envolver cartas novas, textos de carta, cadeias de consequência, flags, o Rei, a princesa, as Casas ou o mundo do jogo, mesmo num pedido curto como "faz mais cartas de guerra" ou "melhora o texto dessa carta".
+description: Escrever, revisar ou ampliar cartas, histórias, consequências e o roteiro do Exyo / Asas do Rei (Reino medieval com vizinhos e crises reais) para deixar as partidas mais imersivas. Use sempre que o pedido envolver cartas novas, textos de carta, cadeias de consequência, flags, o Rei, a princesa, as Casas ou o mundo do jogo, mesmo num pedido curto como "faz mais cartas de guerra" ou "melhora o texto dessa carta".
 ---
 
 # Roteiro do Exyo
@@ -9,17 +9,15 @@ O Exyo é um jogo de conselho: 3–4 jogadores votam dilemas de um Reino medieva
 
 Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `content/king.json` (o Rei), `content/houses.json` (Casas e economia) e `BALANCEAMENTO.md`.
 
-## 1. O mundo (use estes nomes; não invente outros sem necessidade)
+## 1. O mundo (história real, não um mundo inventado)
 
-**O Rei Osric III, o Leão Grisalho.** Velho, desconfiado, orgulhoso. Aparece só como personagem das histórias (não há mais mecânica de Favor do Rei; a Mão do Rei só desempata e passa de jogador em jogador a cada rodada). Sobrinha: **Lady Mirela** (casou com o príncipe vizinho). Sobrinho capturado por piratas.
+**Decisão de 2026-11-22:** os jogadores precisam reconhecer e saber falar os nomes. Use **cidades, impérios e crises reais** da Idade Média e das duas Guerras Mundiais. As crises modernas entram **adaptadas para a Idade Média**: Munique 1938 vira ceder uma província ao Khan; Sarajevo 1914 vira o herdeiro do Imperador assassinado na Capital; a Gripe Espanhola vira esconder a peste do exército; Enigma e Coventry viram ler o código do inimigo sem revelar.
 
-**A Fé da Luz** (desde 2026-11-22 é um recurso, Religião): o **Templo da Luz** fica na Capital; os sacerdotes servem à **Grande Sacerdotisa Ilvana**; o povo reza, faz procissões e festas sagradas, recebe peregrinos. A Casa Lumen é próxima do Templo. Religião **sobe** com piedade, caridade, festas abençoadas, gestos de misericórdia e sacerdotes elogiando a Coroa; **desce** com escândalo, crueldade, sacrilégio, sacerdotes condenando a Coroa, pregadores hereges e medo de presságios. Não use nomes de religiões do mundo real.
+**O nosso Reino não tem nome**, para qualquer jogador se ver nele. Os lugares do próprio Reino são genéricos: a Capital, o porto, a cidade do porto, as aldeias, o Vale, o Rio, a província do Leste, as montanhas. **Os vizinhos são reais:** Veneza e o Doge, o Sacro Império e o Imperador em Viena, a França, os Mongóis e o Grande Khan, a Liga Hanseática, os Medici de Florença, a Companhia Branca, os piratas de Argel, Zara, Caffa e Ragusa.
 
-**Lugares** (estão no mapa e nas cartas): a Capital e o Trono de Pedra; a **Muralha do Norte** e os clãs do norte; a **Floresta do Rei**; o **Rio Lento** e **o Vale**; **o Porto** e a **Costa Cinzenta**; o castelo de **Pedravento** na fronteira leste; a **Estrada do Rei**; o hospital de São Bérnio.
+**A religião é a Igreja** (recurso Religião): o Papa em Roma, o bispo da catedral, padres, monges, frades, excomunhão, indulgências, Templários. Religião **sobe** com piedade, caridade, penitência e a Igreja elogiando a Coroa; **desce** com crueldade, sacrilégio, excomunhão, heresia e o bispo condenando o Rei. **Roma é a sede do Papa**: não a use como reino inimigo.
 
-**Forças de fora:** o reino vizinho (aliado ou rival), o **Califado do Sul** (deserto, especiarias, remédios), a **Liga das Cidades Livres** (mercadores), piratas, clãs do norte.
-
-**Gente recorrente:** o tesoureiro, o capitão da guarda, o médico do Sul, os médicos da corte, o Barão Sem-Terra, a Guilda dos Ferreiros.
+**Dois Reis por campanha:** a roda 1 é do **velho Rei**; ele morre no fim dela, e a roda 2 é do **jovem Rei, seu filho**. Os textos dizem só "o Rei". Desfechos graves podem dizer como o velho Rei morre (`kingDeath`).
 
 **As Casas** (nunca fale por elas no texto, só cite como proponentes): Aurivel (mercadores, "Tudo tem seu preço"), Ferrobranco (guerreiros, "O aço não negocia"), Verdemar (lavradores, "Quem planta, governa"), Lumen (curandeiros, "A luz cura o reino"), Corvalis (sussurradores, "Saber é sobreviver").
 
@@ -75,18 +73,24 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 - `when`/`requires` aceitam `{ "flag": "x", "eq": true }`, `{ "flag": "rei_reputacao", "lte": -2 }`, `{ "res": "food", "lte": 0 }`, `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": {...} }`.
 - `setFlags`: `true` marca um acontecimento; `{ "add": -1 }` soma num contador (ex.: `rei_reputacao`).
 
-**Flags que já existem** (reaproveite para ligar cartas novas às antigas): `alianca_rompida`, `alianca_vizinhos`, `bandidos_perdoados`, `bandidos_tolerados`, `cavaleiros_leais`, `celeiro_real`, `comercio_aberto`, `espioes_fugidos`, `guarda_reforcada`, `hospital_construido`, `impostos_altos`, `medico_aceito`, `mercado_negro`, `norte_saqueado`, `povo_revoltado`, `quarentena`, `rede_desmantelada`, `rota_do_sul`, `traicao_viajantes`, `viajantes_aceitos`, `viajantes_clandestinos`, `viajantes_leais`, `viajantes_recusados`.
+**Campos novos:** `"shared": true` na carta compartilhada; `"kingDeath": "de peste, como tantos…"` num desfecho (completa a frase "O velho Rei morreu …").
 
-## 4. Regras de equilíbrio (não quebre o jogo)
+**Flags que já existem** (reaproveite para ligar histórias): `rota_de_veneza` (Embaixada SIM; a Peste lembra), `excomungado` (Zara; a Carta do Papa lembra, também na roda do filho), `companhia_no_reino` (Companhia Branca do nosso lado; muda O Inimigo Dentro dos Muros).
 
-- **Todo desfecho tem custo e ganho.** Nenhum SIM ou NÃO pode ser só bom.
-- **Carta raiz mexe ±1 por recurso; consequência até ±2** (a "fatura" chega maior). A soma de SIM ou NÃO fica entre −1 e +1. O empate perde no máximo 1 por recurso e nunca ajuda. A trilha é curta (−7 a +7, as duas pontas derrubam), então um ±3 já é perigoso demais.
-- Os recursos mexidos devem combinar com a história (uma peste mexe em Saúde, não em Força Militar sem motivo). Crime, guarda e fronteira são Força Militar; o humor e a fé do povo são Religião.
-- **Variantes com `when`** são a melhor forma de imersão: a carta lembra do que o conselho fez antes ("Com a guarda já reforçada…"). Prefira ler flags existentes a criar novas.
-- **Toda flag criada precisa ser lida** em alguma carta, e toda flag lida precisa ser criada (o teste falha se não for).
-- **Consequências:** `inRounds` entre 2 e 5. Toda carta `consequence` precisa ser injetada por alguém.
-- **Voto aberto:** decisões públicas ou cerimoniais (festas, julgamentos, juramentos). Cerca de 1 a cada 3 cartas.
-- Mantenha o equilíbrio de categorias. Hoje (52 cartas): Intriga 11, Guerra 8, Diplomacia 7, Peste 7, Comércio 5, Natureza 5, Fé 5, Banquete 4. **Comércio e Banquete pedem cartas. A categoria Fé voltou com o recurso Religião.** Todo SIM e todo NÃO precisam mudar ao menos um recurso (o teste exige).
+## 4. Estrutura das histórias e equilíbrio (não quebre o jogo)
+
+**Poucas histórias longas, não muitas curtas** (pedido do playtest de 2026-11-22: os jogadores sentiam 20 histórias curtas sem consequência). Cada roda de 12 rodadas tem umas **3 histórias**, com **no máximo 2 abertas** ao mesmo tempo, alternando. O baralho tem **10 histórias** e cada campanha joga umas 6.
+
+- **Toda raiz leva a 2 ou 3 cartas por qualquer caminho**: SIM, NÃO e empate trazem uma consequência, e as consequências do primeiro nível continuam pelo SIM e pelo NÃO. Os caminhos do meio podem se dividir.
+- **O empate segue o pior caminho:** se o SIM ou o NÃO continua a história, o empate também continua, pelo ramo mais perigoso.
+- **Cartas compartilhadas** (`shared`): crises genéricas que várias histórias trazem (O Inimigo Dentro dos Muros, A Revolta Camponesa, A Doença Chega à Capital, Os Cofres Vazios, O Inverno da Fome, O Bispo Contra o Rei, A Traição na Corte). **Texto sem nome de lugar nem de inimigo.** Saem no máximo uma vez por roda; se uma história chega a uma que já saiu, aquela ligação não acontece. As que se resolvem sozinhas também fecham a roda quando não sobra tempo para uma história nova.
+- **Cada roda fecha as próprias histórias:** o velho Rei morre, e o que estava pendente não vem. Nenhuma carta de história se repete na campanha.
+- **Pontos:** raiz ±1 por recurso; nós do meio até ±2; **o desfecho que fecha um caminho** (sem consequência) pode ter **um** recurso em ±3. A soma de SIM ou NÃO fica entre −1 e +1, e todo desfecho tem custo e ganho. O empate perde no máximo 1 por recurso e nunca ajuda.
+- `inRounds` 1 ou 2: o motor adianta a próxima carta quando já há 2 histórias abertas, então o atraso só decide a ordem.
+- Os recursos mexidos devem combinar com a história. Crime, guarda e fronteira são Força Militar; o humor e a fé do povo são Religião.
+- **Variantes com `when`** lembram decisões anteriores, até da roda do pai. Toda flag criada precisa ser lida, e toda flag lida precisa ser criada (o teste falha se não for).
+- **Voto aberto:** decisões públicas e solenes (casamento, julgamento, entregar uma província). Hoje são 5 cartas.
+- Categorias hoje (58 cartas): Guerra 15, Intriga 9, Diplomacia 9, Fé 8, Comércio 6, Peste 5, Natureza 5, Banquete 1. Todo SIM e todo NÃO precisam mudar ao menos um recurso.
 
 ## 5. Fluxo de trabalho
 
@@ -95,10 +99,10 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 3. Acrescente as cartas **no fim** da lista `dilemmas`, no mesmo estilo de formatação do arquivo (objetos pequenos em uma linha só, como `"effects": { "food": -1 }`). Não reformate o arquivo inteiro. Atualize `version` e `notes`.
 4. Valide:
    ```bash
-   npm test                           # validador de conteúdo + simulação (colapso abaixo de 20%)
-   npm run balance -- 1000            # opcional: colapso, empates e pontos com bots estrategistas e ao acaso
+   npm test                           # validador de conteúdo + simulação de campanhas
+   npm run balance -- 1000            # histórias por roda, cartas por história, colapso e pontos (estrategista, meio atenta, ao acaso)
    ```
 5. Releia cada texto em voz alta, como a Mão do Rei vai ler na chamada. Se ficar longo ou confuso, corte.
 
-**Atalho:** `npm run grafo` abre o editor visual (http://localhost:5180) com as cartas em grafo: dá para ler as cadeias, editar texto e pontos, ligar consequências e criar cartas. Ele avisa as mesmas regras do `npm test` e salva no `content/dilemmas.json`.
+**Atalho:** `npm run grafo` abre o editor (http://localhost:5180). A aba Lista mostra cada história com as consequências logo abaixo, e as compartilhadas numa seção própria; a aba Mapa mostra as ligações. Ele avisa as mesmas regras do `npm test` e salva no `content/dilemmas.json`.
 6. Atualize a contagem de categorias na seção 4 desta skill e o `BACKLOG.md`.

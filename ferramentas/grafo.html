@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Grafo das Cartas</title>
+<title>Cartas do Reino</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='4' cy='4' r='3' fill='%23b8891c'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%232b1d0e'/%3E%3Cpath d='M4 4L12 12' stroke='%232b1d0e' stroke-width='1.5'/%3E%3C/svg%3E">
 <style>
 :root {
@@ -93,30 +93,93 @@ aside h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; col
 .field > * { min-width: 0; max-width: 100%; }
 .field select { width: 100%; }
 .inj select { min-width: 0; width: 100%; flex-basis: 100%; }
-@media (max-width: 600px) { .legend { display: none; } .effects { gap: 4px; } .effects label { font-size: 10px; } }
+/* abas Lista / Mapa e menu "Mais" */
+.tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.tabs button { border: none; border-radius: 0; padding: 6px 14px; background: #fff; }
+.tabs button[aria-pressed=true] { background: var(--ink); color: #fff; }
+header input[type=search] { min-width: 200px; }
+details.mais { position: relative; }
+details.mais > summary { list-style: none; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+details.mais > summary::-webkit-details-marker { display: none; }
+details.mais .menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 6; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 8px; display: grid; gap: 6px; min-width: 220px; }
+details.mais .menu button { text-align: left; }
+.only-map { display: none !important; }
+body.mapa .only-map { display: inline-flex !important; }
+body.mapa #lista, body:not(.mapa) #canvas { display: none; }
+.legend summary { cursor: pointer; color: var(--muted); }
+.legend[open] { gap: 3px; }
+/* lista de leitura */
+#lista { overflow: auto; padding: 16px 16px 60px; }
+.lwrap { max-width: 860px; margin: 0 auto; display: grid; gap: 12px; }
+.summary { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; color: var(--muted); font-size: 13.5px; }
+.summary .err { color: var(--danger); font-weight: 600; }
+.story { display: grid; gap: 8px; }
+.story > h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 14px 0 0; }
+.lcard { background: var(--node); border: 1px solid var(--line); border-left: 6px solid var(--cat, #999); border-radius: 10px; padding: 12px 14px; cursor: pointer; box-shadow: var(--shadow); }
+.lcard:hover { border-color: var(--gold); border-left-color: var(--cat, #999); }
+.lcard.sel { outline: 3px solid var(--focus); outline-offset: 1px; }
+.lcard.haserr { border-color: var(--danger); border-left-color: var(--cat, #999); }
+.lcard .top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.lcard h3 { font-size: 17px; margin: 0; flex: 1 1 200px; }
+.badge { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: #efe6d2; color: var(--muted); white-space: nowrap; }
+.badge.cq { background: #e6e0f0; color: #4b3a6e; }
+.lcard .from { font-size: 13px; color: #4b3a6e; margin: 6px 0 0; }
+.lcard .prompt { margin: 8px 0 4px; font-size: 15px; }
+.lcard .q { font-weight: 650; margin: 0 0 10px; font-size: 15px; }
+.louts { display: grid; gap: 6px; }
+.lout { display: grid; grid-template-columns: 70px 1fr; gap: 4px 10px; padding: 7px 10px; border-radius: 6px; background: #fff; border-left: 4px solid; }
+.lout.yes { border-color: var(--yes); } .lout.no { border-color: var(--no); } .lout.tie { border-color: var(--tie); }
+.lout > b { font-size: 12.5px; padding-top: 1px; }
+.lout.yes > b { color: var(--yes); } .lout.no > b { color: var(--no); } .lout.tie > b { color: var(--tie); }
+.lout .txt { font-size: 14.5px; }
+.lout .chips, .lout .traz, .lout .var { grid-column: 2; }
+.lout .chip { font-size: 12.5px; padding: 1px 9px; }
+.lout .traz { font-size: 13px; }
+.lout .var { font-size: 12px; color: var(--muted); }
+.lcard .issues { margin-top: 8px; }
+.empty { color: var(--muted); text-align: center; padding: 30px 0; }
+.back-mobile { display: none; }
+@media (max-width: 600px) {
+  .legend { display: none; } .effects { gap: 4px; } .effects label { font-size: 10px; }
+  .lout { grid-template-columns: 1fr; } .lout .chips, .lout .traz, .lout .var { grid-column: 1; }
+  #lista { padding: 10px 10px 60px; }
+}
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }
-  aside { border-left: none; border-top: 1px solid var(--line); }
-  header { padding: 8px 12px; }
-  header input[type=search] { flex: 1; min-width: 140px; }
+  .layout { grid-template-columns: 1fr; }
+  aside { display: none; }
+  body.painel aside { display: block; position: fixed; inset: 0; z-index: 8; border: none; }
+  .back-mobile { display: inline-flex; }
+  header { padding: 8px 10px; gap: 6px 8px; }
+  header h1 { font-size: 15px; }
+  header input[type=search] { order: 10; flex: 1 1 100%; min-width: 0; }
 }
 </style>
 </head>
 <body>
 <header>
-  <h1>Grafo das Cartas</h1>
-  <input type="search" id="busca" placeholder="Buscar carta…" aria-label="Buscar carta" list="lista-cartas">
-  <datalist id="lista-cartas"></datalist>
-  <label class="toggle"><input type="checkbox" id="ver-sinais" checked> ligações por sinal (flags)</label>
+  <h1>Cartas do Reino</h1>
+  <div class="tabs" role="group" aria-label="Modo de ver">
+    <button id="v-lista" aria-pressed="true">Lista</button>
+    <button id="v-mapa" aria-pressed="false">Mapa</button>
+  </div>
+  <input type="search" id="busca" placeholder="Buscar carta, texto ou recurso…" aria-label="Buscar carta">
   <span class="grow"></span>
-  <button id="nova">+ Nova carta</button>
-  <button id="baixar">Baixar JSON</button>
-  <label class="toggle" title="Abrir um dilemmas.json do computador"><input type="file" id="abrir" accept=".json,application/json" hidden><button type="button" id="abrir-btn">Abrir arquivo…</button></label>
-  <button class="primary" id="salvar" disabled>Salvar no jogo</button>
   <span class="status" id="status">carregando…</span>
+  <button class="primary" id="salvar" disabled>Salvar no jogo</button>
+  <details class="mais">
+    <summary>Mais ▾</summary>
+    <div class="menu">
+      <button id="nova">+ Nova carta</button>
+      <button id="geral">Visão geral e problemas</button>
+      <label class="toggle only-map"><input type="checkbox" id="ver-sinais"> mostrar ligações por sinal (flags)</label>
+      <button id="baixar">Baixar JSON</button>
+      <input type="file" id="abrir" accept=".json,application/json" hidden><button type="button" id="abrir-btn">Abrir arquivo…</button>
+    </div>
+  </details>
 </header>
 <div class="layout">
-  <section id="canvas" aria-label="Grafo das cartas: arraste para mover, role para aproximar">
+  <section id="lista" aria-label="Lista de cartas"></section>
+  <section id="canvas" aria-label="Mapa das cartas: arraste para mover, role para aproximar">
     <svg id="svg" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="a-yes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f7a3a"/></marker>
@@ -126,12 +189,13 @@ aside h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; col
       </defs>
       <g id="vp"><g id="edges"></g><g id="nodes"></g></g>
     </svg>
-    <div class="legend" aria-hidden="true">
+    <details class="legend" aria-hidden="true">
+      <summary>Legenda</summary>
       <span><i style="border-color:var(--yes)"></i>SIM traz a consequência</span>
       <span><i style="border-color:var(--no)"></i>NÃO traz a consequência</span>
       <span><i style="border-color:var(--tie)"></i>Empate traz a consequência</span>
       <span><i style="border-color:var(--flag);border-top-style:dashed"></i>sinal (flag) lido por outra carta</span>
-    </div>
+    </details>
     <div class="zoom">
       <button id="z-mais" aria-label="Aproximar">+</button>
       <button id="z-menos" aria-label="Afastar">−</button>
@@ -159,7 +223,9 @@ let file = null;          // { version, notes, dilemmas }
 let selected = null;      // id da carta aberta no painel
 let dirty = false;
 let canSave = true;       // false quando aberto sem o servidor (npm run grafo)
-let showFlags = true;
+let showFlags = false;
+let mode = (() => { try { return localStorage.getItem("grafo-modo") === "mapa" ? "mapa" : "lista"; } catch { return "lista"; } })();
+let query = "";
 let pos = {};             // id → {x, y}
 let view = { x: 40, y: 40, k: 0.8 };
 
@@ -230,6 +296,7 @@ function validate() {
     if ((c.prompt || "").length > LIMITS.prompt) add(c.id, `abertura com ${c.prompt.length} caracteres (máx. ${LIMITS.prompt})`);
     if ((c.question || "").length > LIMITS.question) add(c.id, `pergunta com ${c.question.length} caracteres (máx. ${LIMITS.question})`);
     const cap = c.kind === "root" ? 1 : 2;
+    const continues = ["yes", "no"].some((o) => (c.outcomes[o] || []).some((v) => v.inject?.length));
     for (const o of OUT) {
       const vs = c.outcomes[o] || [];
       if (!vs.length) { add(c.id, `falta o desfecho ${OUT_SHORT[o]}`); continue; }
@@ -238,11 +305,17 @@ function validate() {
         const tag = `${OUT_SHORT[o]}${vs.length > 1 ? ` #${i + 1}` : ""}`;
         if (!v.text?.trim()) add(c.id, `${tag}: falta o texto`);
         if ((v.text || "").length > LIMITS.text) add(c.id, `${tag}: texto com ${v.text.length} caracteres (máx. ${LIMITS.text})`);
+        // raiz ±1; nós do meio ±2; o desfecho que fecha o caminho (sem consequência) pode ter UM recurso em ±3
+        const closing = c.kind !== "root" && o !== "tie" && !v.inject?.length;
+        let over = 0;
         for (const [r, n] of Object.entries(v.effects || {})) {
           if (!RES.includes(r)) add(c.id, `${tag}: recurso desconhecido ${r}`);
           const lim = o === "tie" ? 1 : cap;
-          if (Math.abs(n) > lim) add(c.id, `${tag}: ${RES_LABEL[r] || r} ${fmt(n)} passa do limite ±${lim} (${o === "tie" ? "empate" : c.kind === "root" ? "carta raiz" : "consequência"})`);
+          if (Math.abs(n) > lim) over++;
+          if (Math.abs(n) > (closing ? 3 : lim)) add(c.id, `${tag}: ${RES_LABEL[r] || r} ${fmt(n)} passa do limite ±${closing ? 3 : lim} (${o === "tie" ? "empate" : c.kind === "root" ? "carta raiz" : closing ? "desfecho final" : "nó do meio"})`);
         }
+        if (closing && over > 1) add(c.id, `${tag}: só um recurso pode chegar a ±3 no desfecho final`);
+        if (o === "tie" && continues && !v.inject?.length && !v.kingDeath) add(c.id, `${tag}: o empate segue o pior caminho e precisa trazer uma consequência`);
         if (o === "tie" && sum(v.effects) > 0) add(c.id, `${tag}: a Indecisão do Conselho nunca pode ajudar (soma ${fmt(sum(v.effects))})`);
         for (const inj of v.inject || []) {
           const t = byId(inj.card);
@@ -258,18 +331,135 @@ function validate() {
   for (const f of Object.keys(writers)) if (!readers[f]) add([...writers[f]][0], `o sinal "${f}" é marcado mas nenhuma carta lê (sinal morto)`);
   for (const f of Object.keys(readers)) if (!writers[f]) add([...readers[f]][0], `o sinal "${f}" é lido mas nenhuma carta marca`);
   const roots = cards().filter((c) => c.kind === "root").length;
-  if (roots < 24) add(null, `só ${roots} cartas raiz: a campanha precisa de pelo menos 24`);
+  if (roots < 8) add(null, `só ${roots} histórias (cartas raiz): cada campanha joga umas 6, então são precisas pelo menos 8`);
+  for (const r of cards().filter((c) => c.kind === "root"))
+    for (const o of OUT) if (!(r.outcomes[o] || []).every((v) => v.inject?.length)) add(r.id, `${OUT_SHORT[o]}: toda carta raiz abre a história, precisa trazer uma consequência`);
   return issues;
 }
 
-// ---------- disposição: cada cadeia (raízes + consequências ligadas) vira um bloco ----------
+// ---------- histórias: cada carta raiz com as consequências que ela pode trazer ----------
+function structure() {
+  const { inject } = analyze();
+  const ids = cards().map((c) => c.id);
+  // cartas compartilhadas ligam várias histórias: não contam para juntar histórias num bloco só
+  const adj = {};
+  for (const e of inject) { if (!byId(e.to) || byId(e.to).shared || byId(e.from)?.shared) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
+  const comp = {}; const groups = [];
+  for (const id of ids) {
+    if (comp[id] != null) continue;
+    const g = [id], stack = [id]; comp[id] = groups.length;
+    while (stack.length) { const x = stack.pop(); for (const y of adj[x] || []) if (comp[y] == null) { comp[y] = groups.length; g.push(y); stack.push(y); } }
+    groups.push(g);
+  }
+  const depth = {};
+  for (const id of ids) depth[id] = byId(id).kind === "root" ? 0 : 1;
+  for (let it = 0; it < 10; it++) for (const e of inject) if (byId(e.to) && byId(e.to).kind !== "root") depth[e.to] = Math.max(depth[e.to], Math.min(depth[e.from] + 1, 6));
+  // dentro da história: raízes primeiro, cada consequência logo depois de quem a traz
+  const ordered = groups.map((g) => {
+    const set = new Set(g), out = [], seen = new Set();
+    const visit = (id) => {
+      if (seen.has(id)) return; seen.add(id); out.push(id);
+      for (const o of OUT) for (const e of inject) if (e.from === id && e.o === o && set.has(e.to)) visit(e.to);
+    };
+    g.filter((id) => byId(id).kind === "root").sort((a, b) => byId(a).title.localeCompare(byId(b).title)).forEach(visit);
+    g.filter((id) => !seen.has(id)).forEach(visit);
+    return out;
+  });
+  return { groups: ordered, depth, inject };
+}
+
+// ---------- lista de leitura ----------
+const chip = (r, n) => el("span", { class: "chip " + (n > 0 ? "pos" : "neg") }, `${RES_LABEL[r] || r} ${fmt(n)}`);
+function matches(c, q) {
+  if (!q) return true;
+  const txt = [c.id, c.title, c.prompt, c.question, (CAT[c.category] || [""])[0],
+    ...OUT.flatMap((o) => (c.outcomes[o] || []).flatMap((v) => [v.text, ...Object.keys(v.effects || {}).map((r) => RES_LABEL[r])]))].join(" ").toLowerCase();
+  return q.split(/\s+/).every((w) => txt.includes(w));
+}
+function renderList() {
+  const box = $("#lista");
+  const top = box.scrollTop;
+  const { groups, depth, inject } = structure();
+  const issues = validate();
+  const byCard = {};
+  for (const i of issues) if (i.id) (byCard[i.id] ??= []).push(i);
+  const q = query.trim().toLowerCase();
+  const all = cards();
+  const wrap = el("div", { class: "lwrap" });
+  const errs = issues.filter((i) => i.err).length;
+  wrap.append(el("div", { class: "summary" },
+    el("span", {}, `${all.length} cartas · ${all.filter((c) => c.kind === "root").length} raiz · ${all.filter((c) => c.kind === "consequence").length} consequências`),
+    errs ? el("button", { class: "link err", onclick: openOverview }, `${errs} problema(s): ver`) : el("span", {}, "nenhum problema"),
+    el("span", {}, "Clique numa carta para editar.")));
+  const chains = groups.filter((g) => g.length > 1).sort((a, b) => byId(a[0]).title.localeCompare(byId(b[0]).title));
+  const solo = groups.filter((g) => g.length === 1).flat().filter((id) => !byId(id).shared).sort((a, b) => byId(a).title.localeCompare(byId(b).title));
+  const shared = all.filter((c) => c.shared).map((c) => c.id).sort((a, b) => byId(a).title.localeCompare(byId(b).title));
+  let shown = 0;
+  const section = (title, ids) => {
+    const list = ids.map(byId).filter((c) => matches(c, q));
+    if (!list.length) return;
+    shown += list.length;
+    wrap.append(el("section", { class: "story" }, el("h2", {}, title), list.map((c) => listCard(c, depth[c.id], inject, byCard[c.id] || []))));
+  };
+  for (const g of chains) section(`História: ${g.filter((id) => byId(id).kind === "root").map((id) => byId(id).title).join(" / ") || byId(g[0]).title}`, g);
+  section("Cartas compartilhadas: várias histórias trazem (no máximo uma vez por roda)", shared);
+  section("Cartas sem consequência", solo);
+  if (!shown) wrap.append(el("p", { class: "empty" }, q ? `Nenhuma carta com “${query}”.` : "Nenhuma carta."));
+  box.replaceChildren(wrap);
+  box.scrollTop = top;
+}
+function listCard(c, d, inject, issues) {
+  const color = (CAT[c.category] || ["", "#999"])[1];
+  const art = el("article", {
+    class: `lcard${c.id === selected ? " sel" : ""}${issues.some((i) => i.err) ? " haserr" : ""}`,
+    id: `carta-${c.id}`, tabindex: 0, role: "button", "aria-label": `Editar ${c.title}`,
+    style: `--cat:${color};${c.kind === "consequence" && !c.shared ? `margin-left:${Math.min(d || 1, 3) * 22}px` : ""}`,
+    onclick: () => select(c.id),
+    onkeydown: (ev) => { if (ev.target === art && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); select(c.id); } },
+  });
+  art.append(el("div", { class: "top" },
+    el("h3", {}, c.title || c.id),
+    el("span", { class: "badge" + (c.kind === "consequence" ? " cq" : "") }, c.kind === "root" ? "raiz" : "consequência"),
+    el("span", { class: "badge" }, (CAT[c.category] || [c.category])[0]),
+    c.openVote ? el("span", { class: "badge" }, "voto aberto") : null,
+    c.shared ? el("span", { class: "badge cq" }, "compartilhada") : null));
+  if (c.kind === "consequence") {
+    // variantes do mesmo resultado costumam trazer a mesma carta: mostra cada origem uma vez
+    const from = inject.filter((e, i, a) => e.to === c.id && a.findIndex((x) => x.to === e.to && x.from === e.from && x.o === e.o) === i);
+    if (c.shared && from.length > 3) art.append(el("p", { class: "from" }, `Trazida por ${new Set(from.map((e) => e.from)).size} cartas de várias histórias, como: ${[...new Set(from.map((e) => byId(e.from)?.title))].slice(0, 4).join(", ")}…`));
+    else art.append(el("p", { class: "from" }, from.length
+      ? ["Aparece quando ", ...from.flatMap((e, i) => [i ? " ou " : "", el("b", {}, OUT_SHORT[e.o]), ` em “${byId(e.from)?.title || e.from}”`, ` (${e.rounds} rodada${e.rounds > 1 ? "s" : ""} depois)`]), "."]
+      : "Nenhuma carta traz esta consequência: ela nunca aparece."));
+  }
+  art.append(el("p", { class: "prompt" }, c.prompt || "(sem abertura)"), el("p", { class: "q" }, c.question || "(sem pergunta)"));
+  const outs = el("div", { class: "louts" });
+  for (const o of OUT) {
+    const vs = c.outcomes[o] || [];
+    const v = last(vs) || {};
+    const effs = Object.entries(v.effects || {}).filter(([, n]) => n);
+    outs.append(el("div", { class: `lout ${o}` },
+      el("b", {}, o === "tie" ? "EMPATE" : OUT_SHORT[o]),
+      el("span", { class: "txt" }, v.text || "(sem texto)"),
+      el("span", { class: "chips" }, effs.length ? effs.map(([r, n]) => chip(r, n)) : el("span", { class: "chip" }, "não muda recursos")),
+      ...(v.inject || []).map((inj) => el("span", { class: "traz" }, "→ traz ",
+        el("button", { class: "link", onclick: (ev) => { ev.stopPropagation(); select(inj.card); focusNode(inj.card); } }, `“${byId(inj.card)?.title || inj.card}”`),
+        ` ${inj.inRounds} rodada${inj.inRounds > 1 ? "s" : ""} depois`)),
+      v.kingDeath ? el("span", { class: "var" }, `☠ o velho Rei morre ${v.kingDeath}`) : null,
+      vs.length > 1 ? el("span", { class: "var" }, `+ ${vs.length - 1} variante(s) com condição (veja no editor)`) : null));
+  }
+  art.append(outs);
+  if (issues.length) art.append(el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.msg))));
+  return art;
+}
+
+// ---------- mapa: cada cadeia (raízes + consequências ligadas) vira um bloco ----------
 function layout() {
   const { inject } = analyze();
   const ids = cards().map((c) => c.id);
   // componentes ligados por "traz consequência"
   const comp = {}; let n = 0;
   const adj = {};
-  for (const e of inject) { if (!byId(e.to)) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
+  for (const e of inject) { if (!byId(e.to) || byId(e.to).shared || byId(e.from)?.shared) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
   for (const id of ids) {
     if (comp[id] != null) continue;
     const stack = [id]; comp[id] = n;
@@ -319,7 +509,7 @@ function layout() {
   // cartas sem consequência, em grade embaixo
   const perRow = Math.max(4, Math.round((x + laneW + COLGAP) / (W + 24)));
   const soloTop = chainsBottom + 70;
-  titles.push({ x: 0, y: soloTop - 18, text: "Cartas raiz sem consequência direta (podem se ligar por sinais)" });
+  titles.push({ x: 0, y: soloTop - 18, text: "Cartas compartilhadas (várias histórias trazem)" });
   solo.forEach((id, i) => (pos[id] = { x: (i % perRow) * (W + 24), y: soloTop + Math.floor(i / perRow) * (H + ROWGAP) }));
   layout.titles = titles;
 }
@@ -333,6 +523,8 @@ function curve(a, b) {
   return `M${x1},${y1} C${x1 + out},${y1} ${x2 + W + out},${y2} ${x2 + W},${y2}`;
 }
 function draw() {
+  document.body.classList.toggle("mapa", mode === "mapa");
+  if (mode === "lista") { renderList(); return; }
   layout();
   const { inject, flagEdges } = analyze();
   const issues = validate();
@@ -385,7 +577,6 @@ function draw() {
     nodes.append(g);
   }
   applyView();
-  $("#lista-cartas").replaceChildren(...cards().map((c) => el("option", { value: c.title })));
 }
 function label(parent, a, b, txt, color) {
   const x = (a.x + W + b.x) / 2, y = (a.y + b.y) / 2 + H / 2 - 4;
@@ -402,11 +593,16 @@ function fit() {
   if (!xs.length) return;
   const maxX = Math.max(...xs.map((p) => p.x)) + W, maxY = Math.max(...xs.map((p) => p.y)) + H;
   const box = $("#canvas").getBoundingClientRect();
-  // cabe tudo na largura; se ficar pequeno demais para ler, mantém legível e deixa rolar para baixo
-  view.k = Math.max(0.45, Math.min(1.1, (box.width - 40) / maxX, Math.max((box.height - 40) / maxY, 0.45)));
+  // nunca menor que o tamanho em que dá para ler; o resto se vê arrastando
+  view.k = Math.max(0.8, Math.min(1.1, (box.width - 40) / maxX, (box.height - 40) / maxY));
   view.x = 20; view.y = 20; applyView();
 }
 function focusNode(id) {
+  if (mode === "lista") {
+    const n = document.getElementById(`carta-${id}`);
+    if (n) n.scrollIntoView({ block: "center", behavior: "smooth" });
+    return;
+  }
   const p = pos[id]; if (!p) return;
   const box = $("#canvas").getBoundingClientRect();
   view.k = Math.max(view.k, 0.75);
@@ -419,7 +615,7 @@ function focusNode(id) {
   let drag = null;
   c.addEventListener("pointerdown", (e) => { if (e.target.closest(".node") || e.target.closest("button")) return; drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false }; c.setPointerCapture(e.pointerId); c.classList.add("dragging"); });
   c.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true; view.x = drag.vx + dx; view.y = drag.vy + dy; applyView(); });
-  c.addEventListener("pointerup", (e) => { if (drag && !drag.moved && !e.target.closest(".node")) { selected = null; draw(); renderPanel(); } drag = null; c.classList.remove("dragging"); });
+  c.addEventListener("pointerup", (e) => { if (drag && !drag.moved && !e.target.closest(".node") && selected) closePanel(); drag = null; c.classList.remove("dragging"); });
   c.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12); }, { passive: false });
   const zoomAt = (cx, cy, f) => { const r = c.getBoundingClientRect(); const px = cx - r.left, py = cy - r.top; const k = Math.max(0.12, Math.min(2.5, view.k * f)); view.x = px - ((px - view.x) * k) / view.k; view.y = py - ((py - view.y) * k) / view.k; view.k = k; applyView(); };
   $("#z-mais").onclick = () => { const r = c.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.25); };
@@ -428,7 +624,23 @@ function focusNode(id) {
 })();
 
 // ---------- painel ----------
-function select(id) { selected = id; draw(); renderPanel(); }
+function select(id) {
+  selected = id;
+  document.body.classList.toggle("painel", !!id);
+  draw(); renderPanel();
+  $("#painel").scrollTop = 0;
+}
+function openOverview() { selected = null; draw(); renderPanel(); document.body.classList.add("painel"); $("#painel").scrollTop = 0; }
+function closePanel() { const was = selected; selected = null; document.body.classList.remove("painel"); draw(); renderPanel(); if (was) focusNode(was); }
+function setMode(m) {
+  mode = m;
+  try { localStorage.setItem("grafo-modo", m); } catch {}
+  $("#v-lista").setAttribute("aria-pressed", String(m === "lista"));
+  $("#v-mapa").setAttribute("aria-pressed", String(m === "mapa"));
+  draw();
+  if (m === "mapa") { fit(); if (selected) focusNode(selected); }
+  else if (selected) focusNode(selected);
+}
 function changed(redraw = true) {
   dirty = true; updateStatus();
   if (redraw) draw();
@@ -473,8 +685,9 @@ function renderPanel() {
   const issues = validate().filter((i) => i.id === c.id);
   p.append(
     el("div", { class: "row", style: "justify-content: space-between" },
+      el("button", { class: "back-mobile", onclick: closePanel }, "← Voltar à lista"),
       el("h2", {}, c.title || c.id),
-      el("button", { class: "link", onclick: () => select(null) }, "← visão geral")),
+      el("button", { class: "link", onclick: closePanel }, "fechar")),
   );
   if (issues.length) p.append(el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.msg))));
 
@@ -486,9 +699,11 @@ function renderPanel() {
   cat.value = c.category; cat.onchange = () => { c.category = cat.value; changed(); };
   const open = el("input", { type: "checkbox" }); open.checked = !!c.openVote;
   open.onchange = () => { if (open.checked) c.openVote = true; else delete c.openVote; changed(); };
+  const shared = el("input", { type: "checkbox" }); shared.checked = !!c.shared;
+  shared.onchange = () => { if (shared.checked) c.shared = true; else delete c.shared; changed(); };
 
   const [title] = textInput(c, "title");
-  const [prompt, pc] = textInput(c, "prompt", { area: true, max: LIMITS.prompt, rows: 3 });
+  const [prompt, pc] = textInput(c, "prompt", { area: true, max: LIMITS.prompt, rows: 4 });
   const [question, qc] = textInput(c, "question", { max: LIMITS.question });
   p.append(
     field("Título", title),
@@ -496,6 +711,7 @@ function renderPanel() {
     field("Pergunta de SIM/NÃO", question, qc),
     el("div", { class: "row" }, field("Tipo", kind), field("Categoria (ilustração)", cat)),
     el("label", { class: "toggle", style: "margin-bottom: 8px" }, open, "Voto aberto (cada voto aparece na hora e não pode ser trocado)"),
+    c.kind === "consequence" ? el("label", { class: "toggle", style: "margin-bottom: 8px" }, shared, "Carta compartilhada (várias histórias trazem; texto sem nomes de lugar; sai no máximo uma vez por roda)") : null,
     field("id (usado nas ligações)", idIn),
     el("details", {}, el("summary", { class: "hint" }, "Condição para entrar no jogo (avançado)"),
       el("p", { class: "hint" }, 'Ex.: {"res": "food", "gte": -3} ou {"flag": "guarda_reforcada", "eq": true}. Vazio = sempre pode sair.'),
@@ -519,7 +735,7 @@ function renderOutcome(c, o) {
       el("span", {}, isDefault ? (vs.length > 1 ? "Padrão (quando nenhuma condição acima vale)" : "") : `Variante ${i + 1}: só vale se a condição for verdadeira`),
       !isDefault ? el("button", { class: "link danger", onclick: () => { vs.splice(i, 1); changed(); renderPanel(); } }, "remover") : null));
     if (!isDefault) wrap.append(field("Condição (lê um sinal ou recurso)", jsonInput(v, "when", '{"flag": "nome_do_sinal", "eq": true}')));
-    const [txt, tc] = textInput(v, "text", { area: true, max: LIMITS.text, rows: 2 });
+    const [txt, tc] = textInput(v, "text", { area: true, max: LIMITS.text, rows: 3 });
     wrap.append(field("Texto do resultado", txt, tc));
     const eff = el("div", { class: "effects" });
     for (const r of RES) {
@@ -555,6 +771,9 @@ function renderOutcome(c, o) {
       el("button", { class: "link", onclick: () => { const first = cards().find((x) => x.kind === "consequence"); if (!first) return toast("Ainda não há cartas de consequência: use “nova consequência”."); (v.inject ||= []).push({ card: first.id, inRounds: 3 }); changed(); renderPanel(); } }, "+ trazer consequência existente"),
       el("button", { class: "link", onclick: () => newConsequence(v, c, o) }, "+ nova consequência a partir daqui")));
     wrap.append(field("Consequências que este resultado traz", injBox));
+    const [death] = textInput(v, "kingDeath", { onAfter: () => { if (!v.kingDeath) delete v.kingDeath; } });
+    death.placeholder = "ex.: de peste, como tantos na Capital (opcional)";
+    wrap.append(field("Se acontecer na roda 1, o velho Rei morre assim (aparece no intervalo)", death));
     box.append(wrap);
   });
   return box;
@@ -570,13 +789,15 @@ function renderOverview(p) {
   const { flagEdges, inject } = analyze();
   const issues = validate();
   p.append(
+    el("button", { class: "back-mobile", onclick: closePanel }, "← Voltar"),
     el("h2", {}, "Visão geral"),
     el("div", { class: "stats" },
       el("div", {}, el("b", {}, all.filter((c) => c.kind === "root").length), "cartas raiz"),
       el("div", {}, el("b", {}, all.filter((c) => c.kind === "consequence").length), "consequências"),
       el("div", {}, el("b", {}, inject.length), "ligações diretas")),
-    el("p", { class: "hint" }, `Clique numa carta para editar o texto, os pontos de cada resultado e as ligações. Setas cheias: um resultado traz uma carta de consequência rodadas depois. Setas tracejadas (${flagEdges.length}): uma carta marca um sinal e outra lê esse sinal para mudar o próprio resultado.`),
-    el("p", { class: "hint" }, "Regras do balanceamento: carta raiz mexe ±1 em cada recurso; consequência até ±2; o empate perde no máximo 1 por recurso e nunca ajuda. A trilha vai de −7 a +7 e chegar a qualquer ponta derruba o Reino."),
+    el("p", { class: "hint" }, `Clique numa carta para editar o texto, os pontos de cada resultado e as ligações. Na Lista, cada consequência aparece logo abaixo da carta que a traz. No Mapa, setas cheias ligam um resultado à consequência que ele traz; as ${flagEdges.length} ligações por sinal (flags) ficam escondidas e se ligam em Mais ▾.`),
+    el("p", { class: "hint" }, "Regras das histórias: cada campanha tem 2 rodas de 12 rodadas, com umas 3 histórias por roda e no máximo 2 abertas ao mesmo tempo. Toda raiz leva a 2 ou 3 cartas por qualquer caminho, e o empate segue o pior caminho. Cartas compartilhadas usam texto genérico e saem no máximo uma vez por roda."),
+    el("p", { class: "hint" }, "Pontos: a raiz mexe ±1 por recurso, os nós do meio até ±2 e o desfecho que fecha um caminho até ±3 em um recurso. O empate perde no máximo 1 por recurso e nunca ajuda. A trilha vai de −7 a +7, e chegar a qualquer ponta derruba o Reino."),
     el("h3", {}, issues.length ? `Problemas (${issues.length})` : "Problemas"),
     issues.length
       ? el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.id ? el("button", { class: "link", onclick: () => { select(i.id); focusNode(i.id); } }, byId(i.id)?.title || i.id) : null, " ", i.msg)))
@@ -590,12 +811,12 @@ function renderOverview(p) {
 // ---------- operações ----------
 function uniqueId(base) { let id = base, n = 2; while (byId(id)) id = `${base}_${n++}`; return id; }
 function blankCard(kind, id) {
-  return { id, kind, category: "diplomacy", title: kind === "root" ? "Nova carta" : "Nova consequência", prompt: "", question: "O Reino deve …?",
+  return { id, kind, category: "diplomacy", title: kind === "root" ? "Nova história" : "Nova consequência", prompt: "", question: "O Reino deve …?",
     outcomes: { yes: [{ text: "", effects: { faith: 1, wealth: -1 } }], no: [{ text: "", effects: { faith: -1, wealth: 1 } }], tie: [{ text: "", effects: { faith: -1 } }] } };
 }
 function newCard() {
   const c = blankCard("root", uniqueId("nova_carta"));
-  cards().push(c); changed(); select(c.id); focusNode(c.id);
+  cards().push(c); query = ""; $("#busca").value = ""; changed(); select(c.id); focusNode(c.id);
 }
 function newConsequence(v, parent, o) {
   const c = blankCard("consequence", uniqueId(`${parent.id}_depois`));
@@ -614,7 +835,7 @@ function deleteCard(c) {
   if (!confirm(`Excluir “${c.title}”?${refs.length ? `\nAs ligações vindas de ${refs.map((r) => r.title).join(", ")} também saem.` : ""}`)) return;
   for (const x of cards()) for (const o of OUT) for (const v of x.outcomes[o]) if (v.inject) { v.inject = v.inject.filter((i) => i.card !== c.id); if (!v.inject.length) delete v.inject; }
   file.dilemmas = cards().filter((x) => x !== c);
-  selected = null; changed(); renderPanel();
+  selected = null; changed(); closePanel();
 }
 function renameCard(c, id) {
   if (!id || id === c.id) return;
@@ -634,7 +855,7 @@ async function load() {
     file = { version: "", notes: "", dilemmas: [] };
     toast("Abra com npm run grafo para editar o jogo direto, ou use “Abrir arquivo…”.");
   }
-  dirty = false; draw(); fit(); renderPanel(); updateStatus();
+  dirty = false; setMode(mode); renderPanel(); updateStatus();
 }
 async function save() {
   const errs = validate().filter((i) => i.err);
@@ -654,14 +875,26 @@ $("#baixar").onclick = () => {
 $("#abrir-btn").onclick = () => $("#abrir").click();
 $("#abrir").onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return;
-  try { file = JSON.parse(await f.text()); if (!Array.isArray(file.dilemmas)) throw new Error(); selected = null; dirty = canSave; draw(); fit(); renderPanel(); updateStatus(); }
+  try { file = JSON.parse(await f.text()); if (!Array.isArray(file.dilemmas)) throw new Error(); selected = null; dirty = canSave; setMode(mode); renderPanel(); updateStatus(); }
   catch { toast("Esse arquivo não parece um dilemmas.json", true); }
 };
-$("#busca").addEventListener("change", (e) => {
+$("#v-lista").onclick = () => setMode("lista");
+$("#v-mapa").onclick = () => setMode("mapa");
+$("#geral").onclick = openOverview;
+// fecha o menu "Mais" depois de escolher algo ou ao clicar fora
+document.addEventListener("click", (e) => {
+  const m = $("details.mais");
+  if (m.open && (!m.contains(e.target) || (e.target.closest("button") && e.target.closest(".menu")))) m.open = false;
+});
+// Lista: filtra enquanto digita. Mapa: Enter vai até a carta.
+$("#busca").addEventListener("input", (e) => { query = e.target.value; if (mode === "lista") renderList(); });
+$("#busca").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
   const q = e.target.value.trim().toLowerCase(); if (!q) return;
-  const c = cards().find((x) => x.title.toLowerCase() === q) || cards().find((x) => (x.title + " " + x.id + " " + x.prompt).toLowerCase().includes(q));
+  const c = cards().find((x) => x.title.toLowerCase() === q) || cards().find((x) => matches(x, q));
   if (c) { select(c.id); focusNode(c.id); } else toast("Nenhuma carta encontrada");
 });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("painel")) closePanel(); });
 window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); if (dirty && canSave) save(); } });
 load();

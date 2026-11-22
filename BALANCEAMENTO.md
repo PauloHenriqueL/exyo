@@ -159,3 +159,27 @@ Efeitos por recurso: Riqueza 113 · Força Militar 82 · Religião 71 · Comida 
 | ao acaso | 43,8% (39,2 / 4,6) | 8% | 15% | 1% | 1,52 |
 
 Pontos por objetivo (estrategista): de 1,39 (Lumen B) a 1,64 (Verdemar B). Média dos recursos no fim de cada partida: Saúde −2,2 · Religião −1,5 · Força Militar −2,1 · Comida −2,2 · Riqueza −2,0.
+
+## Histórias longas com fatos reais (2026-11-22)
+
+Pedido do autor depois do playtest: os jogadores sentiam que passavam por 20 histórias curtas, que suas escolhas não tinham consequência e que um dilema resolvido na roda 1 voltava na roda 2. A meta passou a ser umas 3 histórias por roda, cada uma com várias consequências.
+
+- **Baralho:** 10 histórias (raiz + 4 a 6 cartas próprias) e 7 cartas compartilhadas, 58 no total. Cada campanha joga umas 6 histórias. As crises são reais e adaptadas: Veneza em 1204, a Peste Negra em 1347, os Mongóis em 1241 com Munique e Dunquerque, Sarajevo em 1914 e as trincheiras, a Grande Fome de 1315, Enigma e os Templários, a Hansa e os Medici, Lutero e Hus, a Revolta de 1381, a Companhia Branca e o Lusitânia.
+- **Motor:** no máximo 2 histórias abertas. Uma raiz nova só abre com menos de 2 em andamento e pelo menos 3 rodadas restantes na roda; senão, a próxima consequência pendente é adiantada. No fim da roda, sem nada pendente, entra uma crise compartilhada que se resolve sozinha. A troca de roda (morte do velho Rei) descarta o que estava pendente. Cartas de história nunca se repetem; as compartilhadas saem no máximo uma vez por roda.
+- **Repetição relatada no playtest:** no código anterior, nenhuma carta se repetia em 2000 campanhas simuladas. O que parecia repetição eram temas parecidos em cartas diferentes (Peste no Porto e A Segunda Onda; Invasão do Norte, Torres e Cerco). Agora cada tema fica numa história só.
+- **Pontos:** raiz ±1, nós do meio ±2, desfecho que fecha um caminho até ±3 em um recurso. A soma de SIM ou NÃO fica entre −1 e +1, e o empate segue o pior caminho.
+
+2.000 campanhas, `npm run balance`:
+
+| Mesa | Histórias por roda | Cartas por história | Colapso (−7 / +7) | Empates | Pontos/partida |
+|---|---|---|---|---|---|
+| estrategista | 3,7 (+0,6 crise) | 3,7 | 0,5% (0,5 / 0,0) | 24% | 1,71 |
+| meio atenta | 3,8 (+0,6 crise) | 3,6 | 7,2% (4,9 / 2,3) | 10% | 1,76 |
+| ao acaso | 3,9 (+0,6 crise) | 3,5 | 81,5% (54,1 / 27,4) | 9% | 1,59 |
+
+Pontos por objetivo, com estrategistas: de 1,62 a 1,78, todos parelhos.
+
+**Atenção:**
+- **Votar ao acaso agora derruba o Reino em ~80% das campanhas** (antes eram ~44%), porque as consequências pesam mais. Uma mesa que olha a prévia metade das vezes cai em ~7%. Vale observar no próximo playtest.
+- Cerca de 0,4 história por roda fica pela metade quando o velho Rei morre.
+- Comida termina a partida mais baixa que os outros recursos (média −2,5 com estrategistas).

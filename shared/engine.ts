@@ -18,14 +18,38 @@ import {
 export const MIN_RES = -7;
 export const MAX_RES = 7;
 
+/** Histórias abertas ao mesmo tempo: uma raiz nova só entra quando há menos que isso em andamento. */
+export const MAX_OPEN_STORIES = 2;
+/** Uma raiz nova só abre se ainda houver pelo menos estas rodadas na roda (a roda fecha as próprias histórias). */
+export const MIN_ROUNDS_TO_OPEN = 3;
+/** Morte do velho Rei quando nada grave aconteceu na roda. */
+export const DEFAULT_KING_DEATH = "de velhice, dormindo, depois de um reinado cheio de decisões difíceis";
+
+/** Votação que trouxe uma carta. */
+export interface Origin {
+  card: string;
+  outcome: Outcome;
+}
+
 export interface Scheduled {
   card: string;
   atRound: number;
+  story: string; // id da carta raiz que abriu a história
+  from: Origin;
+}
+
+/** Uma rodada jogada: qual carta, de qual história e o que o Conselho decidiu. */
+export interface LogEntry {
+  match: number;
+  card: string;
+  story: string;
+  outcome: Outcome;
 }
 
 export interface MatchResult {
   goals: Record<string, Goal>;
   points: Record<string, number>;
+  kingDeath: string;
 }
 
 export interface GameState {
@@ -45,6 +69,11 @@ export interface GameState {
   goals: Record<string, Goal>;
   order: string[]; // fila da Mão do Rei: ordem dos jogadores na mesa
   hand: string; // Mão do Rei desta rodada: desempata pelo próprio voto
+  /** Carta na mesa: a história a que pertence e a votação que a trouxe (null no começo de uma história). */
+  current: { card: string; story: string; from: Origin | null } | null;
+  log: LogEntry[];
+  shared: string[]; // cartas compartilhadas (podem voltar na roda seguinte)
+  kingDeath: string | null; // como o velho Rei vai morrer, se algo grave aconteceu nesta roda
 }
 
 /** PRNG determinístico (mulberry32) para reproduzir partidas pela seed. */
@@ -121,6 +150,10 @@ export function createGame(
     goals,
     order,
     hand,
+    current: null,
+    log: [],
+    shared: dilemmas.filter((d) => d.shared).map((d) => d.id),
+    kingDeath: null,
   };
 }
 
@@ -161,7 +194,7 @@ export function scoreMatch(s: GameState, ranges: HousesFile["ranges"]): Record<s
  * Cada jogador recebe um objetivo da própria Casa que ainda não teve.
  */
 export function startNextMatch(s: GameState, houses: HousesFile): GameState {
-  const history = [...s.history, { goals: s.goals, points: scoreMatch(s, houses.ranges) }];
+  const history = [...s.history, { goals: s.goals, points: scoreMatch(s, houses.ranges), kingDeath: s.kingDeath ?? DEFAULT_KING_DEATH }];
   const goals: Record<string, Goal> = {};
   for (const [pid, houseId] of Object.entries(s.houses)) {
     const house = houses.houses.find((h) => h.id === houseId)!;
@@ -169,7 +202,24 @@ export function startNextMatch(s: GameState, houses: HousesFile): GameState {
     const fresh = house.goals.filter((g) => !used.has(g.id));
     goals[pid] = (fresh.length ? fresh : house.goals.filter((g) => g.id !== s.goals[pid]?.id))[0] ?? s.goals[pid];
   }
-  return { ...s, match: s.match + 1, matchStartRound: s.round, history, goals };
+  // O velho Rei morre: as histórias da roda acabam com ele (o que ainda estava por vir não vem mais).
+  return { ...s, match: s.match + 1, matchStartRound: s.round, history, goals, queue: [], current: null, kingDeath: null };
+}
+
+/** Cartas já jogadas na roda atual. */
+export function playedThisMatch(s: Pick<GameState, "played" | "matchStartRound">): string[] {
+  return s.played.slice(s.matchStartRound);
+}
+
+/** Histórias vividas numa roda, na ordem em que começaram. */
+export function storiesOf(s: Pick<GameState, "log">, match: number): { story: string; steps: LogEntry[] }[] {
+  const out: { story: string; steps: LogEntry[] }[] = [];
+  for (const e of s.log.filter((x) => x.match === match)) {
+    let st = out.find((x) => x.story === e.story);
+    if (!st) out.push((st = { story: e.story, steps: [] }));
+    st.steps.push(e);
+  }
+  return out;
 }
 
 /** Pontos somados de todas as partidas (encerradas + a atual). */
@@ -187,25 +237,49 @@ export function nextHand(s: Pick<GameState, "order" | "hand">): string {
 }
 
 /**
- * Compra a próxima carta: primeiro consequências vencidas, depois o baralho. Cartas que ainda não cumprem `requires` ficam no baralho para depois.
+ * Compra a próxima carta. Poucas histórias longas, no máximo duas abertas ao mesmo tempo:
+ * 1. a consequência cuja vez chegou;
+ * 2. senão, uma história nova (carta raiz), se há menos de duas em andamento e a roda ainda tem rodadas para ela;
+ * 3. senão, a próxima consequência pendente é adiantada (nada de raiz nova no meio das histórias);
+ * 4. no fim da roda, sem nada pendente: uma crise do Reino (carta compartilhada que se resolve sozinha);
+ * 5. só se não houver nenhuma, uma raiz mesmo no fim da roda.
+ * Cartas raiz que ainda não cumprem `requires` ficam no baralho para depois.
  * A cada carta nova (menos a primeira da campanha) a Mão do Rei passa para o próximo da fila.
  */
 export function drawCard(s0: GameState, byId: Record<string, Dilemma>): { state: GameState; card: Dilemma | null } {
   const s = s0.round > 0 ? { ...s0, hand: nextHand(s0) } : s0;
   const round = s.round + 1;
   const queue = [...s.queue].sort((a, b) => a.atRound - b.atRound);
+  const take = (i: number) => {
+    const [next] = queue.splice(i, 1);
+    const current = { card: next.card, story: next.story, from: next.from };
+    return { state: { ...s, round, queue, current, played: [...s.played, next.card] }, card: byId[next.card] };
+  };
   const qi = queue.findIndex((q) => q.atRound <= round);
-  if (qi >= 0) {
-    const [next] = queue.splice(qi, 1);
-    return { state: { ...s, round, queue, played: [...s.played, next.card] }, card: byId[next.card] };
-  }
+  if (qi >= 0) return take(qi);
+  const open = new Set(queue.map((q) => q.story)).size;
+  const left = s.totalRounds - (round - s.matchStartRound) + 1; // rodadas da roda, contando esta
   const idx = s.deck.findIndex((id) => evalCond(byId[id].requires, s));
-  if (idx >= 0) {
+  const root = () => {
     const id = s.deck[idx];
     const deck = s.deck.filter((_, i) => i !== idx);
-    return { state: { ...s, round, deck, queue, played: [...s.played, id] }, card: byId[id] };
+    return { state: { ...s, round, deck, queue, current: { card: id, story: id, from: null }, played: [...s.played, id] }, card: byId[id] };
+  };
+  if (idx >= 0 && open < MAX_OPEN_STORIES && left >= MIN_ROUNDS_TO_OPEN) return root();
+  if (queue.length) return take(0);
+  // Fim da roda sem nada pendente: uma crise do Reino (carta compartilhada que se resolve sozinha, ainda não usada
+  // nesta roda) em vez de começar uma história que a morte do Rei cortaria.
+  if (left < MIN_ROUNDS_TO_OPEN) {
+    const used = playedThisMatch(s);
+    const closes = (id: string) => (["yes", "no", "tie"] as const).every((o) => byId[id].outcomes[o].every((v) => !v.inject?.length));
+    const crises = s.shared.filter((id) => byId[id] && closes(id) && !used.includes(id));
+    if (crises.length) {
+      const id = crises[round % crises.length];
+      return { state: { ...s, round, queue, current: { card: id, story: id, from: null }, played: [...s.played, id] }, card: byId[id] };
+    }
   }
-  return { state: { ...s, round, queue }, card: null };
+  if (idx >= 0) return root();
+  return { state: { ...s, round, queue, current: null }, card: null };
 }
 
 /**
@@ -290,12 +364,18 @@ export function resolveRound(s: GameState, card: Dilemma, votes: Record<string, 
     flags[k] = typeof v === "object" ? (typeof flags[k] === "number" ? (flags[k] as number) : 0) + v.add : v;
   }
 
+  // Consequências: cartas de história nunca se repetem; cartas compartilhadas saem no máximo uma vez por roda.
   const queue = [...s.queue];
+  const story = s.current?.story ?? card.id;
+  const thisMatch = playedThisMatch(s);
   for (const inj of variant.inject ?? []) {
-    if (!s.played.includes(inj.card) && !queue.some((q) => q.card === inj.card)) {
-      queue.push({ card: inj.card, atRound: s.round + inj.inRounds });
+    const used = s.shared.includes(inj.card) ? thisMatch.includes(inj.card) : s.played.includes(inj.card);
+    if (!used && !queue.some((q) => q.card === inj.card)) {
+      queue.push({ card: inj.card, atRound: s.round + inj.inRounds, story, from: { card: card.id, outcome } });
     }
   }
+  const log = [...(s.log ?? []), { match: s.match, card: card.id, story, outcome }];
+  const kingDeath = variant.kingDeath ?? s.kingDeath ?? null;
 
   // 3. Pontos de influência: votar gasta os pontos usados; abster-se rende 1.
   const tokens = { ...s.tokens };
@@ -304,7 +384,7 @@ export function resolveRound(s: GameState, card: Dilemma, votes: Record<string, 
     tokens[pid] = v.choice === "abstain" ? t + 1 : t - v.tokens;
   }
 
-  return { state: { ...s, resources, flags, queue, tokens }, outcome, yesWeight, noWeight, tiebreakByHand, variant, deltas };
+  return { state: { ...s, resources, flags, queue, tokens, log, kingDeath }, outcome, yesWeight, noWeight, tiebreakByHand, variant, deltas };
 }
 
 export function isCollapsed(s: Pick<GameState, "resources">): boolean {

@@ -21,9 +21,35 @@ export function Intermission({ view, room }: { view: ClientView; room: Room }) {
         <p className="kicker">
           Fim da Partida {info.finishedMatch} de {view.totalMatches}
         </p>
-        <h1>O Reino segue</h1>
-        <p className="lead">Os recursos, os pontos de influência, a fila da Mão do Rei e tudo o que foi decidido continuam. Só os objetivos mudam.</p>
+        <h1>O Rei está morto. Viva o Rei!</h1>
+        <p className="lead king-death">O velho Rei morreu {info.kingDeath}.</p>
+        <p className="lead">
+          Seu filho assume o trono e herda o Reino como está: os recursos, os pontos de influência, a fila da Mão do Rei e as marcas de cada
+          decisão. As histórias do pai terminam com ele. Só os objetivos mudam.
+        </p>
       </motion.header>
+
+      {info.stories.length > 0 && (
+        <section className="panel chronicle">
+          <h2>A crônica do velho Rei</h2>
+          <ol>
+            {info.stories.map((st) => (
+              <li key={st.title}>
+                <strong>{st.title}</strong>
+                <span className="steps">
+                  {st.steps.map((x, i) => (
+                    <span key={i} className={`step ${x.outcome}`}>
+                      {i > 0 && <span className="arrow"> → </span>}
+                      {i > 0 && `${x.title} `}
+                      <b>{x.outcome === "yes" ? "SIM" : x.outcome === "no" ? "NÃO" : "empate"}</b>
+                    </span>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <div className="final-grid">
         <section>

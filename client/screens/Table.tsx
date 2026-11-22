@@ -87,6 +87,20 @@ export function Table({ view, room, chat }: { view: ClientView; room: Room; chat
                   </span>
                   {card.openVote && <span className="badge open">👁 Voto aberto</span>}
                 </div>
+                {card.origin && (
+                  <p className={`origin ${card.origin.outcome}`}>
+                    <span>Consequência</span> de “{card.origin.title}”:{" "}
+                    {card.origin.outcome === "tie" ? (
+                      <>
+                        o Conselho <strong>não decidiu</strong> (empate)
+                      </>
+                    ) : (
+                      <>
+                        o Conselho decidiu <strong>{card.origin.outcome === "yes" ? "SIM" : "NÃO"}</strong>
+                      </>
+                    )}
+                  </p>
+                )}
                 <h2>{card.title}</h2>
                 <p className="prompt">{card.prompt}</p>
                 <p className="question">{card.question}</p>
