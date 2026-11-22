@@ -25,7 +25,12 @@ export function ResourceBoard({ resources, deltas }: { resources: Resources; del
             </div>
             <div className="cells">
               {CELLS.map((c) => (
-                <div key={c} className={`cell ${c === 0 ? "zero" : ""} ${c <= MIN_RES || c >= MAX_RES ? "doom" : ""}`}>
+                <div
+                  key={c}
+                  className={`cell ${c === 0 ? "zero" : ""} ${c <= MIN_RES || c >= MAX_RES ? "doom" : ""}`}
+                  title={c <= MIN_RES || c >= MAX_RES ? `${c > 0 ? "+" : "−"}7: o Reino cai` : undefined}
+                >
+                  {(c <= MIN_RES || c >= MAX_RES) && c !== v && <span className="doom-num">{c > 0 ? "+7" : "−7"}</span>}
                   {c === v && (
                     <motion.div
                       layoutId={`marker-${r}`}

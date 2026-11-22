@@ -210,7 +210,7 @@ export function drawCard(s0: GameState, byId: Record<string, Dilemma>): { state:
 
 /**
  * Votar SIM ou NÃO custa pontos de influência: pelo menos 1, e cada ponto é 1 de peso.
- * Quem está com 0 pontos só pode se abster (abster-se não custa nem rende pontos).
+ * Quem está com 0 pontos só pode se abster (e abster-se rende 1 ponto para votar depois).
  */
 export function isValidVote(v: Vote, available: number): boolean {
   if (!["yes", "no", "abstain"].includes(v.choice)) return false;
@@ -297,10 +297,11 @@ export function resolveRound(s: GameState, card: Dilemma, votes: Record<string, 
     }
   }
 
-  // 3. Pontos de influência: votar gasta os pontos usados; abster-se não muda nada.
+  // 3. Pontos de influência: votar gasta os pontos usados; abster-se rende 1.
   const tokens = { ...s.tokens };
   for (const [pid, v] of Object.entries(votes)) {
-    if (v.choice !== "abstain") tokens[pid] = (tokens[pid] ?? 0) - v.tokens;
+    const t = tokens[pid] ?? 0;
+    tokens[pid] = v.choice === "abstain" ? t + 1 : t - v.tokens;
   }
 
   return { state: { ...s, resources, flags, queue, tokens }, outcome, yesWeight, noWeight, tiebreakByHand, variant, deltas };

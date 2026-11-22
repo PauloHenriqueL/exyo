@@ -13,7 +13,7 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 **O Rei Osric III, o Leão Grisalho.** Velho, desconfiado, orgulhoso. Aparece só como personagem das histórias (não há mais mecânica de Favor do Rei; a Mão do Rei só desempata e passa de jogador em jogador a cada rodada). Sobrinha: **Lady Mirela** (casou com o príncipe vizinho). Sobrinho capturado por piratas.
 
-**Sem religião.** O jogo não tem recurso de fé: cartas sobre igreja, bispos, bruxas, milagres ou presságios confundem os jogadores, porque ninguém entende como afetam os recursos. Não escreva cartas assim.
+**A Fé da Luz** (desde 2026-11-22 é um recurso, Religião): o **Templo da Luz** fica na Capital; os sacerdotes servem à **Grande Sacerdotisa Ilvana**; o povo reza, faz procissões e festas sagradas, recebe peregrinos. A Casa Lumen é próxima do Templo. Religião **sobe** com piedade, caridade, festas abençoadas, gestos de misericórdia e sacerdotes elogiando a Coroa; **desce** com escândalo, crueldade, sacrilégio, sacerdotes condenando a Coroa, pregadores hereges e medo de presságios. Não use nomes de religiões do mundo real.
 
 **Lugares** (estão no mapa e nas cartas): a Capital e o Trono de Pedra; a **Muralha do Norte** e os clãs do norte; a **Floresta do Rei**; o **Rio Lento** e **o Vale**; **o Porto** e a **Costa Cinzenta**; o castelo de **Pedravento** na fronteira leste; a **Estrada do Rei**; o hospital de São Bérnio.
 
@@ -23,7 +23,7 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 **As Casas** (nunca fale por elas no texto, só cite como proponentes): Aurivel (mercadores, "Tudo tem seu preço"), Ferrobranco (guerreiros, "O aço não negocia"), Verdemar (lavradores, "Quem planta, governa"), Lumen (curandeiros, "A luz cura o reino"), Corvalis (sussurradores, "Saber é sobreviver").
 
-**Recursos:** `health` Saúde, `security` Segurança, `military` Força Militar, `food` Comida, `wealth` Riqueza. Trilha de −7 a +7: chegar a −7 (falta) ou a +7 (excesso) em qualquer um derruba o Reino. Os recursos começam em +1.
+**Recursos:** `health` Saúde, `faith` Religião, `military` Força Militar, `food` Comida, `wealth` Riqueza. Trilha de −7 a +7: chegar a −7 (falta) ou a +7 (excesso) em qualquer um derruba o Reino. Os recursos começam em 0 e podem ir de −6 a +6.
 
 ## 2. Como escrever uma carta imersiva
 
@@ -60,17 +60,17 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
   "openVote": true,
   "outcomes": {
     "yes": [
-      { "when": { "flag": "guarda_reforcada", "eq": true }, "text": "…", "effects": { "security": 3 } },
-      { "text": "…", "effects": { "wealth": -2, "security": 2 }, "setFlags": { "muralha_nova": true }, "inject": [{ "card": "outra_carta", "inRounds": 3 }] }
+      { "when": { "flag": "guarda_reforcada", "eq": true }, "text": "…", "effects": { "military": 2 } },
+      { "text": "…", "effects": { "wealth": -1, "military": 1 }, "setFlags": { "muralha_nova": true }, "inject": [{ "card": "outra_carta", "inRounds": 3 }] }
     ],
-    "no": [{ "text": "…", "effects": { "wealth": 1, "security": -1 } }],
-    "tie": [{ "text": "…", "effects": { "security": -1, "wealth": -1 } }]
+    "no": [{ "text": "…", "effects": { "wealth": 1, "faith": -1 } }],
+    "tie": [{ "text": "…", "effects": { "faith": -1 } }]
   }
 }
 ```
 
 - `kind`: `root` entra no baralho; `consequence` só aparece injetada por outra carta (`inject`).
-- `category`: `war`, `feast`, `plague`, `diplomacy`, `trade`, `faith`, `crime` ou `nature` (define a ilustração da carta).
+- `category`: `war`, `feast`, `plague`, `diplomacy`, `trade`, `faith` (Fé), `crime` ou `nature` (define a ilustração da carta).
 - Cada desfecho é uma lista de variantes: a **primeira** cujo `when` for verdadeiro vale. A **última precisa ser a padrão, sem `when`**.
 - `when`/`requires` aceitam `{ "flag": "x", "eq": true }`, `{ "flag": "rei_reputacao", "lte": -2 }`, `{ "res": "food", "lte": 0 }`, `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": {...} }`.
 - `setFlags`: `true` marca um acontecimento; `{ "add": -1 }` soma num contador (ex.: `rei_reputacao`).
@@ -81,12 +81,12 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 - **Todo desfecho tem custo e ganho.** Nenhum SIM ou NÃO pode ser só bom.
 - **Carta raiz mexe ±1 por recurso; consequência até ±2** (a "fatura" chega maior). A soma de SIM ou NÃO fica entre −1 e +1. O empate perde no máximo 1 por recurso e nunca ajuda. A trilha é curta (−7 a +7, as duas pontas derrubam), então um ±3 já é perigoso demais.
-- Os recursos mexidos devem combinar com a história (uma peste mexe em Saúde, não em Força Militar sem motivo).
+- Os recursos mexidos devem combinar com a história (uma peste mexe em Saúde, não em Força Militar sem motivo). Crime, guarda e fronteira são Força Militar; o humor e a fé do povo são Religião.
 - **Variantes com `when`** são a melhor forma de imersão: a carta lembra do que o conselho fez antes ("Com a guarda já reforçada…"). Prefira ler flags existentes a criar novas.
 - **Toda flag criada precisa ser lida** em alguma carta, e toda flag lida precisa ser criada (o teste falha se não for).
 - **Consequências:** `inRounds` entre 2 e 5. Toda carta `consequence` precisa ser injetada por alguém.
 - **Voto aberto:** decisões públicas ou cerimoniais (festas, julgamentos, juramentos). Cerca de 1 a cada 3 cartas.
-- Mantenha o equilíbrio de categorias. Hoje (44 cartas): Intriga 10, Guerra 8, Diplomacia 7, Peste 6, Banquete 5, Natureza 5, Comércio 4. **Comércio e Banquete pedem cartas. A categoria Fé não é mais usada.** Todo SIM e todo NÃO precisam mudar ao menos um recurso (o teste exige).
+- Mantenha o equilíbrio de categorias. Hoje (52 cartas): Intriga 11, Guerra 8, Diplomacia 7, Peste 7, Comércio 5, Natureza 5, Fé 5, Banquete 4. **Comércio e Banquete pedem cartas. A categoria Fé voltou com o recurso Religião.** Todo SIM e todo NÃO precisam mudar ao menos um recurso (o teste exige).
 
 ## 5. Fluxo de trabalho
 

@@ -142,12 +142,12 @@ aside h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; col
 </div>
 <script>
 "use strict";
-const RES = ["health", "security", "military", "food", "wealth"];
-const RES_LABEL = { health: "Saúde", security: "Segurança", military: "Força Militar", food: "Comida", wealth: "Riqueza" };
-const RES_SHORT = { health: "Saú", security: "Seg", military: "Mil", food: "Com", wealth: "Riq" };
+const RES = ["health", "faith", "military", "food", "wealth"];
+const RES_LABEL = { health: "Saúde", faith: "Religião", military: "Força Militar", food: "Comida", wealth: "Riqueza" };
+const RES_SHORT = { health: "Saú", faith: "Rel", military: "Mil", food: "Com", wealth: "Riq" };
 const CAT = {
   war: ["Guerra", "#9e1b1b"], feast: ["Banquete", "#b07a1f"], plague: ["Peste", "#4f6b3a"], diplomacy: ["Diplomacia", "#3d6fa8"],
-  trade: ["Comércio", "#c9a227"], crime: ["Intriga", "#4b2c5e"], nature: ["Natureza", "#6b4a2b"],
+  trade: ["Comércio", "#c9a227"], crime: ["Intriga", "#4b2c5e"], nature: ["Natureza", "#6b4a2b"], faith: ["Fé", "#7a6aa8"],
 };
 const OUT = ["yes", "no", "tie"];
 const OUT_LABEL = { yes: "SIM", no: "NÃO", tie: "Empate (Indecisão do Conselho)" };
@@ -254,8 +254,6 @@ function validate() {
       if (o !== "tie" && !Object.keys(vs[vs.length - 1].effects || {}).length) add(c.id, `${OUT_SHORT[o]}: precisa mudar ao menos um recurso (a prévia não pode ficar vazia)`);
     }
     if (c.kind === "consequence" && !inject.some((e) => e.to === c.id)) add(c.id, "consequência que nenhuma carta traz: nunca vai aparecer");
-    const txt = JSON.stringify(c).toLowerCase();
-    for (const w of ["bispo", "bruxa", "clero", "igreja", "relíquia", "herege"]) if (txt.includes(w)) add(c.id, `sem religião: a palavra "${w}" aparece`);
   }
   for (const f of Object.keys(writers)) if (!readers[f]) add([...writers[f]][0], `o sinal "${f}" é marcado mas nenhuma carta lê (sinal morto)`);
   for (const f of Object.keys(readers)) if (!writers[f]) add([...readers[f]][0], `o sinal "${f}" é lido mas nenhuma carta marca`);
@@ -593,7 +591,7 @@ function renderOverview(p) {
 function uniqueId(base) { let id = base, n = 2; while (byId(id)) id = `${base}_${n++}`; return id; }
 function blankCard(kind, id) {
   return { id, kind, category: "diplomacy", title: kind === "root" ? "Nova carta" : "Nova consequência", prompt: "", question: "O Reino deve …?",
-    outcomes: { yes: [{ text: "", effects: { security: 1, wealth: -1 } }], no: [{ text: "", effects: { security: -1, wealth: 1 } }], tie: [{ text: "", effects: { security: -1 } }] } };
+    outcomes: { yes: [{ text: "", effects: { faith: 1, wealth: -1 } }], no: [{ text: "", effects: { faith: -1, wealth: 1 } }], tie: [{ text: "", effects: { faith: -1 } }] } };
 }
 function newCard() {
   const c = blankCard("root", uniqueId("nova_carta"));

@@ -8,6 +8,7 @@ Todas as pinturas abaixo estão em **domínio público** (autores mortos há sé
 |---|---|---|---|
 | Cartas de Intriga | Caravaggio, *Os Trapaceiros* (c. 1595) | Public domain | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Caravaggio_(Michelangelo_Merisi)_-_The_Cardsharps_-_Google_Art_Project.jpg) |
 | Mapa de fundo | Olaus Magnus, *Carta Marina* (1539) | Public domain | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Carta_Marina.jpeg) |
+| Cartas de Fé | Jan van Eyck, *Adoração do Cordeiro Místico* (c. 1432) | Public domain | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Ghent_Altarpiece_-_Adoration_of_the_Mystic_Lamb.jpg) |
 | Cartas de Diplomacia | Hans Holbein, o Jovem, *Os Embaixadores* (1533) | Public domain | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Hans_Holbein_the_Younger_-_The_Ambassadors_-_Google_Art_Project.jpg) |
 | Cartas de Comércio | Quentin Matsys, *O Cambista e sua Mulher* (1514) | Public domain | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Massysm_Quentin_%E2%80%94_The_Moneylender_and_his_Wife_%E2%80%94_1514.jpg) |
 | Cartas de Natureza | Pieter Bruegel, o Velho, *Caçadores na Neve* (1565) | Public domain | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_(Winter)_-_Google_Art_Project.jpg) |
@@ -22,7 +23,7 @@ Os brasões das 5 Casas foram **gerados com IA (Gemini)** e recortados do fundo 
 ## Ícones dos recursos
 
 De [game-icons.net](https://game-icons.net), licença [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/); só a cor foi alterada:
-Saúde `heart-plus` (Zeromancer), Segurança `checked-shield` (Lorc), Força Militar `crossed-swords` (Lorc), Comida `wheat` (Lorc), Riqueza `coins` (Delapouite).
+Saúde `heart-plus` (Zeromancer), Religião `prayer` (Lorc), Força Militar `crossed-swords` (Lorc), Comida `wheat` (Lorc), Riqueza `coins` (Delapouite).
 
 ## Sons
 
