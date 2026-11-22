@@ -1,7 +1,7 @@
 {
   "version": "0.2.0",
   "ranges": { "high": [3, 6], "moderate": [-2, 2] },
-  "initialResources": { "health": 1, "security": 1, "military": 1, "food": 1, "wealth": 1 },
+  "initialResources": { "health": 0, "security": 0, "military": 0, "food": 0, "wealth": 0 },
   "economy": { "startingTokens": 15 },
   "houses": [
     {

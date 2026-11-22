@@ -178,7 +178,7 @@ function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: Publi
           </button>
         ))}
       </div>
-      {broke && !locked && <p className="hand-note">Você não tem mais pontos de influência: só pode se abster.</p>}
+      {broke && !locked && <p className="hand-note">Você não tem pontos de influência: só pode se abster. Abster-se rende 1 ponto para votar depois.</p>}
       {voting && !locked && !broke && (
         <div className="stepper">
           <span>Pontos de influência a gastar (você tem {me.tokens}):</span>
@@ -192,7 +192,7 @@ function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: Publi
           <span className="muted">peso do voto: {spendNow}</span>
         </div>
       )}
-      {choice === "abstain" && !locked && !broke && <p className="muted">Abster-se não gasta pontos de influência.</p>}
+      {choice === "abstain" && !locked && !broke && <p className="muted">Abster-se rende +1 ponto de influência.</p>}
       <button className="btn primary" disabled={!choice || locked || (broke && choice !== "abstain")} onClick={submit}>
         {locked ? "Voto selado" : voted ? "Alterar voto" : "Selar voto"}
       </button>

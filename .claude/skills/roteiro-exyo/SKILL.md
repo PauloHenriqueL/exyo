@@ -23,7 +23,7 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 **As Casas** (nunca fale por elas no texto, só cite como proponentes): Aurivel (mercadores, "Tudo tem seu preço"), Ferrobranco (guerreiros, "O aço não negocia"), Verdemar (lavradores, "Quem planta, governa"), Lumen (curandeiros, "A luz cura o reino"), Corvalis (sussurradores, "Saber é sobreviver").
 
-**Recursos:** `health` Saúde, `security` Segurança, `military` Força Militar, `food` Comida, `wealth` Riqueza. Trilha de −7 a +7: chegar a −7 (falta) ou a +7 (excesso) em qualquer um derruba o Reino. Os recursos começam em +1.
+**Recursos:** `health` Saúde, `security` Segurança, `military` Força Militar, `food` Comida, `wealth` Riqueza. Trilha de −7 a +7: chegar a −7 (falta) ou a +7 (excesso) em qualquer um derruba o Reino. Os recursos começam em 0 e podem ir de −6 a +6.
 
 ## 2. Como escrever uma carta imersiva
 

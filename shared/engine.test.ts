@@ -81,7 +81,7 @@ describe("partida", () => {
     expect(r.state.flags.viajantes_aceitos).toBe(true);
     expect(r.state.queue).toEqual([{ card: "segredo_dos_viajantes", atRound: 4 }]);
     expect(r.state.tokens.a).toBe(drawn.state.tokens.a - 2); // votar gasta os pontos usados
-    expect(r.state.tokens.b).toBe(drawn.state.tokens.b); // abster não custa nem rende
+    expect(r.state.tokens.b).toBe(drawn.state.tokens.b + 1); // abster rende 1
 
     let st = r.state;
     for (let i = 0; i < 3; i++) {

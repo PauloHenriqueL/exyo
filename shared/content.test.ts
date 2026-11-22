@@ -149,8 +149,8 @@ describe("simulação de campanhas (votos aleatórios)", () => {
     const rate = collapsed / N;
     console.log(`campanha 2×12: colapso em ${(rate * 100).toFixed(1)}% · baralho curto em ${shortDeck}`);
     expect(shortDeck).toBe(0);
-    // Trilha curta (±7, as duas pontas derrubam): votando ao acaso o Reino cai em ~40% das campanhas;
-    // jogadores que olham a prévia caem em ~1–2% (scripts/balance.ts). Este limite só pega pioras.
-    expect(rate).toBeLessThan(0.5);
+    // Trilha curta (±7, as duas pontas derrubam), recursos começando em 0: votando ao acaso o Reino cai em
+    // ~48% das campanhas; jogadores que olham a prévia caem em ~1% (npm run balance). Este limite só pega pioras.
+    expect(rate).toBeLessThan(0.6);
   });
 });

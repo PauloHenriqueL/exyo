@@ -29,8 +29,9 @@ export function GoalBoard({ goal, ranges, resources }: { goal: Goal; ranges: Cli
             </div>
             <div className="goal-cells">
               {CELLS.map((c) => (
-                <span key={c} className={`gcell ${c >= lo && c <= hi ? "target" : ""} ${c === 0 ? "zero" : ""}`}>
+                <span key={c} className={`gcell ${c >= lo && c <= hi ? "target" : ""} ${c === 0 ? "zero" : ""} ${c <= MIN_RES || c >= MAX_RES ? "doom" : ""}`}>
                   {c === v && <span className="gmarker" title={`Agora: ${fmt(v)}`} />}
+                  {(c <= MIN_RES || c >= MAX_RES) && c !== v && <span className="doom-num">{c > 0 ? "+7" : "−7"}</span>}
                 </span>
               ))}
             </div>

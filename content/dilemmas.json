@@ -1,6 +1,6 @@
 {
   "version": "0.6.0",
-  "notes": "27 cartas raiz + 17 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Trilha de −7 a +7: chegar a qualquer ponta derruba o Reino. Efeitos: cartas raiz ±1, consequências até ±2; SIM e NÃO somam entre −1 e +1; o empate (Indecisão do Conselho) custa 1. Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. openVote = votos visíveis na hora e definitivos. Sem cartas de religião. A Mão do Rei só desempata e passa ao próximo da mesa a cada rodada. Edite pelo grafo: npm run grafo (2026-11-22).",
+  "notes": "27 cartas raiz + 17 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Trilha de −7 a +7: os recursos começam em 0 e podem ir de −6 a +6; chegar a −7 ou +7 derruba o Reino. Efeitos: cartas raiz ±1, consequências até ±2; SIM e NÃO somam entre −1 e +1; o empate (Indecisão do Conselho) custa 1. Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. openVote = votos visíveis na hora e definitivos. Sem cartas de religião. A Mão do Rei só desempata e passa ao próximo da mesa a cada rodada. Edite pelo grafo: npm run grafo (2026-11-22).",
   "dilemmas": [
     {
       "id": "viajantes_do_leste",

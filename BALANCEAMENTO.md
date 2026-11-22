@@ -122,3 +122,20 @@ Os objetivos estão equilibrados entre as Casas: de 1,58 a 1,69 ponto por partid
 **A observar no playtest:**
 - Com 15 pontos para 24 rodadas, quem joga com cuidado guarda pontos e ~1 em 3 rodadas termina **sem ninguém votando** (Indecisão do Conselho). Se isso deixar o jogo parado, as alavancas são mais pontos iniciais ou o empate não custar nada.
 - Votando ao acaso, o Reino cai em ~40% das campanhas: a trilha curta pune quem não olha a prévia da carta.
+
+## Ajuste (2026-11-22, pedido do autor): abster-se rende 1 ponto e recursos começam em 0
+
+- **Abster-se volta a render +1 ponto de influência.** Votar continua custando pelo menos 1 ponto, então quem gastou tudo não vota de graça: precisa se abster uma rodada para votar com peso 1 na seguinte.
+- **Recursos começam em 0** e vão de −6 a +6 sem perder; −7 e +7 derrubam o Reino. As casas das pontas mostram o número 7 em vermelho.
+- Cartas e faixas dos objetivos não mudaram.
+
+2.000 campanhas, `npm run balance`:
+
+| Mesa | Colapso (−7 / +7) | Abstenção | Sem pontos | Empates | Mão decide | Ninguém votou | Pontos/partida | Pontos que sobram |
+|---|---|---|---|---|---|---|---|---|
+| estrategista | 0,6% (0,6 / 0,0) | 54% | 0,1% | 28% | 4% | 27% | 1,44 | 13,1 |
+| ao acaso | 47,8% (37,5 / 10,3) | 33% | 0,4% | 9% | 15% | 1% | 1,52 | 7,0 |
+
+Média dos recursos no fim de cada partida (estrategista): Saúde −2,4 · Segurança −1,7 · Força Militar −1,8 · Comida −2,2 · Riqueza −2,1. Pontos por objetivo: de 1,33 (Ferrobranco B) a 1,50 (Aurivel B, Verdemar A).
+
+**A observar:** começando em 0, a deriva negativa das cartas e dos empates deixa os objetivos "alto" (+3 a +6) mais difíceis, e Ferrobranco fica um pouco atrás. Se o playtest confirmar, as alavancas são o empate não custar nada ou deixar algumas cartas um pouco mais positivas (dá para fazer pelo `npm run grafo`).
