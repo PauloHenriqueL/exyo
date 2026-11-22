@@ -1,6 +1,6 @@
 {
-  "version": "0.6.0",
-  "notes": "27 cartas raiz + 17 consequências. Recursos: health (Saúde), security (Segurança), military (Força Militar), food (Comida), wealth (Riqueza). Trilha de −7 a +7: os recursos começam em 0 e podem ir de −6 a +6; chegar a −7 ou +7 derruba o Reino. Efeitos: cartas raiz ±1, consequências até ±2; SIM e NÃO somam entre −1 e +1; o empate (Indecisão do Conselho) custa 1. Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. openVote = votos visíveis na hora e definitivos. Sem cartas de religião. A Mão do Rei só desempata e passa ao próximo da mesa a cada rodada. Edite pelo grafo: npm run grafo (2026-11-22).",
+  "version": "0.7.0",
+  "notes": "33 cartas raiz + 19 consequências. Recursos: health (Saúde), faith (Religião), military (Força Militar), food (Comida), wealth (Riqueza). Religião substituiu Segurança em 2026-11-22: crime, guarda e fronteira foram para Força Militar; o humor e a fé do povo viraram Religião (a Fé da Luz, o Templo da Luz, a Grande Sacerdotisa Ilvana). Trilha de −7 a +7: os recursos começam em 0 e podem ir de −6 a +6; chegar a −7 ou +7 derruba o Reino. Efeitos: cartas raiz ±1, consequências até ±2; o empate (Indecisão do Conselho) nunca ajuda. Uma carta já jogada ou já na fila de injeção não é injetada de novo. A campanha tem 2 partidas de 12 rodadas: flags, fila e cartas jogadas continuam de uma partida para a outra. openVote = votos visíveis na hora e definitivos. A Mão do Rei só desempata e passa ao próximo da mesa a cada rodada. Edite pelo grafo: npm run grafo.",
   "dilemmas": [
     {
       "id": "viajantes_do_leste",
@@ -18,14 +18,14 @@
           "inject": [{ "card": "segredo_dos_viajantes", "inRounds": 3 }]
         }],
         "no": [{
-          "text": "A caravana segue para o reino vizinho. Os muros ficam tranquilos, mas eles vão embora com raiva.",
-          "effects": { "security": 1 },
+          "text": "A caravana segue adiante. Os sacerdotes, que temiam cultos estrangeiros, agradecem; os viajantes partem com raiva.",
+          "effects": { "faith": 1 },
           "setFlags": { "viajantes_recusados": true },
           "inject": [{ "card": "mercenarios_do_leste", "inRounds": 4 }]
         }],
         "tie": [{
           "text": "Sem ordem do conselho, metade da caravana entra escondida, sem registro, e come do nosso estoque.",
-          "effects": { "security": -1, "food": -1 },
+          "effects": { "food": -1 },
           "setFlags": { "viajantes_clandestinos": true },
           "inject": [{ "card": "segredo_dos_viajantes", "inRounds": 3 }]
         }]
@@ -43,12 +43,12 @@
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
             "text": "Com a guarda já reforçada, os espiões são presos numa só noite. As terras valeram cada moeda.",
-            "effects": { "security": 2, "wealth": -1 },
+            "effects": { "wealth": -1, "military": 2 },
             "setFlags": { "viajantes_leais": true }
           },
           {
             "text": "Os nomes eram verdadeiros, mas dois espiões fogem com nossos mapas e queimam um celeiro na fuga.",
-            "effects": { "security": 1, "wealth": -1, "food": -1 },
+            "effects": { "wealth": -1, "food": -1, "military": 1 },
             "setFlags": { "viajantes_leais": true, "espioes_fugidos": true }
           }
         ],
@@ -56,18 +56,18 @@
           {
             "when": { "flag": "viajantes_clandestinos", "eq": true },
             "text": "Como metade deles entrou sem registro, ninguém acha os espiões. Na mesma noite, os celeiros do sul queimam.",
-            "effects": { "food": -1, "security": -1 },
+            "effects": { "food": -1 },
             "setFlags": { "traicao_viajantes": true }
           },
           {
             "text": "O informante some. Semanas depois, alguém envenena um poço da capital.",
-            "effects": { "health": -1, "security": -1 },
+            "effects": { "health": -1 },
             "setFlags": { "traicao_viajantes": true }
           }
         ],
         "tie": [{
           "text": "Sem resposta do conselho, o informante espera demais e aparece morto no rio. Os espiões seguem soltos.",
-          "effects": { "security": -1 },
+          "effects": { "military": -1 },
           "setFlags": { "traicao_viajantes": true }
         }]
       }
@@ -82,22 +82,22 @@
       "outcomes": {
         "yes": [{
           "text": "O ouro compra a paz, por enquanto. Na corte, riem: o Rei paga a quem ele mesmo expulsou.",
-          "effects": { "wealth": -2, "security": 1 }
+          "effects": { "wealth": -2, "military": 1 }
         }],
         "no": [
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
-            "text": "Com a guarda já reforçada, os mercenários caem numa emboscada na ponte. Perdemos poucos soldados.",
-            "effects": { "military": -1, "security": 2 }
+            "text": "Com a guarda já reforçada, os mercenários caem numa emboscada na ponte, e os soldados voltam confiantes.",
+            "effects": { "military": 1 }
           },
           {
             "text": "Nossos soldados partem às pressas e vencem, mas metade deles não volta.",
-            "effects": { "military": -2, "security": 1 }
+            "effects": { "military": -2 }
           }
         ],
         "tie": [{
           "text": "Sem ordem do conselho, ninguém paga nem luta. Os mercenários queimam três vilas e levam o gado.",
-          "effects": { "security": -1, "food": -1 }
+          "effects": { "food": -1 }
         }]
       }
     },
@@ -119,14 +119,14 @@
           },
           {
             "when": { "res": "food", "lte": 0 },
-            "text": "Com o povo já passando fome, os nobres se fartam à mesa. Voam pedras nas janelas do salão.",
-            "effects": { "wealth": 1, "food": -1, "security": -1 },
+            "text": "Com o povo passando fome, os nobres se fartam à mesa, e os sacerdotes condenam o banquete no Templo.",
+            "effects": { "wealth": 1, "food": -1, "faith": -1 },
             "setFlags": { "povo_revoltado": true },
             "inject": [{ "card": "revolta_camponesa", "inRounds": 2 }]
           },
           {
             "text": "Uma noite memorável. Os embaixadores fecham acordos e alianças entre uma taça e outra.",
-            "effects": { "wealth": 1, "food": -1, "security": 1 },
+            "effects": { "wealth": 1, "food": -1 },
             "setFlags": { "alianca_vizinhos": true },
             "inject": [{ "card": "pedido_de_tropas", "inRounds": 3 }]
           }
@@ -151,16 +151,16 @@
       "outcomes": {
         "yes": [{
           "text": "Pedreiros e novos guardas trabalham dia e noite. A muralha volta a ser forte; o cofre, nem tanto.",
-          "effects": { "wealth": -1, "security": 1, "military": 1 },
+          "effects": { "wealth": -1, "military": 1 },
           "setFlags": { "guarda_reforcada": true }
         }],
         "no": [{
           "text": "O ouro fica no cofre. Os guardas, cansados e poucos, veem dois colegas desertarem na mesma semana.",
-          "effects": { "wealth": 1, "security": -1 }
+          "effects": { "wealth": 1, "military": -1 }
         }],
         "tie": [{
           "text": "Sem ordem do conselho, a obra começa e para no meio. Os andaimes abandonados viram esconderijo de ladrões.",
-          "effects": { "wealth": -1, "security": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -200,12 +200,12 @@
         "yes": [
           {
             "when": { "flag": "viajantes_aceitos", "eq": true },
-            "text": "O fogo segura a peste, mas a multidão culpa os viajantes do Leste e ataca o bairro deles.",
-            "effects": { "health": 2, "wealth": -1, "security": -2 }
+            "text": "O fogo segura a peste, mas pregadores culpam os viajantes do Leste, e a multidão ataca o bairro deles.",
+            "effects": { "health": 2, "wealth": -1, "faith": -2 }
           },
           {
-            "text": "O fogo segura a peste, mas as casas viram cinzas e as famílias sem teto ficam com raiva.",
-            "effects": { "health": 2, "wealth": -2, "security": -1 }
+            "text": "O fogo segura a peste, mas as casas viram cinzas, e as famílias sem teto perguntam onde estava a Luz.",
+            "effects": { "health": 2, "wealth": -2, "faith": -1 }
           }
         ],
         "no": [
@@ -220,8 +220,8 @@
           }
         ],
         "tie": [{
-          "text": "Sem ordem clara, os guardas queimam só metade das casas. A peste fica na outra metade, e o povo se revolta.",
-          "effects": { "health": -1, "security": -1 }
+          "text": "Sem ordem clara, os guardas queimam só metade das casas. A peste fica, e o povo vê nisso um mau presságio.",
+          "effects": { "health": -1, "faith": -1 }
         }]
       }
     },
@@ -244,8 +244,8 @@
           "effects": { "wealth": 1, "health": -1 }
         }],
         "tie": [{
-          "text": "Sem ordem do conselho, abrem meio hospital: há camas, faltam remédios, e o povo briga por um leito.",
-          "effects": { "wealth": -1, "health": 1, "security": -1 }
+          "text": "Sem ordem do conselho, abrem meio hospital no pátio do Templo, e os sacerdotes reclamam da invasão.",
+          "effects": { "wealth": -1, "health": 1, "faith": -1 }
         }]
       }
     },
@@ -260,7 +260,7 @@
       "outcomes": {
         "yes": [{
           "text": "Lanças se quebram e dezenas de cavaleiros juram lealdade ao Rei. O tesoureiro chora sozinho.",
-          "effects": { "wealth": -1, "military": 1, "security": 1 },
+          "effects": { "wealth": -1, "military": 1 },
           "setFlags": { "cavaleiros_leais": true },
           "inject": [{ "card": "campeao_estrangeiro", "inRounds": 3 }]
         }],
@@ -270,7 +270,7 @@
         }],
         "tie": [{
           "text": "Sem ordem do conselho, sai um torneio pequeno: poucos cavaleiros, muita lama e briga na plateia.",
-          "effects": { "wealth": -1, "military": 1, "security": -1 }
+          "effects": { "wealth": -1, "military": 1 }
         }]
       }
     },
@@ -286,11 +286,11 @@
           {
             "when": { "flag": "alianca_vizinhos", "eq": true },
             "text": "Como somos aliados do vizinho, o gesto é visto como honra. O campeão passa a treinar nossas tropas.",
-            "effects": { "military": 1, "security": 1 }
+            "effects": { "military": 1 }
           },
           {
-            "text": "A espada dele vale por dez, mas o rei vizinho vê nisso uma provocação e ameaça a fronteira.",
-            "effects": { "military": 2, "security": -1 }
+            "text": "A espada dele vale por dez, mas o rei vizinho, ofendido, fecha a fronteira aos nossos mercadores.",
+            "effects": { "military": 2, "wealth": -1 }
           }
         ],
         "no": [{
@@ -315,39 +315,39 @@
           {
             "when": { "flag": "espioes_fugidos", "eq": true },
             "text": "Os espiões que fugiram levaram nossos mapas. O inimigo sabia cada passo e nos emboscou no vale.",
-            "effects": { "military": -1, "security": -1 }
+            "effects": { "military": -1 }
           },
           {
             "when": { "flag": "cavaleiros_leais", "eq": true },
             "text": "Os cavaleiros leais do torneio lideram a carga. Vitória fácil, e o saque enche os cofres.",
-            "effects": { "military": -1, "security": 1, "wealth": 1 }
+            "effects": { "military": -1, "wealth": 1 }
           },
           {
-            "text": "Vencemos, mas com muito sangue. Os clãs recuam, e muitos soldados voltam feridos ou não voltam.",
-            "effects": { "military": -1, "security": 1, "health": -1 }
+            "text": "Vencemos com muito sangue. Os feridos lotam a cidade, e o Templo da Luz celebra a vitória com orações.",
+            "effects": { "military": -1, "health": -1, "faith": 1 }
           }
         ],
         "no": [
           {
             "when": { "all": [{ "flag": "alianca_vizinhos", "eq": true }, { "not": { "flag": "alianca_rompida", "eq": true } }] },
             "text": "Resistimos atrás dos muros, comendo o estoque, até os aliados vizinhos atacarem o inimigo pelas costas.",
-            "effects": { "security": 1, "military": 1, "food": -1 }
+            "effects": { "military": 1, "food": -1 }
           },
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
             "text": "Com a muralha já reforçada, o cerco não passa. Gastamos comida, mas o inimigo desiste antes.",
-            "effects": { "security": 1, "food": -1 }
+            "effects": { "food": -1, "military": 1 }
           },
           {
             "text": "A muralha cede no terceiro dia. Os clãs saqueiam as vilas do norte e levam a colheita.",
-            "effects": { "security": -1, "food": -1 },
+            "effects": { "food": -1, "military": -1 },
             "setFlags": { "norte_saqueado": true },
             "inject": [{ "card": "refugiados_do_norte", "inRounds": 2 }]
           }
         ],
         "tie": [{
           "text": "Sem ordem clara, metade do exército marcha e metade fica. As duas metades perdem.",
-          "effects": { "security": -1, "military": -1 },
+          "effects": { "military": -1 },
           "setFlags": { "norte_saqueado": true },
           "inject": [{ "card": "refugiados_do_norte", "inRounds": 2 }]
         }]
@@ -364,28 +364,28 @@
         "yes": [
           {
             "when": { "flag": "viajantes_leais", "eq": true },
-            "text": "Os viajantes do Leste, que já foram refugiados, ajudam a montar abrigos e dividem o que têm.",
-            "effects": { "food": -1, "military": 1, "security": 1 }
+            "text": "Os viajantes do Leste ajudam nos abrigos, os refugiados se alistam, e os sacerdotes louvam a caridade do Rei.",
+            "effects": { "food": -1, "military": 1, "faith": 1 }
           },
           {
-            "text": "Os celeiros esvaziam para alimentar todos, mas a milícia ganha homens dispostos a lutar.",
-            "effects": { "food": -2, "military": 1, "security": 1 }
+            "text": "Os celeiros esvaziam para alimentar todos, a milícia ganha braços, e o Templo louva a caridade do Rei.",
+            "effects": { "food": -2, "military": 1, "faith": 1 }
           }
         ],
         "no": [
           {
             "when": { "flag": "viajantes_recusados", "eq": true },
-            "text": "Antes os estrangeiros, agora o próprio povo. Os refugiados adoecem nas estradas e a revolta cresce.",
-            "effects": { "security": -1, "health": -1 }
+            "text": "Antes os estrangeiros, agora o povo do Norte: eles adoecem nas estradas, e os sacerdotes condenam a crueldade.",
+            "effects": { "health": -1, "faith": -1 }
           },
           {
-            "text": "Os refugiados acampam fora dos muros. Lá crescem a doença e a raiva.",
-            "effects": { "security": -1, "health": -1 }
+            "text": "Os refugiados adoecem fora dos muros, e os sacerdotes perguntam onde está a misericórdia do Rei.",
+            "effects": { "health": -1, "faith": -1 }
           }
         ],
         "tie": [{
-          "text": "Sem ordem do conselho, os guardas deixam entrar só as crianças. Os pais, do lado de fora, não perdoam.",
-          "effects": { "food": -1, "security": -1 }
+          "text": "Sem ordem do conselho, os guardas deixam entrar só as crianças, e o Templo chama de crueldade separar famílias.",
+          "effects": { "food": -1, "faith": -1 }
         }]
       }
     },
@@ -398,14 +398,14 @@
       "question": "O Reino deve assinar o acordo com a Liga?",
       "outcomes": {
         "yes": [{
-          "text": "O porto lota de navios com ouro, grãos e especiarias. E também de mercadorias que ninguém confere.",
-          "effects": { "wealth": 1, "food": 1, "security": -1 },
+          "text": "O porto lota de navios com ouro e grãos, e também de pregadores estrangeiros que ninguém revista.",
+          "effects": { "wealth": 1, "food": 1, "faith": -1 },
           "setFlags": { "comercio_aberto": true },
           "inject": [{ "card": "contrabando", "inRounds": 3 }]
         }],
         "no": [{
           "text": "A Liga leva os navios para o reino vizinho. Os mercadores reclamam; a guarda agradece.",
-          "effects": { "wealth": -1, "security": 1 }
+          "effects": { "wealth": -1, "military": 1 }
         }],
         "tie": [{
           "text": "Sem resposta do conselho, a Liga cansa de esperar e fecha o acordo com outro reino.",
@@ -425,29 +425,29 @@
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
             "text": "Com a guarda já reforçada, as docas são limpas numa noite só, sem gastar muito.",
-            "effects": { "security": 2, "wealth": -1 }
+            "effects": { "wealth": -1, "military": 2 }
           },
           {
             "text": "A caçada aos contrabandistas é longa e cara, mas as docas voltam a ser seguras.",
-            "effects": { "security": 2, "wealth": -2 }
+            "effects": { "wealth": -2, "military": 2 }
           }
         ],
         "no": [
           {
             "when": { "flag": "quarentena", "eq": true },
             "text": "O ouro do crime entra no cofre, mas os contrabandistas furam a quarentena e trazem a doença de volta.",
-            "effects": { "wealth": 2, "health": -2, "security": -1 },
+            "effects": { "wealth": 2, "health": -2 },
             "setFlags": { "mercado_negro": true }
           },
           {
             "text": "O ouro do crime enche os cofres. Os remédios falsos enchem os cemitérios.",
-            "effects": { "wealth": 2, "health": -1, "security": -1 },
+            "effects": { "wealth": 2, "health": -1 },
             "setFlags": { "mercado_negro": true }
           }
         ],
         "tie": [{
           "text": "Sem ordem clara, a guarda gasta com prisões pela metade. Os que escapam voltam mais ousados.",
-          "effects": { "security": -1, "wealth": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -461,7 +461,7 @@
       "outcomes": {
         "yes": [{
           "text": "Os celeiros de pedra ficam prontos. Custou caro, mas o povo dorme tranquilo sabendo que há reserva.",
-          "effects": { "wealth": -1, "food": 1, "security": 1 },
+          "effects": { "wealth": -1, "food": 1 },
           "setFlags": { "celeiro_real": true }
         }],
         "no": [{
@@ -549,18 +549,18 @@
       "openVote": true,
       "outcomes": {
         "yes": [{
-          "text": "O dote é pago e os sinos tocam. A fronteira fica em paz, e ganhamos um aliado com exército.",
-          "effects": { "security": 1, "military": 1, "wealth": -1 },
+          "text": "O dote é pago, a Grande Sacerdotisa abençoa os noivos no Templo, e ganhamos um aliado com exército.",
+          "effects": { "military": 1, "wealth": -1, "faith": 1 },
           "setFlags": { "alianca_vizinhos": true },
           "inject": [{ "card": "pedido_de_tropas", "inRounds": 3 }, { "card": "o_herdeiro", "inRounds": 5 }]
         }],
         "no": [{
           "text": "O dote fica no cofre, mas o rei vizinho guarda rancor na fronteira.",
-          "effects": { "wealth": 1, "security": -1 }
+          "effects": { "wealth": 1, "military": -1 }
         }],
         "tie": [{
           "text": "Ninguém responde ao mensageiro. O príncipe casa com outra, e o vizinho se sente ofendido.",
-          "effects": { "security": -1 }
+          "effects": { "military": -1 }
         }]
       }
     },
@@ -577,13 +577,13 @@
           "effects": { "military": -2, "wealth": 2 }
         }],
         "no": [{
-          "text": "As tropas ficam em casa, mas o aliado chama a recusa de traição e rompe a aliança.",
-          "effects": { "security": -1, "military": 1 },
+          "text": "As tropas ficam em casa, mas o aliado chama a recusa de traição e fecha seus portos aos nossos mercadores.",
+          "effects": { "military": 1, "wealth": -1 },
           "setFlags": { "alianca_rompida": true }
         }],
         "tie": [{
           "text": "Um capitão manda cem homens em vez de mil. Perdemos os cem, e o aliado se sente insultado.",
-          "effects": { "military": -1, "security": -1 },
+          "effects": { "military": -1 },
           "setFlags": { "alianca_rompida": true }
         }]
       }
@@ -598,16 +598,16 @@
       "openVote": true,
       "outcomes": {
         "yes": [{
-          "text": "Três dias de pão e vinho de graça. O povo festeja e repete o nome do herdeiro.",
-          "effects": { "wealth": -2, "security": 2, "food": -1 }
+          "text": "Três dias de pão e vinho de graça, e a Grande Sacerdotisa abençoa o herdeiro diante do povo em festa.",
+          "effects": { "wealth": -2, "food": -1, "faith": 2 }
         }],
         "no": [{
-          "text": "O ouro fica no cofre. Nas tavernas, corre o boato de que a criança nasceu doente.",
-          "effects": { "security": -1, "wealth": 1 }
+          "text": "O ouro fica no cofre. Sem bênção no Templo, corre o boato de que a criança nasceu amaldiçoada.",
+          "effects": { "wealth": 1, "faith": -1 }
         }],
         "tie": [{
-          "text": "O mordomo anuncia a festa sem ordem e depois a cancela. Gastou-se à toa, e o povo fica irritado.",
-          "effects": { "wealth": -1, "security": -1 }
+          "text": "O mordomo marca a bênção no Templo sem ordem e depois a cancela: dinheiro perdido e sacerdotes ofendidos.",
+          "effects": { "wealth": -1, "faith": -1 }
         }]
       }
     },
@@ -621,8 +621,8 @@
       "openVote": true,
       "outcomes": {
         "yes": [{
-          "text": "Os cofres e os quartéis se enchem. Nas aldeias, a raiva também.",
-          "effects": { "wealth": 1, "military": 1, "security": -1 },
+          "text": "Os cofres e os quartéis se enchem, mas até as ofertas do Templo são taxadas, e os sacerdotes não perdoam.",
+          "effects": { "wealth": 1, "military": 1, "faith": -1 },
           "setFlags": { "impostos_altos": true },
           "inject": [{ "card": "revolta_camponesa", "inRounds": 3 }]
         }],
@@ -630,7 +630,7 @@
           {
             "when": { "flag": "norte_saqueado", "eq": true },
             "text": "Sem o imposto, o norte já saqueado fica sem defesa e sem reconstrução.",
-            "effects": { "military": -1, "security": -1 }
+            "effects": { "military": -1 }
           },
           {
             "text": "As colheitas ficam com quem planta, e o exército se vira com o que tem.",
@@ -638,8 +638,8 @@
           }
         ],
         "tie": [{
-          "text": "O tesoureiro cobra um imposto pequeno por conta própria. Rende pouco e irrita muito.",
-          "effects": { "wealth": 1, "security": -1 }
+          "text": "O tesoureiro cobra, por conta própria, um imposto sobre as velas do Templo. Rende pouco e irrita os fiéis.",
+          "effects": { "wealth": 1, "faith": -1 }
         }]
       }
     },
@@ -655,34 +655,34 @@
         "yes": [
           {
             "when": { "flag": "impostos_altos", "eq": true },
-            "text": "O Rei cancela o imposto de guerra. A multidão comemora; o tesouro chora.",
-            "effects": { "wealth": -2, "security": 2 }
+            "text": "O Rei cancela o imposto de guerra. O tesouro chora, e no Templo o povo reza pela bondade do Rei.",
+            "effects": { "wealth": -2, "faith": 2 }
           },
           {
-            "text": "O Rei distribui pão dos armazéns e faz promessas. A multidão volta para casa.",
-            "effects": { "food": -2, "security": 2 }
+            "text": "O Rei distribui pão dos armazéns, os sacerdotes abençoam o gesto, e a multidão volta em paz para casa.",
+            "effects": { "food": -2, "faith": 2 }
           }
         ],
         "no": [
           {
             "when": { "flag": "cavaleiros_leais", "eq": true },
-            "text": "Os cavaleiros leais dispersam a multidão com poucos feridos dos dois lados.",
-            "effects": { "security": 2, "health": -1, "military": -1 }
+            "text": "Os cavaleiros leais dispersam a multidão com poucos feridos, e o exército sai do dia mais confiante.",
+            "effects": { "health": -1, "military": 1 }
           },
           {
-            "text": "Os soldados esmagam a revolta. A ordem volta, mas há mortos e feridos dos dois lados.",
-            "effects": { "security": 1, "health": -1, "military": -1 }
+            "text": "Os soldados esmagam a revolta e os impostos voltam a ser pagos, mas os sacerdotes choram os mortos e culpam o Rei.",
+            "effects": { "health": -1, "faith": -1, "wealth": 1 }
           }
         ],
         "tie": [
           {
             "when": { "flag": "povo_revoltado", "eq": true },
             "text": "Sem resposta, a multidão, furiosa desde o banquete, invade o castelo e leva o que pode.",
-            "effects": { "security": -1, "wealth": -1 }
+            "effects": { "wealth": -1 }
           },
           {
             "text": "Os guardas esperam uma ordem que não vem, e a multidão saqueia os armazéns da cidade.",
-            "effects": { "security": -1, "food": -1 }
+            "effects": { "food": -1 }
           }
         ]
       }
@@ -720,18 +720,18 @@
       "openVote": true,
       "outcomes": {
         "yes": [{
-          "text": "A mina para e trinta e oito saem vivos. O povo aplaude um Rei que não abandona os seus.",
-          "effects": { "wealth": -2, "health": 1, "security": 1 }
+          "text": "A mina para e trinta e oito saem vivos. O povo acende velas no Templo por um Rei que não abandona os seus.",
+          "effects": { "wealth": -2, "health": 1, "faith": 1 }
         }],
         "no": [
           {
             "when": { "flag": "mercado_negro", "eq": true },
-            "text": "A mina não para, e parte da prata some com os contrabandistas. Os mineiros se revoltam.",
-            "effects": { "health": -1, "security": -1 }
+            "text": "A mina não para, a prata some com os contrabandistas, e as viúvas dos mineiros perdem a fé no Rei.",
+            "effects": { "health": -1, "faith": -1 }
           },
           {
-            "text": "A prata continua saindo, os presos morrem, e os mineiros deixam de confiar no Rei.",
-            "effects": { "health": -1, "security": -1, "wealth": 1 }
+            "text": "A prata continua saindo, os presos morrem, e os sacerdotes negam a bênção a um Rei que troca vidas por prata.",
+            "effects": { "health": -1, "wealth": 1, "faith": -1 }
           }
         ],
         "tie": [{
@@ -752,27 +752,27 @@
           {
             "when": { "flag": "espioes_fugidos", "eq": true },
             "text": "Sob tortura, ele entrega a rede dos espiões que fugiram, e a guarda limpa a capital.",
-            "effects": { "security": 1, "health": -1 }
+            "effects": { "health": -1, "military": 1 }
           },
           {
             "text": "Sob tortura, ele cita nomes demais, verdadeiros e falsos. O conselho se olha com desconfiança.",
-            "effects": { "security": 1, "health": -1 }
+            "effects": { "health": -1, "military": 1 }
           }
         ],
         "no": [
           {
             "when": { "flag": "mercado_negro", "eq": true },
             "text": "Na mesma noite, os contrabandistas o tiram da prisão. Ninguém sabe quem pagou.",
-            "effects": { "security": -1 }
+            "effects": { "military": -1 }
           },
           {
             "text": "A família dele paga para soltá-lo. O ouro entra, e quem o contratou continua livre.",
-            "effects": { "wealth": 1, "security": -1 }
+            "effects": { "wealth": 1, "military": -1 }
           }
         ],
         "tie": [{
           "text": "O prisioneiro amanhece morto na cela. Alguém neste conselho dormiu aliviado.",
-          "effects": { "security": -1 }
+          "effects": { "military": -1 }
         }]
       }
     },
@@ -807,17 +807,17 @@
       "question": "O Reino deve transformá-lo em agente duplo?",
       "outcomes": {
         "yes": [{
-          "text": "O escriba volta a escrever para os dois lados. É arriscado, mas ele traz segredos do exército inimigo.",
-          "effects": { "security": -1, "military": 1 },
+          "text": "O escriba traz segredos do exército inimigo, mas cobra caro por cada carta que escreve para os dois lados.",
+          "effects": { "military": 1, "wealth": -1 },
           "inject": [{ "card": "a_rede_das_tavernas", "inRounds": 3 }]
         }],
         "no": [{
-          "text": "O escriba é enforcado na praça. A corte fica mais tranquila, mas o povo não gosta do espetáculo.",
-          "effects": { "security": 1, "health": -1 }
+          "text": "O escriba é enforcado na praça. Os soldados aprendem a lição; os sacerdotes condenam o espetáculo.",
+          "effects": { "military": 1, "faith": -1 }
         }],
         "tie": [{
           "text": "O carcereiro aceita suborno sem ninguém saber, e o escriba foge com os segredos do castelo.",
-          "effects": { "security": -1 },
+          "effects": { "military": -1 },
           "setFlags": { "espioes_fugidos": true }
         }]
       }
@@ -833,23 +833,23 @@
         "yes": [
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
-            "text": "Com a guarda já reforçada, a batida é rápida e nenhum espião escapa.",
-            "effects": { "security": 2, "military": -1 },
+            "text": "Com a guarda já reforçada, a batida é rápida, nenhum espião escapa, e os soldados ganham fama.",
+            "effects": { "military": 1 },
             "setFlags": { "rede_desmantelada": true }
           },
           {
-            "text": "Trinta espiões presos e a rede desfeita, mas há portas e barris quebrados para pagar.",
-            "effects": { "security": 2, "military": -1, "wealth": -1 },
+            "text": "Trinta espiões presos e os soldados ganham moral, mas há portas e barris quebrados para pagar.",
+            "effects": { "military": 1, "wealth": -1 },
             "setFlags": { "rede_desmantelada": true }
           }
         ],
         "no": [{
           "text": "O conselho economiza e só vigia. Os espiões percebem e mudam de taverna.",
-          "effects": { "security": -1, "wealth": 1 }
+          "effects": { "wealth": 1, "military": -1 }
         }],
         "tie": [{
           "text": "Um guarda fala demais numa taverna, e os espiões fogem antes da batida.",
-          "effects": { "security": -1 }
+          "effects": { "military": -1 }
         }]
       }
     },
@@ -863,17 +863,17 @@
       "outcomes": {
         "yes": [{
           "text": "Soldados patrulham a estrada, e as caravanas voltam a passar trazendo comércio.",
-          "effects": { "military": -1, "wealth": 1, "security": 1 }
+          "effects": { "military": -1, "wealth": 1 }
         }],
         "no": [{
-          "text": "O pedágio é pago em silêncio. A estrada fica calma, e o bando fica mais rico a cada mês.",
-          "effects": { "wealth": -1, "security": -1 },
+          "text": "O pedágio é pago em silêncio, e os sacerdotes pregam contra um Rei que se curva a ladrões.",
+          "effects": { "wealth": -1, "faith": -1 },
           "setFlags": { "bandidos_tolerados": true },
           "inject": [{ "card": "o_barao_sem_terra", "inRounds": 3 }]
         }],
         "tie": [{
           "text": "Ninguém patrulha e ninguém paga. Os assaltos continuam e as caravanas param de vir.",
-          "effects": { "wealth": -1, "security": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -888,23 +888,23 @@
         "yes": [
           {
             "when": { "flag": "mercado_negro", "eq": true },
-            "text": "O Barão traz homens e negócios do mercado negro: mais soldados e ouro, ruas mais perigosas.",
-            "effects": { "military": 2, "security": -2, "wealth": 1 },
+            "text": "O Barão traz homens e ouro do mercado negro, e o Templo da Luz acusa o Rei de se vender a criminosos.",
+            "effects": { "military": 2, "wealth": 1, "faith": -2 },
             "setFlags": { "bandidos_perdoados": true }
           },
           {
-            "text": "Trezentos bandidos viram soldados do Rei. Os camponeses que eles roubaram não esquecem.",
-            "effects": { "military": 2, "security": -1 },
+            "text": "Trezentos bandidos viram soldados do Rei, e os sacerdotes chamam de pecado perdoar quem roubou os pobres.",
+            "effects": { "military": 2, "faith": -1 },
             "setFlags": { "bandidos_perdoados": true }
           }
         ],
         "no": [{
-          "text": "O exército ataca o bando. A batalha é sangrenta, mas a estrada volta a ser segura.",
-          "effects": { "military": -2, "security": 2 }
+          "text": "O exército ataca o bando e perde muitos homens, mas o tesouro roubado pelo Barão volta aos cofres do Rei.",
+          "effects": { "military": -2, "wealth": 1 }
         }],
         "tie": [{
           "text": "Sem resposta, o Barão toma uma vila na fronteira e passa a cobrar impostos dela.",
-          "effects": { "security": -1, "wealth": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -926,7 +926,7 @@
         }],
         "tie": [{
           "text": "Sem ordem, metade da guarda corre ao porto. O tesoureiro escapa, e a cidade fica sem vigia.",
-          "effects": { "wealth": -1, "security": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -942,21 +942,21 @@
           {
             "when": { "flag": "cavaleiros_leais", "eq": true },
             "text": "Com os cavaleiros do torneio na frente, as torres caem rápido e o Reino ainda fica com o saque.",
-            "effects": { "military": -1, "security": 1, "wealth": 1 }
+            "effects": { "military": -1, "wealth": 1 }
           },
           {
-            "text": "As torres caem, mas muitos soldados voltam feridos ou não voltam.",
-            "effects": { "military": -1, "security": 1, "health": -1 }
+            "text": "As torres caem, muitos soldados voltam feridos, e as aldeias da fronteira fazem procissões de agradecimento.",
+            "effects": { "military": -1, "health": -1, "faith": 1 }
           }
         ],
         "no": [{
           "text": "O Reino espera, e as torres ficam prontas à vista das aldeias.",
-          "effects": { "security": -1 },
+          "effects": { "military": -1 },
           "inject": [{ "card": "cerco_de_pedravento", "inRounds": 4 }]
         }],
         "tie": [{
           "text": "Sem ordem, um capitão ataca com poucos homens e perde. As torres ficam prontas mesmo assim.",
-          "effects": { "military": -1, "security": -1 },
+          "effects": { "military": -1 },
           "inject": [{ "card": "cerco_de_pedravento", "inRounds": 3 }]
         }]
       }
@@ -972,17 +972,17 @@
         "yes": [
           {
             "when": { "flag": "bandidos_perdoados", "eq": true },
-            "text": "Com os homens do Barão Sem-Terra na frente, o cerco cai e o Reino perde poucos soldados.",
-            "effects": { "military": -1, "security": 2 }
+            "text": "Com os homens do Barão Sem-Terra na frente, o cerco cai com poucas perdas, e os grãos voltam a chegar.",
+            "effects": { "military": -1, "food": 2 }
           },
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
-            "text": "Com a guarda já reforçada, Pedravento aguenta firme e o exército vence, mas com perdas.",
-            "effects": { "military": -2, "security": 2 }
+            "text": "Com a guarda já reforçada, o exército rompe o cerco com perdas, e a estrada dos grãos se abre de novo.",
+            "effects": { "military": -2, "food": 2 }
           },
           {
-            "text": "O cerco cai depois de três dias de batalha, com muitos mortos e feridos.",
-            "effects": { "military": -1, "security": 1, "health": -1 }
+            "text": "O cerco cai após três dias de batalha, com muitos feridos, e as primeiras carroças de grãos passam.",
+            "effects": { "military": -1, "food": 1, "health": -1 }
           }
         ],
         "no": [{
@@ -991,7 +991,7 @@
         }],
         "tie": [{
           "text": "Sem ordem, um nobre ataca com poucos homens e perde. A estrada dos grãos fica fechada por meses.",
-          "effects": { "food": -1, "security": -1 }
+          "effects": { "food": -1 }
         }]
       }
     },
@@ -1005,8 +1005,8 @@
       "openVote": true,
       "outcomes": {
         "yes": [{
-          "text": "Vinte homens morrem na forca. Ninguém mais foge do quartel, mas o povo fica assustado.",
-          "effects": { "military": 1, "security": 1, "health": -1 }
+          "text": "Vinte homens morrem na forca e ninguém mais foge do quartel, mas os sacerdotes chamam a execução de crueldade.",
+          "effects": { "military": 1, "faith": -1 }
         }],
         "no": [
           {
@@ -1058,8 +1058,8 @@
       "question": "O Reino deve queimar as aldeias infectadas?",
       "outcomes": {
         "yes": [{
-          "text": "O fogo para a febre, mas queima casas e celeiros, e muitas famílias ficam sem nada.",
-          "effects": { "health": 2, "food": -2, "security": -1 }
+          "text": "O fogo para a febre, mas queima casas e celeiros, e as famílias sem nada deixam de rezar pelo Rei.",
+          "effects": { "health": 2, "food": -2, "faith": -1 }
         }],
         "no": [
           {
@@ -1093,15 +1093,15 @@
       "outcomes": {
         "yes": [{
           "text": "Os camponeses matam os lobos e levam também os cervos do Rei. Comem bem; a caça real acaba.",
-          "effects": { "food": 1, "security": 1, "wealth": -1 }
+          "effects": { "food": 1, "wealth": -1 }
         }],
         "no": [{
-          "text": "Os soldados do Rei caçam os lobos, e o quartel fica desfalcado por semanas.",
-          "effects": { "military": -1, "security": 1 }
+          "text": "Os soldados do Rei caçam os lobos, o quartel fica desfalcado, e as aldeias agradecem à Luz em procissão.",
+          "effects": { "military": -1, "faith": 1 }
         }],
         "tie": [{
           "text": "Sem ordem, camponeses invadem a floresta e brigam com os guardas. Os lobos levam as ovelhas.",
-          "effects": { "food": -1, "security": -1 }
+          "effects": { "food": -1 }
         }]
       }
     },
@@ -1116,19 +1116,19 @@
         "yes": [
           {
             "when": { "flag": "rota_do_sul", "eq": true },
-            "text": "Com a rota do Sul aberta, chegam remédios e aprendizes. Muitos se curam; os médicos da corte agitam a capital.",
-            "effects": { "health": 1, "security": -1 },
+            "text": "Com a rota do Sul aberta, chegam remédios e muitos se curam, mas os sacerdotes chamam a pasta de feitiçaria.",
+            "effects": { "health": 1, "faith": -1 },
             "setFlags": { "medico_aceito": true }
           },
           {
-            "text": "A pasta fede, mas cura. Os médicos da corte espalham boatos e agitam a capital.",
-            "effects": { "health": 1, "security": -1 },
+            "text": "A pasta fede, mas cura. Os médicos da corte e os sacerdotes espalham que é feitiçaria do Sul.",
+            "effects": { "health": 1, "faith": -1 },
             "setFlags": { "medico_aceito": true }
           }
         ],
         "no": [{
-          "text": "O médico é levado até a fronteira. A corte fica calma, e os doentes ficam sem cura.",
-          "effects": { "health": -1, "security": 1 }
+          "text": "O médico é levado até a fronteira. Os sacerdotes aplaudem, e os doentes ficam rezando sem cura.",
+          "effects": { "health": -1, "faith": 1 }
         }],
         "tie": [{
           "text": "Sem permissão, o médico atende escondido, só quem pode pagar. Os outros doentes pioram.",
@@ -1153,8 +1153,8 @@
             "inject": [{ "card": "morte_no_baile", "inRounds": 2 }]
           },
           {
-            "text": "Três noites de alegria, mas a festa custa caro e muitas bolsas são roubadas.",
-            "effects": { "wealth": -1, "health": 1, "security": -1 },
+            "text": "Três noites de alegria, mas a festa custa caro e os sacerdotes condenam os excessos dos mascarados.",
+            "effects": { "wealth": -1, "health": 1, "faith": -1 },
             "inject": [{ "card": "morte_no_baile", "inRounds": 2 }]
           }
         ],
@@ -1164,7 +1164,7 @@
         }],
         "tie": [{
           "text": "Sem autorização, alguns nobres fazem a festa sozinhos, sem guardas. Há brigas e bolsas roubadas.",
-          "effects": { "wealth": -1, "security": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -1180,29 +1180,29 @@
         "yes": [
           {
             "when": { "flag": "alianca_vizinhos", "eq": true },
-            "text": "Um criado é entregue e enforcado. O vizinho aceita, e a aliança continua de pé.",
-            "effects": { "security": 2, "health": -1 }
+            "text": "Um criado inocente é enforcado. A aliança e suas tropas seguem conosco, mas os sacerdotes condenam a injustiça.",
+            "effects": { "military": 1, "faith": -1 }
           },
           {
-            "text": "Um criado qualquer é entregue e enforcado. O vizinho finge acreditar.",
-            "effects": { "security": 1, "health": -1 }
+            "text": "Um criado qualquer é enforcado. O vizinho recua suas tropas, e os sacerdotes rezam pelo inocente.",
+            "effects": { "military": 1, "faith": -1 }
           }
         ],
         "no": [
           {
             "when": { "flag": "alianca_vizinhos", "eq": true },
             "text": "Sem culpado, o vizinho rompe a aliança e retira as tropas que nos ajudavam.",
-            "effects": { "security": -1, "military": -1 },
+            "effects": { "military": -1 },
             "setFlags": { "alianca_rompida": true }
           },
           {
             "text": "O Reino promete investigar. O vizinho põe tropas na fronteira, e as nossas precisam ir para lá.",
-            "effects": { "security": -1, "military": -1 }
+            "effects": { "military": -1 }
           }
         ],
         "tie": [{
           "text": "Enquanto o conselho discute, o vizinho fecha a fronteira e o comércio para.",
-          "effects": { "security": -1, "wealth": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -1242,7 +1242,7 @@
           {
             "when": { "flag": "bandidos_tolerados", "eq": true },
             "text": "O ouro é pago e, envergonhado, o Reino passa a patrulhar a estrada onde tolerava bandidos.",
-            "effects": { "wealth": -2, "health": 1, "security": 1 }
+            "effects": { "wealth": -2, "health": 1 }
           },
           {
             "text": "O ouro é pago, e os remédios do Sul continuam chegando.",
@@ -1251,11 +1251,11 @@
         ],
         "no": [{
           "text": "O Califa fecha a rota. Faltam remédios, e a estrada fica entregue aos bandidos.",
-          "effects": { "security": -1, "health": -1 }
+          "effects": { "health": -1 }
         }],
         "tie": [{
-          "text": "Cartas vão e voltam pelo deserto, e os bandidos seguem livres na estrada.",
-          "effects": { "security": -1 }
+          "text": "Sem ordem do conselho, o chanceler manda cartas em vez de ouro, e o Califa fecha a rota por um tempo.",
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -1268,24 +1268,24 @@
       "question": "O Reino deve pagar o resgate?",
       "outcomes": {
         "yes": [{
-          "text": "O sobrinho volta vivo. Os piratas voltam ricos para o mar, e com vontade de repetir.",
-          "effects": { "wealth": -1, "security": 1 },
+          "text": "O resgate é pago e o sobrinho volta vivo. O Templo celebra o milagre; os piratas, o ouro.",
+          "effects": { "wealth": -1, "faith": 1 },
           "inject": [{ "card": "piratas_voltam", "inRounds": 4 }]
         }],
         "no": [
           {
             "when": { "flag": "cavaleiros_leais", "eq": true },
-            "text": "Os cavaleiros do torneio lideram o ataque à praia e trazem o sobrinho de volta, com poucas perdas.",
-            "effects": { "military": -1, "security": 1 }
+            "text": "Os cavaleiros do torneio resgatam o sobrinho com poucas perdas, e o Templo da Luz celebra a volta com sinos.",
+            "effects": { "military": -1, "faith": 1 }
           },
           {
-            "text": "A frota ataca o esconderijo e resgata o sobrinho, mas perde muitos marinheiros.",
-            "effects": { "military": -1, "security": 1 }
+            "text": "A frota resgata o sobrinho, mas perde muitos marinheiros. O Templo reza por eles e louva a coragem do Rei.",
+            "effects": { "military": -1, "faith": 1 }
           }
         ],
         "tie": [{
           "text": "Sem ordem, um nobre manda metade do resgate. Os piratas ficam com o ouro e vendem o sobrinho a um rival.",
-          "effects": { "security": -1, "wealth": -1 }
+          "effects": { "wealth": -1 }
         }]
       }
     },
@@ -1304,17 +1304,284 @@
         "no": [
           {
             "when": { "flag": "guarda_reforcada", "eq": true },
-            "text": "Com a guarda já reforçada, o Porto afunda dois navios piratas e os outros fogem.",
-            "effects": { "military": -1, "security": 1 }
+            "text": "Com a guarda já reforçada, o Porto afunda dois navios piratas com perdas, e os pescadores voltam ao mar.",
+            "effects": { "military": -1, "food": 1 }
           },
           {
             "text": "Os piratas vencem a frota e queimam as vilas de pesca da costa sul.",
-            "effects": { "military": -1, "food": -1, "security": -1 }
+            "effects": { "military": -1, "food": -1 }
           }
         ],
         "tie": [{
           "text": "Sem ordem, os pescadores saem ao mar, e os piratas levam os barcos e a pesca do mês.",
           "effects": { "food": -1, "wealth": -1 }
+        }]
+      }
+    },
+    {
+      "id": "dizimo_do_templo",
+      "kind": "root",
+      "category": "faith",
+      "title": "O Dízimo do Templo",
+      "prompt": "A Grande Sacerdotisa Ilvana pede um décimo da colheita para o Templo da Luz. Promete pão aos pobres e preces pelo Reino, mas o trigo sai dos nossos celeiros.",
+      "question": "O Reino deve entregar o dízimo ao Templo?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "res": "food", "lte": -2 },
+            "text": "Com o povo já com fome, o trigo vai para o Templo. Os fiéis agradecem; as crianças das aldeias, não.",
+            "effects": { "food": -1, "health": -1, "faith": 1 },
+            "setFlags": { "dizimo_pago": true }
+          },
+          {
+            "text": "As carroças de trigo sobem a escadaria do Templo. Os sinos tocam pelo Rei, e os celeiros ficam mais vazios.",
+            "effects": { "food": -1, "faith": 1 },
+            "setFlags": { "dizimo_pago": true }
+          }
+        ],
+        "no": [{
+          "text": "O trigo fica nos celeiros. No sermão seguinte, Ilvana lembra ao povo que a Coroa negou pão à Luz.",
+          "effects": { "food": 1, "faith": -1 }
+        }],
+        "tie": [{
+          "text": "Sem ordem do conselho, os sacerdotes cobram de porta em porta. Há brigas e trigo perdido no caminho.",
+          "effects": { "food": -1 }
+        }]
+      }
+    },
+    {
+      "id": "procissao_da_chama",
+      "kind": "root",
+      "category": "faith",
+      "title": "A Procissão da Chama",
+      "prompt": "A febre se espalha e Ilvana quer levar a Chama da Luz pelas ruas para pedir a cura. Os médicos da corte avisam: uma multidão junta espalha a doença.",
+      "question": "O Reino deve permitir a procissão?",
+      "openVote": true,
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "quarentena", "eq": true },
+            "text": "Com o porto em quarentena, a febre está contida. O povo canta nas ruas, mas o mercado fecha por três dias.",
+            "effects": { "faith": 1, "wealth": -1 }
+          },
+          {
+            "text": "Milhares seguem a Chama, cantando e chorando. Dias depois, há febre em todos os bairros do caminho.",
+            "effects": { "faith": 1, "health": -1 },
+            "inject": [{ "card": "os_doentes_do_templo", "inRounds": 2 }]
+          }
+        ],
+        "no": [{
+          "text": "As ruas ficam vazias e a febre recua. Do púlpito, Ilvana diz que o Rei tem medo da Luz.",
+          "effects": { "health": 1, "faith": -1 }
+        }],
+        "tie": [{
+          "text": "Sem ordem do conselho, a procissão sai sem guardas. Há empurra-empurra, desmaios e febre no dia seguinte.",
+          "effects": { "health": -1 },
+          "inject": [{ "card": "os_doentes_do_templo", "inRounds": 2 }]
+        }]
+      }
+    },
+    {
+      "id": "os_doentes_do_templo",
+      "kind": "consequence",
+      "category": "plague",
+      "title": "Os Doentes do Templo",
+      "prompt": "Depois da procissão, centenas de doentes deitam nas escadarias do Templo da Luz esperando a cura. Ilvana pede ouro para médicos, caldo e cobertores.",
+      "question": "O Reino deve pagar o cuidado dos doentes?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "hospital_construido", "eq": true },
+            "text": "O hospital de São Bérnio acolhe os doentes, e sacerdotes rezam ao lado dos médicos. A conta sai menor.",
+            "effects": { "wealth": -1, "health": 1, "faith": 1 }
+          },
+          {
+            "when": { "flag": "dizimo_pago", "eq": true },
+            "text": "O trigo do dízimo vira caldo para os doentes. O Reino paga só os médicos, e o Templo fica com a fama.",
+            "effects": { "wealth": -1, "health": 1, "faith": 1 }
+          },
+          {
+            "text": "Médicos e caldo quente salvam muitos. O tesoureiro conta as moedas que sobraram e não acha nenhuma.",
+            "effects": { "wealth": -2, "health": 1, "faith": 1 }
+          }
+        ],
+        "no": [{
+          "text": "Os doentes são levados para fora dos muros. O ouro fica no cofre, e o povo diz que o Rei deu as costas à Luz.",
+          "effects": { "health": -1, "faith": -1, "wealth": 1 }
+        }],
+        "tie": [{
+          "text": "Sem ordem do conselho, os doentes ficam na escadaria, e a febre entra no Templo junto com os fiéis.",
+          "effects": { "health": -1 }
+        }]
+      }
+    },
+    {
+      "id": "pregador_do_vale",
+      "kind": "root",
+      "category": "faith",
+      "title": "O Pregador do Vale",
+      "prompt": "Um pregador descalço do Vale diz nas praças que a corte e o Templo vivem no luxo enquanto o povo passa fome. Ilvana exige que ele seja preso.",
+      "question": "O Reino deve prender o pregador?",
+      "openVote": true,
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "povo_revoltado", "eq": true },
+            "text": "Com o povo furioso desde o banquete, a prisão vira briga na praça e o Vale para de colher. O Templo agradece.",
+            "effects": { "faith": 1, "health": -1, "food": -1 }
+          },
+          {
+            "text": "O pregador vai para a masmorra e o Templo agradece. No Vale, os lavradores largam as enxadas em protesto.",
+            "effects": { "faith": 1, "food": -1 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "impostos_altos", "eq": true },
+            "text": "Com o imposto de guerra pesando, o sermão pega fogo: as aldeias deixam de pagar e colhem só para si.",
+            "effects": { "wealth": -1, "faith": -1, "food": 1 },
+            "inject": [{ "card": "a_marcha_dos_descalcos", "inRounds": 3 }]
+          },
+          {
+            "text": "O pregador segue livre e o Vale trabalha contente. No Templo, as oferendas somem, e os fiéis também.",
+            "effects": { "food": 1, "faith": -1 },
+            "inject": [{ "card": "a_marcha_dos_descalcos", "inRounds": 3 }]
+          }
+        ],
+        "tie": [{
+          "text": "Sem ordem do conselho, os guardas prendem o pregador e o soltam no mesmo dia. O povo ri da Coroa e do Templo.",
+          "effects": { "faith": -1 },
+          "inject": [{ "card": "a_marcha_dos_descalcos", "inRounds": 3 }]
+        }]
+      }
+    },
+    {
+      "id": "a_marcha_dos_descalcos",
+      "kind": "consequence",
+      "category": "faith",
+      "title": "A Marcha dos Descalços",
+      "prompt": "O pregador do Vale volta com mil seguidores descalços e acampa diante do Templo da Luz. Exige que a corte dê metade do seu ouro aos pobres.",
+      "question": "O Reino deve dar o ouro aos pobres?",
+      "outcomes": {
+        "yes": [{
+          "text": "O ouro vira pão nas praças. O povo canta pela Luz e pelo Rei; o tesoureiro passa mal.",
+          "effects": { "wealth": -2, "food": 1, "faith": 1 }
+        }],
+        "no": [
+          {
+            "when": { "flag": "guarda_reforcada", "eq": true },
+            "text": "O ouro fica no cofre, e a guarda reforçada desfaz o acampamento sem sangue. Os descalços juram voltar.",
+            "effects": { "wealth": 1, "faith": -1 }
+          },
+          {
+            "text": "Os guardas dispersam o acampamento a pauladas. O ouro fica no cofre, e o sangue, na escadaria do Templo.",
+            "effects": { "wealth": 1, "health": -1, "faith": -1 }
+          }
+        ],
+        "tie": [{
+          "text": "Sem resposta do conselho, o acampamento cresce e a capital para. Ninguém compra, ninguém vende.",
+          "effects": { "wealth": -1 }
+        }]
+      }
+    },
+    {
+      "id": "peregrinos_da_luz",
+      "kind": "root",
+      "category": "trade",
+      "title": "Os Peregrinos da Luz",
+      "prompt": "Para a Festa da Luz, milhares de peregrinos querem entrar na capital. Trazem ouro e oferendas ao Templo, mas vão comer dos nossos celeiros por um mês.",
+      "question": "O Reino deve abrir a capital aos peregrinos?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "res": "health", "lte": -2 },
+            "text": "Os peregrinos gastam e rezam, mas levam a febre da capital para todas as aldeias do caminho de volta.",
+            "effects": { "wealth": 1, "faith": 1, "food": -1, "health": -1 }
+          },
+          {
+            "when": { "flag": "templo_reconstruido", "eq": true },
+            "text": "A cúpula nova do Templo atrai o dobro de peregrinos. As oferendas enchem o cofre, e os celeiros esvaziam.",
+            "effects": { "wealth": 1, "faith": 1, "food": -1 }
+          },
+          {
+            "text": "A capital vira um mar de velas e cantos. As bancas lucram, e os celeiros baixam a cada dia.",
+            "effects": { "wealth": 1, "faith": 1, "food": -1 }
+          }
+        ],
+        "no": [{
+          "text": "Os portões fecham para a festa. Os celeiros ficam cheios, e os peregrinos rezam do lado de fora, magoados.",
+          "effects": { "food": 1, "faith": -1 }
+        }],
+        "tie": [{
+          "text": "Sem ordem do conselho, os peregrinos entram aos montes e acampam nas praças, comendo sem pagar nada.",
+          "effects": { "food": -1 }
+        }]
+      }
+    },
+    {
+      "id": "a_cupula_rachada",
+      "kind": "root",
+      "category": "faith",
+      "title": "A Cúpula Rachada",
+      "prompt": "Um tremor racha a cúpula do Templo da Luz, e Ilvana pede pedreiros e ouro antes da Festa da Luz. O capitão da guarda quer os mesmos pedreiros na Muralha do Norte.",
+      "question": "O Reino deve pagar a obra do Templo?",
+      "openVote": true,
+      "outcomes": {
+        "yes": [{
+          "text": "Pedreiros e ouro sobem a escadaria, e a cúpula brilha de novo. O tesoureiro reza para o cofre aguentar.",
+          "effects": { "wealth": -1, "faith": 1 },
+          "setFlags": { "templo_reconstruido": true }
+        }],
+        "no": [
+          {
+            "when": { "flag": "guarda_reforcada", "eq": true },
+            "text": "Com a muralha já consertada, os pedreiros erguem torres novas. O povo reza sob a cúpula rachada e reclama.",
+            "effects": { "military": 1, "faith": -1 }
+          },
+          {
+            "text": "Os pedreiros vão para a Muralha do Norte. O povo reza sob uma cúpula rachada e culpa o Rei.",
+            "effects": { "military": 1, "faith": -1 }
+          }
+        ],
+        "tie": [{
+          "text": "Sem ordem do conselho, os sacerdotes escoram a cúpula com vigas velhas. Um pedaço cai na hora da prece.",
+          "effects": { "health": -1 }
+        }]
+      }
+    },
+    {
+      "id": "o_calice_roubado",
+      "kind": "root",
+      "category": "crime",
+      "title": "O Cálice Roubado",
+      "prompt": "O Cálice da Luz sumiu do altar do Templo. O capitão da guarda acha que ele foi vendido a mercadores e quer revistar todos os navios no Porto.",
+      "question": "O Reino deve revistar os navios do Porto?",
+      "outcomes": {
+        "yes": [
+          {
+            "when": { "flag": "comercio_aberto", "eq": true },
+            "text": "Os mercadores da Liga se ofendem com a revista e levam seus negócios embora. Mas o cálice volta ao altar.",
+            "effects": { "wealth": -1, "faith": 1 }
+          },
+          {
+            "text": "Os navios ficam presos uma semana. O cálice aparece num porão, e o povo leva flores ao Templo.",
+            "effects": { "wealth": -1, "faith": 1 }
+          }
+        ],
+        "no": [
+          {
+            "when": { "flag": "mercado_negro", "eq": true },
+            "text": "Os navios zarpam e pagam a taxa do porto. Semanas depois, o cálice aparece à venda no mercado negro.",
+            "effects": { "wealth": 1, "faith": -1 }
+          },
+          {
+            "text": "Os navios zarpam e pagam a taxa do porto. Nos sermões, o roubo vira prova de que o Rei não protege a Luz.",
+            "effects": { "wealth": 1, "faith": -1 }
+          }
+        ],
+        "tie": [{
+          "text": "Sem ordem do conselho, os guardas revistam só os barcos de pesca. Os pescadores perdem o dia e o peixe.",
+          "effects": { "food": -1 }
         }]
       }
     }

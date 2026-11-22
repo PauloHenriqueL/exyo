@@ -1,4 +1,5 @@
 // Validação do conteúdo (cartas e Casas) e simulação de campanhas para balanceamento.
+import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DILEMMAS, DILEMMA_BY_ID, HOUSES } from "./content";
 import { createGame, drawCard, isCollapsed, isMatchOver, resolveRound, rng, startNextMatch } from "./engine";
@@ -80,9 +81,15 @@ describe("clareza das cartas", () => {
     }
   });
 
-  it("sem cartas de religião", () => {
-    const texto = JSON.stringify(DILEMMAS).toLowerCase();
-    for (const palavra of ["bispo", "bruxa", "clero", "igreja", "relíquia", "herege"]) expect(texto, palavra).not.toContain(palavra);
+  it("todo recurso aparece em cartas suficientes (nenhum fica esquecido)", () => {
+    const count: Record<string, number> = {};
+    for (const d of DILEMMAS) for (const o of OUTCOMES) for (const v of d.outcomes[o]) for (const r of Object.keys(v.effects)) count[r] = (count[r] ?? 0) + 1;
+    for (const r of RESOURCES) expect(count[r] ?? 0, r).toBeGreaterThanOrEqual(40);
+  });
+
+  it("toda categoria de carta tem ilustração", () => {
+    const arte = new Set(readdirSync(new URL("../client/public/art/cards/", import.meta.url)).map((f) => f.replace(/\.webp$/, "")));
+    for (const d of DILEMMAS) expect(arte.has(d.category), `${d.id}: ${d.category}`).toBe(true);
   });
 
   it("textos curtos e diretos", () => {
@@ -106,6 +113,11 @@ describe("clareza das cartas", () => {
 });
 
 describe("Casas", () => {
+  it("valores iniciais cobrem exatamente os recursos do jogo", () => {
+    expect(Object.keys(HOUSES.initialResources).sort()).toEqual([...RESOURCES].sort());
+    for (const h of HOUSES.houses) for (const g of h.goals) for (const r of [...g.high, ...g.moderate]) expect(RESOURCES, `${g.id}: ${r}`).toContain(r);
+  });
+
   it("cada Casa tem 2 objetivos com 5 recursos distintos", () => {
     for (const h of HOUSES.houses) {
       expect(h.goals.length).toBe(2);

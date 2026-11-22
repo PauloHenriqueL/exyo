@@ -23,6 +23,7 @@ const CATEGORY: Record<string, { label: string; icon: string; color: string }> =
   trade: { label: "Comércio", icon: "🪙", color: "#c9a227" },
   crime: { label: "Intriga", icon: "🗡", color: "#4b2c5e" },
   nature: { label: "Natureza", icon: "🌩", color: "#6b4a2b" },
+  faith: { label: "Fé", icon: "🕯", color: "#7a6aa8" },
 };
 
 /** Obras em domínio público usadas como ilustração de cada categoria (ver CREDITOS.md). */
@@ -34,6 +35,7 @@ const ART_CAPTION: Record<string, string> = {
   trade: "Quentin Matsys, O Cambista e sua Mulher (1514)",
   crime: "Caravaggio, Os Trapaceiros (c. 1595)",
   nature: "Pieter Bruegel, o Velho, Caçadores na Neve (1565)",
+  faith: "Jan van Eyck, Adoração do Cordeiro Místico (c. 1432)",
 };
 
 const CHOICE_LABEL: Record<Choice, string> = { yes: "SIM", no: "NÃO", abstain: "ABSTER" };

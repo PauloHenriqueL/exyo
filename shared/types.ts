@@ -1,10 +1,10 @@
-export const RESOURCES = ["health", "security", "military", "food", "wealth"] as const;
+export const RESOURCES = ["health", "faith", "military", "food", "wealth"] as const;
 export type Resource = (typeof RESOURCES)[number];
 export type Resources = Record<Resource, number>;
 
 export const RESOURCE_LABEL: Record<Resource, string> = {
   health: "Saúde",
-  security: "Segurança",
+  faith: "Religião",
   military: "Força Militar",
   food: "Comida",
   wealth: "Riqueza",

@@ -1,7 +1,7 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "ranges": { "high": [3, 6], "moderate": [-2, 2] },
-  "initialResources": { "health": 0, "security": 0, "military": 0, "food": 0, "wealth": 0 },
+  "initialResources": { "health": 0, "faith": 0, "military": 0, "food": 0, "wealth": 0 },
   "economy": { "startingTokens": 15 },
   "houses": [
     {
@@ -9,8 +9,8 @@
       "motto": "Tudo tem seu preço.",
       "colors": { "primary": "#C9A227", "secondary": "#6B1E2E", "accent": "#F3E7C9" },
       "goals": [
-        { "id": "aurivel_a", "high": ["security", "food", "wealth"], "moderate": ["health", "military"] },
-        { "id": "aurivel_b", "high": ["health", "military", "wealth"], "moderate": ["security", "food"] }
+        { "id": "aurivel_a", "high": ["health", "military", "wealth"], "moderate": ["faith", "food"] },
+        { "id": "aurivel_b", "high": ["faith", "food", "wealth"], "moderate": ["health", "military"] }
       ]
     },
     {
@@ -18,8 +18,8 @@
       "motto": "O aço não negocia.",
       "colors": { "primary": "#8A9199", "secondary": "#9E1B1B", "accent": "#1A1A1A" },
       "goals": [
-        { "id": "ferrobranco_a", "high": ["security", "military", "wealth"], "moderate": ["health", "food"] },
-        { "id": "ferrobranco_b", "high": ["security", "military", "food"], "moderate": ["health", "wealth"] }
+        { "id": "ferrobranco_a", "high": ["military", "food", "wealth"], "moderate": ["health", "faith"] },
+        { "id": "ferrobranco_b", "high": ["faith", "military", "food"], "moderate": ["health", "wealth"] }
       ]
     },
     {
@@ -27,8 +27,8 @@
       "motto": "Quem planta, governa.",
       "colors": { "primary": "#3F6B3A", "secondary": "#D9B65D", "accent": "#6B4A2B" },
       "goals": [
-        { "id": "verdemar_a", "high": ["health", "food", "wealth"], "moderate": ["security", "military"] },
-        { "id": "verdemar_b", "high": ["health", "military", "food"], "moderate": ["security", "wealth"] }
+        { "id": "verdemar_a", "high": ["health", "food", "wealth"], "moderate": ["faith", "military"] },
+        { "id": "verdemar_b", "high": ["health", "military", "food"], "moderate": ["faith", "wealth"] }
       ]
     },
     {
@@ -36,8 +36,8 @@
       "motto": "A luz cura o reino.",
       "colors": { "primary": "#EDEBE4", "secondary": "#3D6FA8", "accent": "#B8BEC6" },
       "goals": [
-        { "id": "lumen_a", "high": ["health", "security", "food"], "moderate": ["military", "wealth"] },
-        { "id": "lumen_b", "high": ["health", "security", "military"], "moderate": ["food", "wealth"] }
+        { "id": "lumen_a", "high": ["health", "faith", "food"], "moderate": ["military", "wealth"] },
+        { "id": "lumen_b", "high": ["health", "faith", "military"], "moderate": ["food", "wealth"] }
       ]
     },
     {
@@ -45,8 +45,8 @@
       "motto": "Saber é sobreviver.",
       "colors": { "primary": "#141824", "secondary": "#4B2C5E", "accent": "#9C9AA3" },
       "goals": [
-        { "id": "corvalis_a", "high": ["health", "security", "wealth"], "moderate": ["military", "food"] },
-        { "id": "corvalis_b", "high": ["military", "food", "wealth"], "moderate": ["health", "security"] }
+        { "id": "corvalis_a", "high": ["health", "faith", "wealth"], "moderate": ["military", "food"] },
+        { "id": "corvalis_b", "high": ["faith", "military", "wealth"], "moderate": ["health", "food"] }
       ]
     }
   ]

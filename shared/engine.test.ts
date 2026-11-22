@@ -102,7 +102,7 @@ describe("partida", () => {
   });
 
   it("chegar a +7 também derruba o Reino (excesso), e nada passa das pontas", () => {
-    const s = { ...createGame(DILEMMAS, HOUSES, players, 3), resources: { health: 6, security: 6, military: 6, food: 6, wealth: 6 } };
+    const s = { ...createGame(DILEMMAS, HOUSES, players, 3), resources: { health: 6, faith: 6, military: 6, food: 6, wealth: 6 } };
     expect(isCollapsed(s)).toBe(false);
     const card = DILEMMA_BY_ID["viajantes_do_leste"];
     const up = Object.entries(pickVariant(card, "yes", s).effects).find(([, n]) => n! > 0)![0] as keyof typeof s.resources;
@@ -115,8 +115,9 @@ describe("partida", () => {
 
   it("pontuação conta recursos dentro das faixas", () => {
     const goal = HOUSES.houses[0].goals[0];
-    const res = { health: 0, military: 5, security: 3, food: 6, wealth: 2 };
-    // high: security(3 ok), food(6 ok), wealth(2 não) · moderate: health(0 ok), military(5 não)
+    // aurivel_a — alto: Saúde, Força Militar, Riqueza · moderado: Religião, Comida
+    const res = { health: 3, military: 6, wealth: 2, faith: 0, food: 5 };
+    // alto: health(3 ok), military(6 ok), wealth(2 não) · moderado: faith(0 ok), food(5 não)
     expect(scoreGoal(goal, res, HOUSES.ranges)).toBe(3);
   });
 
@@ -204,13 +205,13 @@ describe("prévia do resultado na carta", () => {
     const p = previewOutcomes(s, DILEMMA_BY_ID["viajantes_do_leste"]);
     expect(p.yes.effects).toEqual({ food: -1, wealth: 1 });
     expect(p.yes.later).toBe(true);
-    expect(p.no.effects).toEqual({ security: 1 });
+    expect(p.no.effects).toEqual({ faith: 1 });
   });
 
   it("considera as decisões anteriores (variante ligada a flag)", () => {
     const s = { ...createGame(DILEMMAS, HOUSES, players, 2), flags: { guarda_reforcada: true } };
     const p = previewOutcomes(s, DILEMMA_BY_ID["segredo_dos_viajantes"]);
-    expect(p.yes.effects).toEqual({ security: 2, wealth: -1 });
+    expect(p.yes.effects).toEqual({ military: 2, wealth: -1 });
   });
 
   it("todos começam com as fichas iniciais e o empate sem Mão do Rei é Indecisão do Conselho", () => {

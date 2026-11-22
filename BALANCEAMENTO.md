@@ -1,4 +1,4 @@
-# Balanceamento: pontos de influência, trilha e cartas
+# Balanceamento: pontos de influência, trilha, cartas e Religião
 
 Os números ficam em `content/houses.json` → `economy` e são escolhidos com `scripts/balance.ts`.
 
@@ -139,3 +139,23 @@ Os objetivos estão equilibrados entre as Casas: de 1,58 a 1,69 ponto por partid
 Média dos recursos no fim de cada partida (estrategista): Saúde −2,4 · Segurança −1,7 · Força Militar −1,8 · Comida −2,2 · Riqueza −2,1. Pontos por objetivo: de 1,33 (Ferrobranco B) a 1,50 (Aurivel B, Verdemar A).
 
 **A observar:** começando em 0, a deriva negativa das cartas e dos empates deixa os objetivos "alto" (+3 a +6) mais difíceis, e Ferrobranco fica um pouco atrás. Se o playtest confirmar, as alavancas são o empate não custar nada ou deixar algumas cartas um pouco mais positivas (dá para fazer pelo `npm run grafo`).
+
+## Religião no lugar de Segurança (2026-11-22)
+
+Segurança era o recurso mais usado (116 efeitos em 37 de 44 cartas) e falava de três coisas diferentes. Cada efeito foi remapeado à mão:
+- **crime, espiões, guarda e fronteira → Força Militar** (quando o desfecho já mexia em Força Militar, os dois foram somados ou a Segurança saiu);
+- **humor, confiança e fé do povo → Religião**, com o texto reescrito para mostrar o Templo, os sacerdotes ou o povo rezando;
+- alguns desfechos ganharam outra troca para não ficarem só bons ou só ruins (por exemplo, o Cerco de Pedravento agora reabre a estrada dos grãos: +Comida).
+
+Depois entraram **8 cartas novas de religião** (6 raiz, 2 consequências) e os objetivos das Casas foram redistribuídos entre as mesmas 10 combinações: Lumen tem Religião alta nas duas metas; Ferrobranco, Aurivel e Verdemar têm uma meta com e outra sem; Corvalis tem Religião nas duas.
+
+Efeitos por recurso: Riqueza 113 · Força Militar 82 · Religião 71 · Comida 68 · Saúde 67 (52 cartas).
+
+2.000 campanhas, `npm run balance`:
+
+| Mesa | Colapso (−7 / +7) | Empates | Mão decide | Ninguém votou | Pontos/partida |
+|---|---|---|---|---|---|
+| estrategista | 0,4% (0,4 / 0,0) | 35% | 3,5% | 33% | 1,49 |
+| ao acaso | 43,8% (39,2 / 4,6) | 8% | 15% | 1% | 1,52 |
+
+Pontos por objetivo (estrategista): de 1,39 (Lumen B) a 1,64 (Verdemar B). Média dos recursos no fim de cada partida: Saúde −2,2 · Religião −1,5 · Força Militar −2,1 · Comida −2,2 · Riqueza −2,0.
