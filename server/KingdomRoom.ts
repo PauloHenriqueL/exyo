@@ -14,6 +14,7 @@ import {
   resolveRound,
   scoreMatch,
   startNextMatch,
+  storiesOf,
   type GameState,
 } from "../shared/engine";
 import { RESOURCES, type ClientView, type Dilemma, type FinalInfo, type IntermissionInfo, type Phase, type RevealInfo, type Vote } from "../shared/types";
@@ -284,9 +285,15 @@ export class KingdomRoom extends Room {
     this.game = startNextMatch(this.game, HOUSES);
     const history = this.game.history;
     const total = (pid: string) => history.reduce((acc, m) => acc + (m.points[pid] ?? 0), 0);
+    const title = (id: string) => DILEMMA_BY_ID[id]?.title ?? id;
     this.intermission = {
       finishedMatch,
       scores: this.seats.map((s) => ({ playerId: s.id, points: points[s.id] ?? 0, total: total(s.id) })),
+      kingDeath: history[history.length - 1].kingDeath,
+      stories: storiesOf(this.game, finishedMatch).map((st) => ({
+        title: title(st.story),
+        steps: st.steps.map((e) => ({ title: title(e.card), outcome: e.outcome })),
+      })),
     };
     this.card = null;
     this.reveal = null;
@@ -362,6 +369,7 @@ export class KingdomRoom extends Room {
             prompt: this.card.prompt,
             question: this.card.question,
             openVote: this.card.openVote,
+            origin: g?.current?.from ? { title: DILEMMA_BY_ID[g.current.from.card]?.title ?? g.current.from.card, outcome: g.current.from.outcome } : null,
             preview: g ? previewOutcomes(g, this.card) : { yes: { effects: {}, later: false }, no: { effects: {}, later: false } },
           }
         : null,

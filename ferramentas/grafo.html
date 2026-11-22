@@ -296,6 +296,7 @@ function validate() {
     if ((c.prompt || "").length > LIMITS.prompt) add(c.id, `abertura com ${c.prompt.length} caracteres (máx. ${LIMITS.prompt})`);
     if ((c.question || "").length > LIMITS.question) add(c.id, `pergunta com ${c.question.length} caracteres (máx. ${LIMITS.question})`);
     const cap = c.kind === "root" ? 1 : 2;
+    const continues = ["yes", "no"].some((o) => (c.outcomes[o] || []).some((v) => v.inject?.length));
     for (const o of OUT) {
       const vs = c.outcomes[o] || [];
       if (!vs.length) { add(c.id, `falta o desfecho ${OUT_SHORT[o]}`); continue; }
@@ -304,11 +305,17 @@ function validate() {
         const tag = `${OUT_SHORT[o]}${vs.length > 1 ? ` #${i + 1}` : ""}`;
         if (!v.text?.trim()) add(c.id, `${tag}: falta o texto`);
         if ((v.text || "").length > LIMITS.text) add(c.id, `${tag}: texto com ${v.text.length} caracteres (máx. ${LIMITS.text})`);
+        // raiz ±1; nós do meio ±2; o desfecho que fecha o caminho (sem consequência) pode ter UM recurso em ±3
+        const closing = c.kind !== "root" && o !== "tie" && !v.inject?.length;
+        let over = 0;
         for (const [r, n] of Object.entries(v.effects || {})) {
           if (!RES.includes(r)) add(c.id, `${tag}: recurso desconhecido ${r}`);
           const lim = o === "tie" ? 1 : cap;
-          if (Math.abs(n) > lim) add(c.id, `${tag}: ${RES_LABEL[r] || r} ${fmt(n)} passa do limite ±${lim} (${o === "tie" ? "empate" : c.kind === "root" ? "carta raiz" : "consequência"})`);
+          if (Math.abs(n) > lim) over++;
+          if (Math.abs(n) > (closing ? 3 : lim)) add(c.id, `${tag}: ${RES_LABEL[r] || r} ${fmt(n)} passa do limite ±${closing ? 3 : lim} (${o === "tie" ? "empate" : c.kind === "root" ? "carta raiz" : closing ? "desfecho final" : "nó do meio"})`);
         }
+        if (closing && over > 1) add(c.id, `${tag}: só um recurso pode chegar a ±3 no desfecho final`);
+        if (o === "tie" && continues && !v.inject?.length && !v.kingDeath) add(c.id, `${tag}: o empate segue o pior caminho e precisa trazer uma consequência`);
         if (o === "tie" && sum(v.effects) > 0) add(c.id, `${tag}: a Indecisão do Conselho nunca pode ajudar (soma ${fmt(sum(v.effects))})`);
         for (const inj of v.inject || []) {
           const t = byId(inj.card);
@@ -324,7 +331,9 @@ function validate() {
   for (const f of Object.keys(writers)) if (!readers[f]) add([...writers[f]][0], `o sinal "${f}" é marcado mas nenhuma carta lê (sinal morto)`);
   for (const f of Object.keys(readers)) if (!writers[f]) add([...readers[f]][0], `o sinal "${f}" é lido mas nenhuma carta marca`);
   const roots = cards().filter((c) => c.kind === "root").length;
-  if (roots < 24) add(null, `só ${roots} cartas raiz: a campanha precisa de pelo menos 24`);
+  if (roots < 8) add(null, `só ${roots} histórias (cartas raiz): cada campanha joga umas 6, então são precisas pelo menos 8`);
+  for (const r of cards().filter((c) => c.kind === "root"))
+    for (const o of OUT) if (!(r.outcomes[o] || []).every((v) => v.inject?.length)) add(r.id, `${OUT_SHORT[o]}: toda carta raiz abre a história, precisa trazer uma consequência`);
   return issues;
 }
 
@@ -332,8 +341,9 @@ function validate() {
 function structure() {
   const { inject } = analyze();
   const ids = cards().map((c) => c.id);
+  // cartas compartilhadas ligam várias histórias: não contam para juntar histórias num bloco só
   const adj = {};
-  for (const e of inject) { if (!byId(e.to)) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
+  for (const e of inject) { if (!byId(e.to) || byId(e.to).shared || byId(e.from)?.shared) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
   const comp = {}; const groups = [];
   for (const id of ids) {
     if (comp[id] != null) continue;
@@ -382,7 +392,8 @@ function renderList() {
     errs ? el("button", { class: "link err", onclick: openOverview }, `${errs} problema(s): ver`) : el("span", {}, "nenhum problema"),
     el("span", {}, "Clique numa carta para editar.")));
   const chains = groups.filter((g) => g.length > 1).sort((a, b) => byId(a[0]).title.localeCompare(byId(b[0]).title));
-  const solo = groups.filter((g) => g.length === 1).flat().sort((a, b) => byId(a).title.localeCompare(byId(b).title));
+  const solo = groups.filter((g) => g.length === 1).flat().filter((id) => !byId(id).shared).sort((a, b) => byId(a).title.localeCompare(byId(b).title));
+  const shared = all.filter((c) => c.shared).map((c) => c.id).sort((a, b) => byId(a).title.localeCompare(byId(b).title));
   let shown = 0;
   const section = (title, ids) => {
     const list = ids.map(byId).filter((c) => matches(c, q));
@@ -391,6 +402,7 @@ function renderList() {
     wrap.append(el("section", { class: "story" }, el("h2", {}, title), list.map((c) => listCard(c, depth[c.id], inject, byCard[c.id] || []))));
   };
   for (const g of chains) section(`História: ${g.filter((id) => byId(id).kind === "root").map((id) => byId(id).title).join(" / ") || byId(g[0]).title}`, g);
+  section("Cartas compartilhadas: várias histórias trazem (no máximo uma vez por roda)", shared);
   section("Cartas sem consequência", solo);
   if (!shown) wrap.append(el("p", { class: "empty" }, q ? `Nenhuma carta com “${query}”.` : "Nenhuma carta."));
   box.replaceChildren(wrap);
@@ -401,7 +413,7 @@ function listCard(c, d, inject, issues) {
   const art = el("article", {
     class: `lcard${c.id === selected ? " sel" : ""}${issues.some((i) => i.err) ? " haserr" : ""}`,
     id: `carta-${c.id}`, tabindex: 0, role: "button", "aria-label": `Editar ${c.title}`,
-    style: `--cat:${color};${c.kind === "consequence" ? `margin-left:${Math.min(d || 1, 3) * 22}px` : ""}`,
+    style: `--cat:${color};${c.kind === "consequence" && !c.shared ? `margin-left:${Math.min(d || 1, 3) * 22}px` : ""}`,
     onclick: () => select(c.id),
     onkeydown: (ev) => { if (ev.target === art && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); select(c.id); } },
   });
@@ -409,11 +421,13 @@ function listCard(c, d, inject, issues) {
     el("h3", {}, c.title || c.id),
     el("span", { class: "badge" + (c.kind === "consequence" ? " cq" : "") }, c.kind === "root" ? "raiz" : "consequência"),
     el("span", { class: "badge" }, (CAT[c.category] || [c.category])[0]),
-    c.openVote ? el("span", { class: "badge" }, "voto aberto") : null));
+    c.openVote ? el("span", { class: "badge" }, "voto aberto") : null,
+    c.shared ? el("span", { class: "badge cq" }, "compartilhada") : null));
   if (c.kind === "consequence") {
     // variantes do mesmo resultado costumam trazer a mesma carta: mostra cada origem uma vez
     const from = inject.filter((e, i, a) => e.to === c.id && a.findIndex((x) => x.to === e.to && x.from === e.from && x.o === e.o) === i);
-    art.append(el("p", { class: "from" }, from.length
+    if (c.shared && from.length > 3) art.append(el("p", { class: "from" }, `Trazida por ${new Set(from.map((e) => e.from)).size} cartas de várias histórias, como: ${[...new Set(from.map((e) => byId(e.from)?.title))].slice(0, 4).join(", ")}…`));
+    else art.append(el("p", { class: "from" }, from.length
       ? ["Aparece quando ", ...from.flatMap((e, i) => [i ? " ou " : "", el("b", {}, OUT_SHORT[e.o]), ` em “${byId(e.from)?.title || e.from}”`, ` (${e.rounds} rodada${e.rounds > 1 ? "s" : ""} depois)`]), "."]
       : "Nenhuma carta traz esta consequência: ela nunca aparece."));
   }
@@ -430,6 +444,7 @@ function listCard(c, d, inject, issues) {
       ...(v.inject || []).map((inj) => el("span", { class: "traz" }, "→ traz ",
         el("button", { class: "link", onclick: (ev) => { ev.stopPropagation(); select(inj.card); focusNode(inj.card); } }, `“${byId(inj.card)?.title || inj.card}”`),
         ` ${inj.inRounds} rodada${inj.inRounds > 1 ? "s" : ""} depois`)),
+      v.kingDeath ? el("span", { class: "var" }, `☠ o velho Rei morre ${v.kingDeath}`) : null,
       vs.length > 1 ? el("span", { class: "var" }, `+ ${vs.length - 1} variante(s) com condição (veja no editor)`) : null));
   }
   art.append(outs);
@@ -444,7 +459,7 @@ function layout() {
   // componentes ligados por "traz consequência"
   const comp = {}; let n = 0;
   const adj = {};
-  for (const e of inject) { if (!byId(e.to)) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
+  for (const e of inject) { if (!byId(e.to) || byId(e.to).shared || byId(e.from)?.shared) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
   for (const id of ids) {
     if (comp[id] != null) continue;
     const stack = [id]; comp[id] = n;
@@ -494,7 +509,7 @@ function layout() {
   // cartas sem consequência, em grade embaixo
   const perRow = Math.max(4, Math.round((x + laneW + COLGAP) / (W + 24)));
   const soloTop = chainsBottom + 70;
-  titles.push({ x: 0, y: soloTop - 18, text: "Cartas raiz sem consequência direta (podem se ligar por sinais)" });
+  titles.push({ x: 0, y: soloTop - 18, text: "Cartas compartilhadas (várias histórias trazem)" });
   solo.forEach((id, i) => (pos[id] = { x: (i % perRow) * (W + 24), y: soloTop + Math.floor(i / perRow) * (H + ROWGAP) }));
   layout.titles = titles;
 }
@@ -684,6 +699,8 @@ function renderPanel() {
   cat.value = c.category; cat.onchange = () => { c.category = cat.value; changed(); };
   const open = el("input", { type: "checkbox" }); open.checked = !!c.openVote;
   open.onchange = () => { if (open.checked) c.openVote = true; else delete c.openVote; changed(); };
+  const shared = el("input", { type: "checkbox" }); shared.checked = !!c.shared;
+  shared.onchange = () => { if (shared.checked) c.shared = true; else delete c.shared; changed(); };
 
   const [title] = textInput(c, "title");
   const [prompt, pc] = textInput(c, "prompt", { area: true, max: LIMITS.prompt, rows: 4 });
@@ -694,6 +711,7 @@ function renderPanel() {
     field("Pergunta de SIM/NÃO", question, qc),
     el("div", { class: "row" }, field("Tipo", kind), field("Categoria (ilustração)", cat)),
     el("label", { class: "toggle", style: "margin-bottom: 8px" }, open, "Voto aberto (cada voto aparece na hora e não pode ser trocado)"),
+    c.kind === "consequence" ? el("label", { class: "toggle", style: "margin-bottom: 8px" }, shared, "Carta compartilhada (várias histórias trazem; texto sem nomes de lugar; sai no máximo uma vez por roda)") : null,
     field("id (usado nas ligações)", idIn),
     el("details", {}, el("summary", { class: "hint" }, "Condição para entrar no jogo (avançado)"),
       el("p", { class: "hint" }, 'Ex.: {"res": "food", "gte": -3} ou {"flag": "guarda_reforcada", "eq": true}. Vazio = sempre pode sair.'),
@@ -753,6 +771,9 @@ function renderOutcome(c, o) {
       el("button", { class: "link", onclick: () => { const first = cards().find((x) => x.kind === "consequence"); if (!first) return toast("Ainda não há cartas de consequência: use “nova consequência”."); (v.inject ||= []).push({ card: first.id, inRounds: 3 }); changed(); renderPanel(); } }, "+ trazer consequência existente"),
       el("button", { class: "link", onclick: () => newConsequence(v, c, o) }, "+ nova consequência a partir daqui")));
     wrap.append(field("Consequências que este resultado traz", injBox));
+    const [death] = textInput(v, "kingDeath", { onAfter: () => { if (!v.kingDeath) delete v.kingDeath; } });
+    death.placeholder = "ex.: de peste, como tantos na Capital (opcional)";
+    wrap.append(field("Se acontecer na roda 1, o velho Rei morre assim (aparece no intervalo)", death));
     box.append(wrap);
   });
   return box;
@@ -775,7 +796,8 @@ function renderOverview(p) {
       el("div", {}, el("b", {}, all.filter((c) => c.kind === "consequence").length), "consequências"),
       el("div", {}, el("b", {}, inject.length), "ligações diretas")),
     el("p", { class: "hint" }, `Clique numa carta para editar o texto, os pontos de cada resultado e as ligações. Na Lista, cada consequência aparece logo abaixo da carta que a traz. No Mapa, setas cheias ligam um resultado à consequência que ele traz; as ${flagEdges.length} ligações por sinal (flags) ficam escondidas e se ligam em Mais ▾.`),
-    el("p", { class: "hint" }, "Regras do balanceamento: carta raiz mexe ±1 em cada recurso; consequência até ±2; o empate perde no máximo 1 por recurso e nunca ajuda. A trilha vai de −7 a +7 e chegar a qualquer ponta derruba o Reino."),
+    el("p", { class: "hint" }, "Regras das histórias: cada campanha tem 2 rodas de 12 rodadas, com umas 3 histórias por roda e no máximo 2 abertas ao mesmo tempo. Toda raiz leva a 2 ou 3 cartas por qualquer caminho, e o empate segue o pior caminho. Cartas compartilhadas usam texto genérico e saem no máximo uma vez por roda."),
+    el("p", { class: "hint" }, "Pontos: a raiz mexe ±1 por recurso, os nós do meio até ±2 e o desfecho que fecha um caminho até ±3 em um recurso. O empate perde no máximo 1 por recurso e nunca ajuda. A trilha vai de −7 a +7, e chegar a qualquer ponta derruba o Reino."),
     el("h3", {}, issues.length ? `Problemas (${issues.length})` : "Problemas"),
     issues.length
       ? el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.id ? el("button", { class: "link", onclick: () => { select(i.id); focusNode(i.id); } }, byId(i.id)?.title || i.id) : null, " ", i.msg)))
@@ -789,7 +811,7 @@ function renderOverview(p) {
 // ---------- operações ----------
 function uniqueId(base) { let id = base, n = 2; while (byId(id)) id = `${base}_${n++}`; return id; }
 function blankCard(kind, id) {
-  return { id, kind, category: "diplomacy", title: kind === "root" ? "Nova carta" : "Nova consequência", prompt: "", question: "O Reino deve …?",
+  return { id, kind, category: "diplomacy", title: kind === "root" ? "Nova história" : "Nova consequência", prompt: "", question: "O Reino deve …?",
     outcomes: { yes: [{ text: "", effects: { faith: 1, wealth: -1 } }], no: [{ text: "", effects: { faith: -1, wealth: 1 } }], tie: [{ text: "", effects: { faith: -1 } }] } };
 }
 function newCard() {

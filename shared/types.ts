@@ -28,6 +28,8 @@ export interface Variant {
   effects: Partial<Resources>;
   setFlags?: Record<string, FlagSet>;
   inject?: { card: string; inRounds: number }[];
+  /** Se este desfecho acontecer na roda, o velho Rei morre assim no fim dela (o último que valer). Ex.: "de peste, como tantos no porto". */
+  kingDeath?: string;
 }
 
 export type Outcome = "yes" | "no" | "tie";
@@ -44,6 +46,8 @@ export interface Dilemma {
   openVote?: boolean;
   /** Posição garantida no baralho, como fração da campanha (0 = primeira carta, 1 = última rodada). */
   placement?: { from: number; to: number };
+  /** Carta compartilhada: várias histórias podem trazê-la. Sai no máximo uma vez por roda (as outras, nunca se repetem). */
+  shared?: boolean;
   outcomes: Record<Outcome, Variant[]>;
 }
 
@@ -98,6 +102,8 @@ export interface PublicCard {
   prompt: string;
   question: string;
   openVote?: boolean;
+  /** De onde esta carta veio: a votação que a trouxe (null = começo de uma história). */
+  origin: { title: string; outcome: Outcome } | null;
 }
 
 export interface PublicPlayer {
@@ -137,6 +143,15 @@ export interface FinalInfo {
 export interface IntermissionInfo {
   finishedMatch: number;
   scores: { playerId: string; points: number; total: number }[];
+  /** Como o velho Rei morreu (vem do que aconteceu na roda). */
+  kingDeath: string;
+  /** Histórias vividas na roda, cada uma com as cartas e o que o Conselho decidiu. */
+  stories: StorySummary[];
+}
+
+export interface StorySummary {
+  title: string;
+  steps: { title: string; outcome: Outcome }[];
 }
 
 /** Estado enviado a um jogador específico. */

@@ -66,8 +66,38 @@ describe("conteúdo das cartas", () => {
     expect([...read].filter((f) => !written.has(f)), "lidas e nunca escritas").toEqual([]);
   });
 
-  it("há cartas iniciais suficientes para uma campanha de 2 partidas sem repetir", () => {
-    expect(DILEMMAS.filter((d) => d.kind === "root").length).toBeGreaterThanOrEqual(24);
+  it("há histórias suficientes: cada campanha joga umas 6, então o baralho precisa de pelo menos 8", () => {
+    expect(DILEMMAS.filter((d) => d.kind === "root").length).toBeGreaterThanOrEqual(8);
+  });
+
+  it("toda história tem pelo menos 2 cartas depois da raiz, por qualquer caminho", () => {
+    const continues = (id: string, o: "yes" | "no" | "tie") => DILEMMA_BY_ID[id].outcomes[o].every((v) => v.inject?.length);
+    for (const r of DILEMMAS.filter((d) => d.kind === "root")) {
+      for (const o of OUTCOMES) {
+        expect(continues(r.id, o), `${r.id}.${o} não traz consequência`).toBe(true);
+        for (const v of r.outcomes[o])
+          for (const inj of v.inject ?? [])
+            for (const o2 of ["yes", "no"] as const)
+              for (const v2 of DILEMMA_BY_ID[inj.card].outcomes[o2])
+                expect(!!v2.inject?.length || !!v2.kingDeath, `${r.id} → ${inj.card}.${o2} termina cedo demais`).toBe(true);
+      }
+    }
+  });
+
+  it("o empate segue o pior caminho: se SIM ou NÃO continua a história, o empate também (exceto quando o Rei morre)", () => {
+    for (const d of DILEMMAS) {
+      const continues = (["yes", "no"] as const).some((o) => d.outcomes[o].some((v) => v.inject?.length));
+      if (continues) for (const v of d.outcomes.tie) expect(!!v.inject?.length || !!v.kingDeath, d.id).toBe(true);
+    }
+  });
+
+  it("cartas compartilhadas existem e cada uma é trazida por mais de uma carta", () => {
+    const shared = DILEMMAS.filter((d) => d.shared);
+    expect(shared.length).toBeGreaterThanOrEqual(4);
+    for (const c of shared) {
+      const from = new Set(DILEMMAS.filter((d) => OUTCOMES.some((o) => d.outcomes[o].some((v) => v.inject?.some((i) => i.card === c.id)))).map((d) => d.id));
+      expect(from.size, c.id).toBeGreaterThan(1);
+    }
   });
 });
 
@@ -84,7 +114,8 @@ describe("clareza das cartas", () => {
   it("todo recurso aparece em cartas suficientes (nenhum fica esquecido)", () => {
     const count: Record<string, number> = {};
     for (const d of DILEMMAS) for (const o of OUTCOMES) for (const v of d.outcomes[o]) for (const r of Object.keys(v.effects)) count[r] = (count[r] ?? 0) + 1;
-    for (const r of RESOURCES) expect(count[r] ?? 0, r).toBeGreaterThanOrEqual(40);
+    const total = Object.values(count).reduce((a, b) => a + b, 0);
+    for (const r of RESOURCES) expect((count[r] ?? 0) / total, r).toBeGreaterThanOrEqual(0.12);
   });
 
   it("toda categoria de carta tem ilustração", () => {
@@ -100,13 +131,20 @@ describe("clareza das cartas", () => {
     }
   });
 
-  it("efeitos cabem na trilha de −7 a +7: raiz ±1, consequência até ±2, empate nunca ajuda", () => {
+  it("efeitos cabem na trilha de −7 a +7: raiz ±1, nós do meio ±2, desfecho que fecha o caminho até ±3 em um recurso, empate nunca ajuda", () => {
     for (const d of DILEMMAS) {
       const cap = d.kind === "root" ? 1 : 2;
       for (const o of OUTCOMES)
         for (const v of d.outcomes[o]) {
-          for (const [r, n] of Object.entries(v.effects)) expect(Math.abs(n!), `${d.id}.${o}.${r}`).toBeLessThanOrEqual(o === "tie" ? 1 : cap);
-          if (o === "tie") expect(Object.values(v.effects).reduce((a, b) => a! + b!, 0), `${d.id}.tie: indecisão nunca ajuda`).toBeLessThanOrEqual(0);
+          const vals = Object.values(v.effects) as number[];
+          if (o === "tie") {
+            for (const n of vals) expect(Math.abs(n), `${d.id}.tie`).toBeLessThanOrEqual(1);
+            expect(vals.reduce((a, b) => a + b, 0), `${d.id}.tie: indecisão nunca ajuda`).toBeLessThanOrEqual(0);
+            continue;
+          }
+          const closing = d.kind !== "root" && !v.inject?.length;
+          for (const n of vals) expect(Math.abs(n), `${d.id}.${o}`).toBeLessThanOrEqual(closing ? 3 : cap);
+          expect(vals.filter((n) => Math.abs(n) > cap).length, `${d.id}.${o}: só um recurso pode passar de ±${cap}`).toBeLessThanOrEqual(closing ? 1 : 0);
         }
     }
   });
@@ -156,13 +194,15 @@ describe("simulação de campanhas (votos aleatórios)", () => {
         dead = isCollapsed(s);
       }
       if (dead) collapsed++;
-      expect(new Set(s.played).size, `seed ${seed}: carta repetida`).toBe(s.played.length);
+      const story = s.played.filter((id) => !DILEMMA_BY_ID[id].shared);
+      expect(new Set(story).size, `seed ${seed}: carta de história repetida`).toBe(story.length);
     }
     const rate = collapsed / N;
     console.log(`campanha 2×12: colapso em ${(rate * 100).toFixed(1)}% · baralho curto em ${shortDeck}`);
     expect(shortDeck).toBe(0);
-    // Trilha curta (±7, as duas pontas derrubam), recursos começando em 0: votando ao acaso o Reino cai em
-    // ~48% das campanhas; jogadores que olham a prévia caem em ~1% (npm run balance). Este limite só pega pioras.
-    expect(rate).toBeLessThan(0.6);
+    // Histórias longas com consequências de ±2 e desfechos de ±3: votando ao acaso o Reino cai em ~82% das
+    // campanhas; uma mesa meio atenta, em ~7%; jogadores que olham a prévia, em ~1% (npm run balance).
+    // Este limite só pega pioras.
+    expect(rate).toBeLessThan(0.9);
   });
 });
