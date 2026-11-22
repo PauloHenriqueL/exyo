@@ -12,9 +12,10 @@ for (let i = 0; i < Number(process.env.BOTS ?? 3); i++) {
     if (v.phase === "lobby" && !picked) { picked = true; room.send("pickHouse", { houseId: houses[i] }); }
     if ((v.phase === "discussion" || v.phase === "reveal" || v.phase === "intermission") && !v.players.find((p) => p.id === v.me.id)?.isReady) setTimeout(() => room.send("ready"), 1000);
     if (v.phase === "voting" && votedRound !== v.round) {
-      votedRound = v.round; const c = ["yes", "no", "abstain"][Math.floor(Math.random() * 3)];
+      votedRound = v.round;
       const me = v.players.find((p) => p.id === v.me.id);
-      setTimeout(() => room.send("vote", { choice: c, tokens: c === "abstain" ? 0 : Math.min(me.tokens, 1) }), 500 + i * 300);
+      const c = me.tokens > 0 ? ["yes", "no", "abstain"][Math.floor(Math.random() * 3)] : "abstain"; // sem pontos, só se abstém
+      setTimeout(() => room.send("vote", { choice: c, tokens: c === "abstain" ? 0 : 1 }), 500 + i * 300);
     }
     if (v.phase === "end") { console.log("bot", i, "fim", JSON.stringify(v.final.scores.map(s => s.points))); process.exitCode = 0; }
   });

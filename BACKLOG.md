@@ -3,8 +3,8 @@
 > Fonte da verdade sobre **onde estamos**. Atualizado a cada etapa.
 > Legenda: `[x]` feito · `[~]` em andamento · `[ ]` pendente · `[?]` decisão em aberto
 
-**Última atualização:** 2026-11-19
-**Fase atual:** 4 — No ar em https://exyo.onrender.com (plano Free; pronto para o playtest)
+**Última atualização:** 2026-11-22
+**Fase atual:** 4 — No ar em https://exyo.onrender.com (plano Starter; pronto para o playtest)
 
 ---
 
@@ -26,7 +26,11 @@
 - [ ] Revisitar o balanceamento depois do primeiro playtest
 - [x] Playtest com amigos (2026-11-20) → mudanças: sem roubo do Reino; a carta mostra o resultado de SIM e NÃO antes do voto; sem cartas de religião; sem tempo nas fases (avança quando todos clicam; "Continuar" depois do resultado); sem Favor do Rei, Mão do Rei, carta da princesa e tela de abertura do Rei
 - [x] Mão do Rei de volta só como desempate (2026-11-20): passa ao próximo da mesa a cada rodada (a primeira é sorteada; o bot entra na fila; a fila continua na 2ª partida). Num empate vale o voto dela; se ela se absteve, é Indecisão do Conselho. Sem bônus de fichas. Simulação: empates caem de ~27% para ~20% das rodadas, e a Mão decide ~8%
-- [ ] Observar no próximo teste: ~1 em 5 rodadas ainda termina em Indecisão do Conselho (a Mão se absteve ou todos se abstiveram)
+- [x] Pontos de influência (2026-11-22): os 15 pontos valem para a campanha toda. Votar SIM ou NÃO gasta pelo menos 1 ponto (cada ponto = 1 de peso); abster-se não custa nem rende; com 0 pontos o jogador só pode se abster
+- [x] Trilha de −7 a +7 (2026-11-22): chegar a qualquer ponta derruba o Reino (falta ou excesso); o placar final diz qual recurso caiu. Recursos começam em +1; objetivos: alto = +3 a +6, moderado = −2 a +2
+- [x] Cartas reequilibradas e reescritas (2026-11-22): textos curtos e diretos; cartas raiz mexem ±1 por recurso, consequências até ±2, o empate perde no máximo 1 por recurso e nunca ajuda. Simulação em `BALANCEAMENTO.md`
+- [x] Editor de cartas em grafo (`npm run grafo`, http://localhost:5180): mostra as cadeias de consequência e os sinais (flags) entre cartas; edita texto, pontos e ligações, cria cartas e salva direto em `content/dilemmas.json` (backup em `data/backup-cartas/`)
+- [ ] Observar no próximo teste: com pontos escassos, ~1 em 3 rodadas termina sem ninguém votando (Indecisão do Conselho). Se incomodar, as alavancas são mais pontos iniciais ou o empate não custar nada
 - [x] Mão do Rei e Favor do Rei (2026-11-19): token de desempate que passa entre jogadores; 16 cartas dão Favor do Rei ao lado que agrada ao Rei; maior Favor (sozinho) toma a coroa (+5 fichas). Rei Osric III com gostos e desgostos mostrados na abertura
 - [x] Economia balanceada por simulação (`scripts/balance.ts`, ver `BALANCEAMENTO.md`): 15 fichas iniciais, +5 para a Mão, Favor inicial 5
 - [x] Roubar do Reino (recurso −1 → +1 ficha, só votando SIM/NÃO) e Voto aberto em 15 cartas (voto visível na hora e definitivo)

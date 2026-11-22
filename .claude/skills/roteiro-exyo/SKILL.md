@@ -23,11 +23,11 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 **As Casas** (nunca fale por elas no texto, só cite como proponentes): Aurivel (mercadores, "Tudo tem seu preço"), Ferrobranco (guerreiros, "O aço não negocia"), Verdemar (lavradores, "Quem planta, governa"), Lumen (curandeiros, "A luz cura o reino"), Corvalis (sussurradores, "Saber é sobreviver").
 
-**Recursos:** `health` Saúde, `security` Segurança, `military` Força Militar, `food` Comida, `wealth` Riqueza. Trilha de −10 a +10; −10 em qualquer um derruba o Reino.
+**Recursos:** `health` Saúde, `security` Segurança, `military` Força Militar, `food` Comida, `wealth` Riqueza. Trilha de −7 a +7: chegar a −7 (falta) ou a +7 (excesso) em qualquer um derruba o Reino. Os recursos começam em +1.
 
 ## 2. Como escrever uma carta imersiva
 
-**Abertura (`prompt`)**: 3 a 5 frases, entre 300 e 550 caracteres.
+**Abertura (`prompt`)**: 1 ou 2 frases curtas, entre 80 e 200 caracteres (máx. 220). Diga com clareza o que está acontecendo e o que está sendo pedido. Os jogadores leem em voz alta numa chamada: simples e direto vale mais que atmosfera.
 1. Comece por uma **cena concreta**: quem chega, o que se vê, ouve ou cheira. Nada de "O Reino enfrenta um desafio".
 2. Dê **nome ou papel** a alguém (o capitão da guarda, um monge descalço, o mestre da Guilda).
 3. Mostre **o que está em jogo dos dois lados**: quem ganha e quem perde com o SIM e com o NÃO.
@@ -37,7 +37,7 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 
 **Os jogadores veem os efeitos antes de votar.** A carta mostra "Se SIM" e "Se NÃO" com os recursos que sobem e descem. Por isso a história tem que **combinar com os números**: se o SIM derruba Comida e sobe Força Militar, o texto precisa deixar claro por quê ("os soldados comem o trigo dos camponeses"). Dilemas morais abstratos, sem ligação visível com os recursos, confundem.
 
-**Desfechos (`text` de cada variante)**: 1 ou 2 frases com uma **virada**: o preço escondido, quem ficou ressentido, o detalhe irônico. Ex.: "Lanças se quebram e cavaleiros juram lealdade. O tesoureiro chora sozinho." O empate (`tie`) é a **Indecisão do Conselho**: alguém age sem ordem e costuma dar errado.
+**Desfechos (`text` de cada variante)**: 1 frase, até ~110 caracteres (máx. 130), com uma **virada**: o preço escondido, quem ficou ressentido, o detalhe irônico. Ex.: "Lanças se quebram e cavaleiros juram lealdade. O tesoureiro chora sozinho." O empate (`tie`) é a **Indecisão do Conselho**: alguém age sem ordem e costuma dar errado.
 
 **Tom:** sóbrio, medieval, com ironia seca. Frases curtas. Português do Brasil.
 
@@ -80,7 +80,7 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 ## 4. Regras de equilíbrio (não quebre o jogo)
 
 - **Todo desfecho tem custo e ganho.** Nenhum SIM ou NÃO pode ser só bom.
-- Cada efeito vai de −3 a +3; a soma de um desfecho fica entre −2 e +1. O empate soma de −1 a −3: indecisão custa caro.
+- **Carta raiz mexe ±1 por recurso; consequência até ±2** (a "fatura" chega maior). A soma de SIM ou NÃO fica entre −1 e +1. O empate perde no máximo 1 por recurso e nunca ajuda. A trilha é curta (−7 a +7, as duas pontas derrubam), então um ±3 já é perigoso demais.
 - Os recursos mexidos devem combinar com a história (uma peste mexe em Saúde, não em Força Militar sem motivo).
 - **Variantes com `when`** são a melhor forma de imersão: a carta lembra do que o conselho fez antes ("Com a guarda já reforçada…"). Prefira ler flags existentes a criar novas.
 - **Toda flag criada precisa ser lida** em alguma carta, e toda flag lida precisa ser criada (o teste falha se não for).
@@ -91,12 +91,14 @@ Antes de escrever, leia o que já existe: `content/dilemmas.json` (cartas), `con
 ## 5. Fluxo de trabalho
 
 1. Leia `content/dilemmas.json` e escolha onde a carta se encaixa: qual flag antiga ela lê e que cadeia ela abre.
-2. Escreva as cartas seguindo as seções 2 a 4. Para um lote, planeje antes uma tabela curta: título, categoria, raiz ou consequência, flags lidas e escritas, Favor do Rei, Voto aberto.
+2. Escreva as cartas seguindo as seções 2 a 4. Para um lote, planeje antes uma tabela curta: título, categoria, raiz ou consequência, flags lidas e escritas, Voto aberto.
 3. Acrescente as cartas **no fim** da lista `dilemmas`, no mesmo estilo de formatação do arquivo (objetos pequenos em uma linha só, como `"effects": { "food": -1 }`). Não reformate o arquivo inteiro. Atualize `version` e `notes`.
 4. Valide:
    ```bash
    npm test                           # validador de conteúdo + simulação (colapso abaixo de 20%)
-   npx tsx scripts/balance.ts 1000    # opcional: confere a economia com bots estrategistas
+   npm run balance -- 1000            # opcional: colapso, empates e pontos com bots estrategistas e ao acaso
    ```
-5. Releia cada texto em voz alta, como a Mão do Rei vai ler na chamada. Se soar como relatório, reescreva como cena.
+5. Releia cada texto em voz alta, como a Mão do Rei vai ler na chamada. Se ficar longo ou confuso, corte.
+
+**Atalho:** `npm run grafo` abre o editor visual (http://localhost:5180) com as cartas em grafo: dá para ler as cadeias, editar texto e pontos, ligar consequências e criar cartas. Ele avisa as mesmas regras do `npm test` e salva no `content/dilemmas.json`.
 6. Atualize a contagem de categorias na seção 4 desta skill e o `BACKLOG.md`.

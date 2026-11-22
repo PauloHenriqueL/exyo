@@ -5,6 +5,7 @@ import { DILEMMAS, DILEMMA_BY_ID, HOUSES } from "../shared/content";
 import {
   createGame,
   drawCard,
+  collapseCause,
   isCollapsed,
   isMatchOver,
   isValidVote,
@@ -213,14 +214,14 @@ export class KingdomRoom extends Room {
     }
   }
 
-  /** Bot vota sozinho, com um pequeno atraso: SIM/NÃO/ABSTER ao acaso; aposta 0–2 fichas. */
+  /** Bot vota sozinho, com um pequeno atraso: SIM/NÃO/ABSTER ao acaso; gasta 1–2 pontos de influência (sem pontos, se abstém). */
   private scheduleBotVotes() {
     for (const bot of this.seats.filter((s) => s.isBot)) {
       this.clock.setTimeout(() => {
         if (this.phase !== "voting" || !this.game || this.votes[bot.id]) return;
-        const choice = (["yes", "no", "abstain"] as const)[Math.floor(Math.random() * 3)];
         const available = this.game.tokens[bot.id] ?? 0;
-        const tokens = choice === "abstain" ? 0 : Math.min(available, Math.floor(Math.random() * 3));
+        const choice = available > 0 ? (["yes", "no", "abstain"] as const)[Math.floor(Math.random() * 3)] : "abstain";
+        const tokens = choice === "abstain" ? 0 : Math.min(available, 1 + Math.floor(Math.random() * 2));
         this.votes[bot.id] = { choice, tokens };
         if (!this.checkProgress()) this.broadcastViews();
       }, 1500 + Math.random() * 4000);
@@ -318,7 +319,7 @@ export class KingdomRoom extends Room {
       const bestTokens = Math.max(...top.map((s) => s.tokens));
       winnerIds = top.filter((s) => s.tokens === bestTokens).map((s) => s.playerId);
     }
-    this.final = { collapsed, scores, winnerIds };
+    this.final = { collapsed, collapse: collapsed ? collapseCause(g) : null, scores, winnerIds };
     this.card = null;
     this.intermission = null;
     endMatch(this.matchId, { ...this.final, resources: this.game.resources });

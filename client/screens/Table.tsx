@@ -143,17 +143,18 @@ function ReadyPanel({ view, room }: { view: ClientView; room: Room }) {
 function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: PublicPlayer }) {
   const voted = view.me.vote;
   const [choice, setChoice] = useState<Choice | null>(voted?.choice ?? null);
-  const [spend, setSpend] = useState(voted?.tokens ?? 0);
+  const [spend, setSpend] = useState(voted?.tokens || 1);
   const votedCount = view.players.filter((p) => p.hasVoted).length;
   const locked = !!(view.card?.openVote && voted); // voto aberto é definitivo
   const voting = choice === "yes" || choice === "no";
   const max = me.tokens;
-  const spendNow = Math.min(spend, max);
+  const broke = max <= 0; // sem pontos de influência: só dá para se abster
+  const spendNow = Math.max(1, Math.min(spend, max));
 
   const submit = () => {
     if (!choice || locked) return;
     play("seal");
-    if (choice !== "abstain" && spendNow > 0) play("coins", 150);
+    if (choice !== "abstain") play("coins", 150);
     sendVote(room, { choice, tokens: choice === "abstain" ? 0 : spendNow });
   };
 
@@ -167,7 +168,7 @@ function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: Publi
             key={c}
             role="radio"
             aria-checked={choice === c}
-            disabled={locked}
+            disabled={locked || (broke && c !== "abstain")}
             className={`selo ${c} ${choice === c ? "on" : ""}`}
             onClick={() => setChoice(c)}
           >
@@ -177,25 +178,26 @@ function VotePanel({ view, room, me }: { view: ClientView; room: Room; me: Publi
           </button>
         ))}
       </div>
-      {voting && !locked && (
+      {broke && !locked && <p className="hand-note">Você não tem mais pontos de influência: só pode se abster.</p>}
+      {voting && !locked && !broke && (
         <div className="stepper">
-          <span>Fichas de voto a apostar (você tem {me.tokens}):</span>
-          <button className="btn small" onClick={() => setSpend(Math.max(0, spendNow - 1))} disabled={spendNow <= 0} aria-label="Menos fichas">
+          <span>Pontos de influência a gastar (você tem {me.tokens}):</span>
+          <button className="btn small" onClick={() => setSpend(Math.max(1, spendNow - 1))} disabled={spendNow <= 1} aria-label="Menos pontos">
             −
           </button>
           <strong>{spendNow}</strong>
-          <button className="btn small" onClick={() => setSpend(Math.min(max, spendNow + 1))} disabled={spendNow >= max} aria-label="Mais fichas">
+          <button className="btn small" onClick={() => setSpend(Math.min(max, spendNow + 1))} disabled={spendNow >= max} aria-label="Mais pontos">
             +
           </button>
-          <span className="muted">peso do voto: {1 + spendNow}</span>
+          <span className="muted">peso do voto: {spendNow}</span>
         </div>
       )}
-      {choice === "abstain" && !locked && <p className="muted">Abster-se rende +1 ficha de voto.</p>}
-      <button className="btn primary" disabled={!choice || locked} onClick={submit}>
+      {choice === "abstain" && !locked && !broke && <p className="muted">Abster-se não gasta pontos de influência.</p>}
+      <button className="btn primary" disabled={!choice || locked || (broke && choice !== "abstain")} onClick={submit}>
         {locked ? "Voto selado" : voted ? "Alterar voto" : "Selar voto"}
       </button>
       <p className="muted">
-        {voted ? `Voto selado: ${CHOICE_LABEL[voted.choice]}${voted.tokens ? ` (+${voted.tokens} fichas)` : ""}. ` : ""}
+        {voted ? `Voto selado: ${CHOICE_LABEL[voted.choice]}${voted.tokens ? ` (${voted.tokens} ${voted.tokens === 1 ? "ponto" : "pontos"})` : ""}. ` : ""}
         {votedCount}/{view.players.length} votaram.
       </p>
     </div>
@@ -247,7 +249,7 @@ function RevealPanel({ view }: { view: ClientView }) {
                 {p.isHand && " 👑"}
               </span>
               <strong>{v ? CHOICE_LABEL[v.choice] : "—"}</strong>
-              {v?.tokens ? <small>+{v.tokens} fichas</small> : null}
+              {v?.tokens ? <small>{v.tokens} {v.tokens === 1 ? "ponto" : "pontos"}</small> : null}
             </motion.div>
           );
         })}
@@ -309,10 +311,10 @@ function Players({ view, chat }: { view: ClientView; chat: Record<string, ChatMe
               </span>
               <small className="sub">
                 {p.isHand ? `Mão do Rei · ${h.name}` : h.name}
-                {ov && ` · votou ${CHOICE_LABEL[ov.choice]}${ov.tokens ? ` +${ov.tokens}` : ""}`}
+                {ov && ` · votou ${CHOICE_LABEL[ov.choice]}${ov.tokens ? ` (${ov.tokens})` : ""}`}
               </small>
             </span>
-            <span title="Fichas de voto" className="tokens">
+            <span title="Pontos de influência" className="tokens">
               🎖 {p.tokens}
             </span>
             {view.phase === "voting" && <span>{p.hasVoted ? "✔" : "…"}</span>}

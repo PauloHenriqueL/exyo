@@ -10,7 +10,9 @@
     "build": "vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "grafo": "node scripts/grafo.mjs",
+    "balance": "tsx scripts/balance.ts"
   },
   "dependencies": {
     "@colyseus/timer": "^1.0.3",

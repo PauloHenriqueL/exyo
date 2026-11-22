@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grafo das Cartas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='4' cy='4' r='3' fill='%23b8891c'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%232b1d0e'/%3E%3Cpath d='M4 4L12 12' stroke='%232b1d0e' stroke-width='1.5'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f4ecdb; --panel: #fffaf0; --ink: #2b1d0e; --muted: #7a6748; --line: #d9c9a6; --gold: #b8891c;
+  --yes: #2f7a3a; --no: #a32525; --tie: #7d7466; --flag: #6b4c9a; --danger: #b3261e; --warn: #9a6700; --focus: #1d5fa8;
+  --node: #fffdf7; --shadow: 0 1px 2px rgba(43,29,14,.12), 0 4px 14px rgba(43,29,14,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; }
+header { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 17px; margin: 0 8px 0 0; letter-spacing: .2px; }
+header .grow { flex: 1; }
+input, select, textarea, button { font: inherit; color: inherit; }
+input[type=search], input[type=text], input[type=number], select, textarea { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 5px 8px; }
+textarea { width: 100%; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+button { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover { border-color: var(--gold); }
+button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+button.primary:disabled { opacity: .45; cursor: default; }
+button.danger { color: var(--danger); }
+button.link { border: none; background: none; padding: 2px 4px; color: var(--focus); text-decoration: underline; }
+label.toggle { display: inline-flex; gap: 5px; align-items: center; color: var(--muted); }
+.status { color: var(--muted); font-size: 13px; }
+.status.dirty { color: var(--warn); font-weight: 600; }
+.layout { flex: 1; display: grid; grid-template-columns: 1fr minmax(380px, 34%); min-height: 0; }
+#canvas { position: relative; overflow: hidden; touch-action: none; cursor: grab; }
+#canvas.dragging { cursor: grabbing; }
+svg { width: 100%; height: 100%; display: block; }
+.legend { position: absolute; left: 12px; bottom: 12px; background: rgba(255,250,240,.94); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; display: grid; gap: 3px; }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; }
+.zoom { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 4px; }
+.zoom button { width: 34px; height: 34px; padding: 0; background: var(--panel); }
+.node rect.card { fill: var(--node); stroke: var(--line); stroke-width: 1; filter: drop-shadow(0 1px 2px rgba(43,29,14,.15)); }
+.node { cursor: pointer; }
+.node:hover rect.card { stroke: var(--gold); }
+.node.sel rect.card { stroke: var(--focus); stroke-width: 2.5; }
+.node.err rect.card { stroke: var(--danger); stroke-dasharray: 4 3; }
+.node text { pointer-events: none; }
+.node .t { font-size: 13px; font-weight: 650; fill: var(--ink); }
+.node .m { font-size: 11px; fill: var(--muted); }
+.dim { opacity: .14; }
+.edge { fill: none; stroke-width: 1.6; }
+.edge.yes { stroke: var(--yes); } .edge.no { stroke: var(--no); } .edge.tie { stroke: var(--tie); }
+.edge.flag { stroke: var(--flag); stroke-dasharray: 5 4; stroke-width: 1.2; opacity: .35; }
+.sel-mode .edge.flag:not(.dim) { opacity: .85; }
+.elabel { font-size: 10.5px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.coltitle { font-size: 12px; fill: var(--muted); font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+aside { border-left: 1px solid var(--line); background: var(--panel); overflow: auto; padding: 14px 16px 40px; }
+aside h2 { font-size: 16px; margin: 4px 0 10px; }
+aside h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 18px 0 6px; }
+.field { display: grid; gap: 3px; margin-bottom: 9px; }
+.field > span { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.count { font-size: 11px; color: var(--muted); justify-self: end; }
+.count.over { color: var(--danger); font-weight: 600; }
+.outcome { border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: #fff; }
+.outcome > .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.outcome.yes { border-left: 4px solid var(--yes); } .outcome.no { border-left: 4px solid var(--no); } .outcome.tie { border-left: 4px solid var(--tie); }
+.variant { border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 8px; }
+.variant:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+.variant .vhead { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.effects { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 6px 0; }
+.effects label { display: grid; gap: 2px; font-size: 11px; color: var(--muted); text-align: center; }
+.effects input { width: 100%; text-align: center; padding: 4px 2px; }
+.effects input.pos { background: #e8f3e6; } .effects input.neg { background: #f8e4e2; }
+.inj { display: flex; gap: 6px; align-items: center; margin: 4px 0; flex-wrap: wrap; }
+.inj select { flex: 1; min-width: 150px; }
+.inj input { width: 64px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #efe6d2; }
+.chip.pos { background: #dcefd9; color: #1f5a28; } .chip.neg { background: #f6dcd9; color: #8a1f1a; }
+.issues { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.issues li { padding: 5px 8px; border-radius: 6px; background: #fff; border-left: 3px solid var(--warn); font-size: 13px; }
+.issues li.err { border-left-color: var(--danger); }
+.issues li button { margin-left: 6px; }
+.bad { border-color: var(--danger) !important; background: #fff3f2 !important; }
+.hint { color: var(--muted); font-size: 12.5px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stats div { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+.stats b { display: block; font-size: 20px; }
+.toast { position: fixed; left: 50%; top: 64px; translate: -50% 0; background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: var(--shadow); z-index: 10; }
+.toast.err { background: var(--danger); }
+.row > .field { flex: 1 1 160px; min-width: 0; }
+.field { min-width: 0; }
+.field > * { min-width: 0; max-width: 100%; }
+.field select { width: 100%; }
+.inj select { min-width: 0; width: 100%; flex-basis: 100%; }
+@media (max-width: 600px) { .legend { display: none; } .effects { gap: 4px; } .effects label { font-size: 10px; } }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }
+  aside { border-left: none; border-top: 1px solid var(--line); }
+  header { padding: 8px 12px; }
+  header input[type=search] { flex: 1; min-width: 140px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Grafo das Cartas</h1>
+  <input type="search" id="busca" placeholder="Buscar carta…" aria-label="Buscar carta" list="lista-cartas">
+  <datalist id="lista-cartas"></datalist>
+  <label class="toggle"><input type="checkbox" id="ver-sinais" checked> ligações por sinal (flags)</label>
+  <span class="grow"></span>
+  <button id="nova">+ Nova carta</button>
+  <button id="baixar">Baixar JSON</button>
+  <label class="toggle" title="Abrir um dilemmas.json do computador"><input type="file" id="abrir" accept=".json,application/json" hidden><button type="button" id="abrir-btn">Abrir arquivo…</button></label>
+  <button class="primary" id="salvar" disabled>Salvar no jogo</button>
+  <span class="status" id="status">carregando…</span>
+</header>
+<div class="layout">
+  <section id="canvas" aria-label="Grafo das cartas: arraste para mover, role para aproximar">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="a-yes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f7a3a"/></marker>
+        <marker id="a-no" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a32525"/></marker>
+        <marker id="a-tie" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d7466"/></marker>
+        <marker id="a-flag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b4c9a"/></marker>
+      </defs>
+      <g id="vp"><g id="edges"></g><g id="nodes"></g></g>
+    </svg>
+    <div class="legend" aria-hidden="true">
+      <span><i style="border-color:var(--yes)"></i>SIM traz a consequência</span>
+      <span><i style="border-color:var(--no)"></i>NÃO traz a consequência</span>
+      <span><i style="border-color:var(--tie)"></i>Empate traz a consequência</span>
+      <span><i style="border-color:var(--flag);border-top-style:dashed"></i>sinal (flag) lido por outra carta</span>
+    </div>
+    <div class="zoom">
+      <button id="z-mais" aria-label="Aproximar">+</button>
+      <button id="z-menos" aria-label="Afastar">−</button>
+      <button id="z-tudo" aria-label="Ver tudo" title="Ver tudo">⤢</button>
+    </div>
+  </section>
+  <aside id="painel" aria-live="polite"></aside>
+</div>
+<script>
+"use strict";
+const RES = ["health", "security", "military", "food", "wealth"];
+const RES_LABEL = { health: "Saúde", security: "Segurança", military: "Força Militar", food: "Comida", wealth: "Riqueza" };
+const RES_SHORT = { health: "Saú", security: "Seg", military: "Mil", food: "Com", wealth: "Riq" };
+const CAT = {
+  war: ["Guerra", "#9e1b1b"], feast: ["Banquete", "#b07a1f"], plague: ["Peste", "#4f6b3a"], diplomacy: ["Diplomacia", "#3d6fa8"],
+  trade: ["Comércio", "#c9a227"], crime: ["Intriga", "#4b2c5e"], nature: ["Natureza", "#6b4a2b"],
+};
+const OUT = ["yes", "no", "tie"];
+const OUT_LABEL = { yes: "SIM", no: "NÃO", tie: "Empate (Indecisão do Conselho)" };
+const OUT_SHORT = { yes: "SIM", no: "NÃO", tie: "empate" };
+const LIMITS = { prompt: 220, question: 90, text: 130 };
+const W = 252, H = 64, COLGAP = 150, ROWGAP = 16;
+
+let file = null;          // { version, notes, dilemmas }
+let selected = null;      // id da carta aberta no painel
+let dirty = false;
+let canSave = true;       // false quando aberto sem o servidor (npm run grafo)
+let showFlags = true;
+let pos = {};             // id → {x, y}
+let view = { x: 40, y: 40, k: 0.8 };
+
+const $ = (s) => document.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (k === "class") n.className = v;
+    else if (v === true) n.setAttribute(k, "");
+    else if (v !== false && v != null) n.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) n.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return n;
+};
+const svgEl = (tag, attrs = {}) => {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+};
+const cards = () => file.dilemmas;
+const byId = (id) => cards().find((c) => c.id === id);
+const fmt = (n) => (n > 0 ? `+${n}` : `${n}`);
+const sum = (e) => Object.values(e || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+
+function toast(msg, err = false) {
+  const t = el("div", { class: "toast" + (err ? " err" : ""), role: "status" }, msg);
+  document.body.append(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// ---------- análise: ligações e sinais ----------
+function condFlags(c, acc = new Set()) {
+  if (!c || typeof c !== "object") return acc;
+  if (Array.isArray(c.all)) c.all.forEach((x) => condFlags(x, acc));
+  if (Array.isArray(c.any)) c.any.forEach((x) => condFlags(x, acc));
+  if (c.not) condFlags(c.not, acc);
+  if (typeof c.flag === "string") acc.add(c.flag);
+  return acc;
+}
+function analyze() {
+  const inject = [], writers = {}, readers = {};
+  for (const c of cards()) {
+    for (const f of condFlags(c.requires)) (readers[f] ??= new Set()).add(c.id);
+    for (const o of OUT) for (const v of c.outcomes[o] || []) {
+      for (const inj of v.inject || []) inject.push({ from: c.id, to: inj.card, o, rounds: inj.inRounds });
+      for (const f of Object.keys(v.setFlags || {})) (writers[f] ??= new Set()).add(c.id);
+      for (const f of condFlags(v.when)) (readers[f] ??= new Set()).add(c.id);
+    }
+  }
+  const flagEdges = [];
+  for (const [f, ws] of Object.entries(writers)) for (const w of ws) for (const r of readers[f] || []) if (r !== w) flagEdges.push({ from: w, to: r, flag: f });
+  return { inject, flagEdges, writers, readers };
+}
+
+// ---------- validação (as mesmas regras do npm test) ----------
+function validate() {
+  const issues = [];
+  const add = (id, msg, err = true) => issues.push({ id, msg, err });
+  const { inject, writers, readers } = analyze();
+  const ids = new Set();
+  for (const c of cards()) {
+    if (ids.has(c.id)) add(c.id, `id repetido: ${c.id}`);
+    ids.add(c.id);
+    if (!/^[a-z0-9_]+$/.test(c.id)) add(c.id, "o id só pode ter letras minúsculas, números e _");
+    if (!c.prompt?.trim()) add(c.id, "falta o texto de abertura");
+    if (!c.question?.trim()) add(c.id, "falta a pergunta");
+    if ((c.prompt || "").length > LIMITS.prompt) add(c.id, `abertura com ${c.prompt.length} caracteres (máx. ${LIMITS.prompt})`);
+    if ((c.question || "").length > LIMITS.question) add(c.id, `pergunta com ${c.question.length} caracteres (máx. ${LIMITS.question})`);
+    const cap = c.kind === "root" ? 1 : 2;
+    for (const o of OUT) {
+      const vs = c.outcomes[o] || [];
+      if (!vs.length) { add(c.id, `falta o desfecho ${OUT_SHORT[o]}`); continue; }
+      if (vs[vs.length - 1].when) add(c.id, `${OUT_SHORT[o]}: a última variante precisa ser a padrão (sem condição)`);
+      vs.forEach((v, i) => {
+        const tag = `${OUT_SHORT[o]}${vs.length > 1 ? ` #${i + 1}` : ""}`;
+        if (!v.text?.trim()) add(c.id, `${tag}: falta o texto`);
+        if ((v.text || "").length > LIMITS.text) add(c.id, `${tag}: texto com ${v.text.length} caracteres (máx. ${LIMITS.text})`);
+        for (const [r, n] of Object.entries(v.effects || {})) {
+          if (!RES.includes(r)) add(c.id, `${tag}: recurso desconhecido ${r}`);
+          const lim = o === "tie" ? 1 : cap;
+          if (Math.abs(n) > lim) add(c.id, `${tag}: ${RES_LABEL[r] || r} ${fmt(n)} passa do limite ±${lim} (${o === "tie" ? "empate" : c.kind === "root" ? "carta raiz" : "consequência"})`);
+        }
+        if (o === "tie" && sum(v.effects) > 0) add(c.id, `${tag}: a Indecisão do Conselho nunca pode ajudar (soma ${fmt(sum(v.effects))})`);
+        for (const inj of v.inject || []) {
+          const t = byId(inj.card);
+          if (!t) add(c.id, `${tag}: traz "${inj.card}", que não existe`);
+          else if (t.kind !== "consequence") add(c.id, `${tag}: só cartas de consequência podem ser trazidas (${inj.card} é raiz)`);
+          if (!(inj.inRounds > 0)) add(c.id, `${tag}: o atraso precisa ser de 1 rodada ou mais`);
+        }
+      });
+      if (o !== "tie" && !Object.keys(vs[vs.length - 1].effects || {}).length) add(c.id, `${OUT_SHORT[o]}: precisa mudar ao menos um recurso (a prévia não pode ficar vazia)`);
+    }
+    if (c.kind === "consequence" && !inject.some((e) => e.to === c.id)) add(c.id, "consequência que nenhuma carta traz: nunca vai aparecer");
+    const txt = JSON.stringify(c).toLowerCase();
+    for (const w of ["bispo", "bruxa", "clero", "igreja", "relíquia", "herege"]) if (txt.includes(w)) add(c.id, `sem religião: a palavra "${w}" aparece`);
+  }
+  for (const f of Object.keys(writers)) if (!readers[f]) add([...writers[f]][0], `o sinal "${f}" é marcado mas nenhuma carta lê (sinal morto)`);
+  for (const f of Object.keys(readers)) if (!writers[f]) add([...readers[f]][0], `o sinal "${f}" é lido mas nenhuma carta marca`);
+  const roots = cards().filter((c) => c.kind === "root").length;
+  if (roots < 24) add(null, `só ${roots} cartas raiz: a campanha precisa de pelo menos 24`);
+  return issues;
+}
+
+// ---------- disposição: cada cadeia (raízes + consequências ligadas) vira um bloco ----------
+function layout() {
+  const { inject } = analyze();
+  const ids = cards().map((c) => c.id);
+  // componentes ligados por "traz consequência"
+  const comp = {}; let n = 0;
+  const adj = {};
+  for (const e of inject) { if (!byId(e.to)) continue; (adj[e.from] ??= new Set()).add(e.to); (adj[e.to] ??= new Set()).add(e.from); }
+  for (const id of ids) {
+    if (comp[id] != null) continue;
+    const stack = [id]; comp[id] = n;
+    while (stack.length) { const x = stack.pop(); for (const y of adj[x] || []) if (comp[y] == null) { comp[y] = n; stack.push(y); } }
+    n++;
+  }
+  const groups = Array.from({ length: n }, () => []);
+  for (const id of ids) groups[comp[id]].push(id);
+  // profundidade dentro do bloco: raiz 0, consequência = 1 + quem a traz
+  const depth = {};
+  for (const id of ids) depth[id] = byId(id).kind === "root" ? 0 : 1;
+  for (let it = 0; it < 10; it++) for (const e of inject) if (byId(e.to) && byId(e.to).kind !== "root") depth[e.to] = Math.max(depth[e.to], Math.min(depth[e.from] + 1, 6));
+  const chains = groups.filter((g) => g.length > 1).sort((a, b) => b.length - a.length);
+  const solo = groups.filter((g) => g.length === 1).map((g) => g[0]).sort((a, b) => byId(a).category.localeCompare(byId(b).category) || byId(a).title.localeCompare(byId(b).title));
+  const blocks = chains.map((g) => {
+    const cols = [];
+    for (const id of g) (cols[depth[id]] ??= []).push(id);
+    const local = {};
+    cols.forEach((col, d) => (col || []).forEach((id, i) => (local[id] = { d, i })));
+    // ordena consequências pela posição de quem as traz
+    for (let d = 1; d < cols.length; d++) if (cols[d]) {
+      const bc = (id) => { const p = inject.filter((e) => e.to === id && local[e.from]).map((e) => local[e.from].i); return p.length ? p.reduce((a, b) => a + b, 0) / p.length : 99; };
+      cols[d].sort((a, b) => bc(a) - bc(b)); cols[d].forEach((id, i) => (local[id].i = i));
+    }
+    const rows = Math.max(...cols.map((c) => (c ? c.length : 0)));
+    return { cols, w: cols.length * (W + COLGAP) - COLGAP, h: rows * (H + ROWGAP) - ROWGAP };
+  });
+  pos = {};
+  // blocos em colunas largas, enchendo até uma altura-alvo
+  const totalH = blocks.reduce((a, b) => a + b.h + 46, 0);
+  const lanes = Math.max(1, Math.min(4, Math.round(Math.sqrt(totalH / 520))));
+  const target = totalH / lanes;
+  let x = 0, y = 30, laneW = 0;
+  const titles = [];
+  for (const b of blocks) {
+    if (y > 30 && y + b.h > target + 60) { x += laneW + COLGAP * 1.2; y = 30; laneW = 0; }
+    b.cols.forEach((col, d) => (col || []).forEach((id, i) => {
+      // centraliza colunas mais curtas no bloco
+      const off = (b.h - (col.length * (H + ROWGAP) - ROWGAP)) / 2;
+      pos[id] = { x: x + d * (W + COLGAP), y: y + off + i * (H + ROWGAP) };
+    }));
+    laneW = Math.max(laneW, b.w);
+    y += b.h + 46;
+  }
+  const chainsBottom = Math.max(30, ...Object.values(pos).map((p) => p.y + H));
+  titles.push({ x: 0, y: 12, text: "Cadeias: carta raiz → consequências que ela pode trazer" });
+  // cartas sem consequência, em grade embaixo
+  const perRow = Math.max(4, Math.round((x + laneW + COLGAP) / (W + 24)));
+  const soloTop = chainsBottom + 70;
+  titles.push({ x: 0, y: soloTop - 18, text: "Cartas raiz sem consequência direta (podem se ligar por sinais)" });
+  solo.forEach((id, i) => (pos[id] = { x: (i % perRow) * (W + 24), y: soloTop + Math.floor(i / perRow) * (H + ROWGAP) }));
+  layout.titles = titles;
+}
+
+// ---------- desenho ----------
+function curve(a, b) {
+  const x1 = a.x + W, y1 = a.y + H / 2, x2 = b.x, y2 = b.y + H / 2;
+  if (x2 > x1) { const dx = Math.max(60, (x2 - x1) / 2); return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`; }
+  // mesma coluna ou para trás: contorna por fora
+  const out = 70 + Math.abs(y2 - y1) * 0.08;
+  return `M${x1},${y1} C${x1 + out},${y1} ${x2 + W + out},${y2} ${x2 + W},${y2}`;
+}
+function draw() {
+  layout();
+  const { inject, flagEdges } = analyze();
+  const issues = validate();
+  const errIds = new Set(issues.filter((i) => i.err && i.id).map((i) => i.id));
+  const edges = $("#edges"), nodes = $("#nodes");
+  $("#svg").classList.toggle("sel-mode", !!selected);
+  edges.replaceChildren(); nodes.replaceChildren();
+  const related = new Set();
+  if (selected) {
+    related.add(selected);
+    for (const e of inject) if (e.from === selected || e.to === selected) { related.add(e.from); related.add(e.to); }
+    if (showFlags) for (const e of flagEdges) if (e.from === selected || e.to === selected) { related.add(e.from); related.add(e.to); }
+  }
+  for (const t0 of layout.titles) {
+    const t = svgEl("text", { x: t0.x, y: t0.y, class: "coltitle" });
+    t.textContent = t0.text;
+    edges.append(t);
+  }
+  if (showFlags) for (const e of flagEdges) {
+    if (!pos[e.from] || !pos[e.to]) continue;
+    const on = !selected || e.from === selected || e.to === selected;
+    const p = svgEl("path", { d: curve(pos[e.from], pos[e.to]), class: "edge flag" + (on ? "" : " dim"), "marker-end": "url(#a-flag)" });
+    const tt = svgEl("title"); tt.textContent = `sinal "${e.flag}": marcado em ${byId(e.from).title}, lido em ${byId(e.to).title}`;
+    p.append(tt); edges.append(p);
+    if (selected && on) label(edges, pos[e.from], pos[e.to], e.flag, "var(--flag)");
+  }
+  for (const e of inject) {
+    if (!pos[e.from] || !pos[e.to]) continue;
+    const on = !selected || e.from === selected || e.to === selected;
+    const p = svgEl("path", { d: curve(pos[e.from], pos[e.to]), class: `edge ${e.o}` + (on ? "" : " dim"), "marker-end": `url(#a-${e.o})` });
+    const tt = svgEl("title"); tt.textContent = `${OUT_SHORT[e.o]} em "${byId(e.from).title}" traz "${byId(e.to)?.title}" ${e.rounds} rodada(s) depois`;
+    p.append(tt); edges.append(p);
+    if (on) label(edges, pos[e.from], pos[e.to], `${OUT_SHORT[e.o]} · ${e.rounds}r`);
+  }
+  for (const c of cards()) {
+    const p = pos[c.id]; if (!p) continue;
+    const g = svgEl("g", { class: `node${c.id === selected ? " sel" : ""}${errIds.has(c.id) ? " err" : ""}${selected && !related.has(c.id) ? " dim" : ""}`, transform: `translate(${p.x},${p.y})`, tabindex: 0, role: "button", "aria-label": `Editar ${c.title}` });
+    g.append(svgEl("rect", { class: "card", width: W, height: H, rx: 8 }));
+    g.append(svgEl("rect", { width: 6, height: H, rx: 3, fill: (CAT[c.category] || ["", "#999"])[1] }));
+    const t = svgEl("text", { x: 16, y: 22, class: "t" }); t.textContent = trunc(c.title || c.id, 30); g.append(t);
+    const m = svgEl("text", { x: 16, y: 40, class: "m" });
+    m.textContent = `${c.kind === "root" ? "raiz" : "consequência"} · ${(CAT[c.category] || [c.category])[0]}${c.openVote ? " · voto aberto" : ""}`;
+    g.append(m);
+    const s = svgEl("text", { x: 16, y: 56, class: "m" });
+    s.textContent = ["yes", "no"].map((o) => `${OUT_SHORT[o]} ${effectsShort(last(c.outcomes[o])?.effects)}`).join("  ·  ");
+    g.append(s);
+    const tt = svgEl("title"); tt.textContent = `${c.title}\n${c.prompt}`; g.append(tt);
+    g.addEventListener("click", (ev) => { ev.stopPropagation(); select(c.id); });
+    g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(c.id); } });
+    nodes.append(g);
+  }
+  applyView();
+  $("#lista-cartas").replaceChildren(...cards().map((c) => el("option", { value: c.title })));
+}
+function label(parent, a, b, txt, color) {
+  const x = (a.x + W + b.x) / 2, y = (a.y + b.y) / 2 + H / 2 - 4;
+  const t = svgEl("text", { x, y, class: "elabel", "text-anchor": "middle" });
+  if (color) t.setAttribute("fill", color);
+  t.textContent = txt; parent.append(t);
+}
+const last = (a) => (a && a.length ? a[a.length - 1] : null);
+const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+const effectsShort = (e) => { const xs = Object.entries(e || {}).filter(([, n]) => n); return xs.length ? xs.map(([r, n]) => `${RES_SHORT[r] || r}${fmt(n)}`).join(" ") : "—"; };
+function applyView() { $("#vp").setAttribute("transform", `translate(${view.x},${view.y}) scale(${view.k})`); }
+function fit() {
+  const xs = Object.values(pos);
+  if (!xs.length) return;
+  const maxX = Math.max(...xs.map((p) => p.x)) + W, maxY = Math.max(...xs.map((p) => p.y)) + H;
+  const box = $("#canvas").getBoundingClientRect();
+  // cabe tudo na largura; se ficar pequeno demais para ler, mantém legível e deixa rolar para baixo
+  view.k = Math.max(0.45, Math.min(1.1, (box.width - 40) / maxX, Math.max((box.height - 40) / maxY, 0.45)));
+  view.x = 20; view.y = 20; applyView();
+}
+function focusNode(id) {
+  const p = pos[id]; if (!p) return;
+  const box = $("#canvas").getBoundingClientRect();
+  view.k = Math.max(view.k, 0.75);
+  view.x = box.width / 2 - (p.x + W / 2) * view.k; view.y = box.height / 2 - (p.y + H / 2) * view.k; applyView();
+}
+
+// pan e zoom
+(() => {
+  const c = $("#canvas");
+  let drag = null;
+  c.addEventListener("pointerdown", (e) => { if (e.target.closest(".node") || e.target.closest("button")) return; drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false }; c.setPointerCapture(e.pointerId); c.classList.add("dragging"); });
+  c.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true; view.x = drag.vx + dx; view.y = drag.vy + dy; applyView(); });
+  c.addEventListener("pointerup", (e) => { if (drag && !drag.moved && !e.target.closest(".node")) { selected = null; draw(); renderPanel(); } drag = null; c.classList.remove("dragging"); });
+  c.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12); }, { passive: false });
+  const zoomAt = (cx, cy, f) => { const r = c.getBoundingClientRect(); const px = cx - r.left, py = cy - r.top; const k = Math.max(0.12, Math.min(2.5, view.k * f)); view.x = px - ((px - view.x) * k) / view.k; view.y = py - ((py - view.y) * k) / view.k; view.k = k; applyView(); };
+  $("#z-mais").onclick = () => { const r = c.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.25); };
+  $("#z-menos").onclick = () => { const r = c.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 0.8); };
+  $("#z-tudo").onclick = fit;
+})();
+
+// ---------- painel ----------
+function select(id) { selected = id; draw(); renderPanel(); }
+function changed(redraw = true) {
+  dirty = true; updateStatus();
+  if (redraw) draw();
+}
+function updateStatus() {
+  const s = $("#status");
+  const errs = validate().filter((i) => i.err).length;
+  s.textContent = (dirty ? "alterações não salvas" : "salvo") + (errs ? ` · ${errs} problema(s)` : "");
+  s.className = "status" + (dirty ? " dirty" : "");
+  $("#salvar").disabled = !dirty || !canSave;
+  $("#salvar").title = canSave ? "" : "Abra pelo comando npm run grafo para salvar direto no jogo; aqui use Baixar JSON.";
+}
+function field(label, input, counter) {
+  return el("label", { class: "field" }, el("span", {}, label), input, counter || null);
+}
+function textInput(obj, key, { area = false, max = null, rows = 3, onAfter } = {}) {
+  const counter = max ? el("span", { class: "count" }) : null;
+  const upd = () => { if (counter) { const n = (obj[key] || "").length; counter.textContent = `${n}/${max}`; counter.className = "count" + (n > max ? " over" : ""); } };
+  const inp = area ? el("textarea", { rows }) : el("input", { type: "text" });
+  inp.value = obj[key] || "";
+  inp.addEventListener("input", () => { obj[key] = inp.value; upd(); changed(false); });
+  inp.addEventListener("change", () => { draw(); onAfter && onAfter(); });
+  upd();
+  return [inp, counter];
+}
+function jsonInput(obj, key, placeholder, rows = 2) {
+  const ta = el("textarea", { rows, placeholder, spellcheck: "false", style: "font-family: ui-monospace, monospace; font-size: 12px" });
+  ta.value = obj[key] ? JSON.stringify(obj[key]) : "";
+  ta.addEventListener("change", () => {
+    const v = ta.value.trim();
+    if (!v) { delete obj[key]; ta.classList.remove("bad"); changed(); return; }
+    try { obj[key] = JSON.parse(v); ta.classList.remove("bad"); changed(); }
+    catch { ta.classList.add("bad"); toast("JSON inválido: confira chaves e aspas", true); }
+  });
+  return ta;
+}
+function renderPanel() {
+  const p = $("#painel");
+  p.replaceChildren();
+  const c = selected && byId(selected);
+  if (!c) return renderOverview(p);
+  const issues = validate().filter((i) => i.id === c.id);
+  p.append(
+    el("div", { class: "row", style: "justify-content: space-between" },
+      el("h2", {}, c.title || c.id),
+      el("button", { class: "link", onclick: () => select(null) }, "← visão geral")),
+  );
+  if (issues.length) p.append(el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.msg))));
+
+  const idIn = el("input", { type: "text", value: c.id, spellcheck: "false" });
+  idIn.addEventListener("change", () => renameCard(c, idIn.value.trim()));
+  const kind = el("select", {}, el("option", { value: "root" }, "raiz (entra no baralho)"), el("option", { value: "consequence" }, "consequência (só aparece quando outra carta traz)"));
+  kind.value = c.kind; kind.onchange = () => { c.kind = kind.value; changed(); renderPanel(); };
+  const cat = el("select", {}, Object.entries(CAT).map(([k, [l]]) => el("option", { value: k }, l)));
+  cat.value = c.category; cat.onchange = () => { c.category = cat.value; changed(); };
+  const open = el("input", { type: "checkbox" }); open.checked = !!c.openVote;
+  open.onchange = () => { if (open.checked) c.openVote = true; else delete c.openVote; changed(); };
+
+  const [title] = textInput(c, "title");
+  const [prompt, pc] = textInput(c, "prompt", { area: true, max: LIMITS.prompt, rows: 3 });
+  const [question, qc] = textInput(c, "question", { max: LIMITS.question });
+  p.append(
+    field("Título", title),
+    field("Abertura (o que está acontecendo)", prompt, pc),
+    field("Pergunta de SIM/NÃO", question, qc),
+    el("div", { class: "row" }, field("Tipo", kind), field("Categoria (ilustração)", cat)),
+    el("label", { class: "toggle", style: "margin-bottom: 8px" }, open, "Voto aberto (cada voto aparece na hora e não pode ser trocado)"),
+    field("id (usado nas ligações)", idIn),
+    el("details", {}, el("summary", { class: "hint" }, "Condição para entrar no jogo (avançado)"),
+      el("p", { class: "hint" }, 'Ex.: {"res": "food", "gte": -3} ou {"flag": "guarda_reforcada", "eq": true}. Vazio = sempre pode sair.'),
+      jsonInput(c, "requires", "{}")),
+  );
+  for (const o of OUT) p.append(renderOutcome(c, o));
+  p.append(el("div", { class: "row", style: "margin-top: 14px" },
+    el("button", { onclick: () => duplicateCard(c) }, "Duplicar carta"),
+    el("button", { class: "danger", onclick: () => deleteCard(c) }, "Excluir carta")));
+}
+function renderOutcome(c, o) {
+  const box = el("div", { class: `outcome ${o}` });
+  const vs = c.outcomes[o];
+  box.append(el("div", { class: "head" }, el("strong", {}, `Se ${OUT_LABEL[o]}`),
+    el("button", { class: "link", onclick: () => { vs.splice(vs.length - 1, 0, { when: { flag: "", eq: true }, text: "", effects: {} }); changed(); renderPanel(); } }, "+ variante condicional")));
+  if (o === "tie") box.append(el("p", { class: "hint", style: "margin: 0 0 6px" }, "Quando ninguém vence a votação. Alguém age sem ordem e costuma dar errado: nunca pode ajudar o Reino."));
+  vs.forEach((v, i) => {
+    const isDefault = i === vs.length - 1;
+    const wrap = el("div", { class: "variant" });
+    wrap.append(el("div", { class: "vhead" },
+      el("span", {}, isDefault ? (vs.length > 1 ? "Padrão (quando nenhuma condição acima vale)" : "") : `Variante ${i + 1}: só vale se a condição for verdadeira`),
+      !isDefault ? el("button", { class: "link danger", onclick: () => { vs.splice(i, 1); changed(); renderPanel(); } }, "remover") : null));
+    if (!isDefault) wrap.append(field("Condição (lê um sinal ou recurso)", jsonInput(v, "when", '{"flag": "nome_do_sinal", "eq": true}')));
+    const [txt, tc] = textInput(v, "text", { area: true, max: LIMITS.text, rows: 2 });
+    wrap.append(field("Texto do resultado", txt, tc));
+    const eff = el("div", { class: "effects" });
+    for (const r of RES) {
+      const inp = el("input", { type: "number", step: 1, min: -3, max: 3, "aria-label": `${RES_LABEL[r]} se ${OUT_SHORT[o]}` });
+      const val = v.effects?.[r] || 0;
+      inp.value = val; inp.className = val > 0 ? "pos" : val < 0 ? "neg" : "";
+      inp.addEventListener("change", () => {
+        const n = Math.round(Number(inp.value) || 0);
+        v.effects ||= {};
+        if (n) v.effects[r] = n; else delete v.effects[r];
+        inp.value = n; inp.className = n > 0 ? "pos" : n < 0 ? "neg" : "";
+        changed(); renderIssuesInline();
+      });
+      eff.append(el("label", {}, RES_LABEL[r], inp));
+    }
+    wrap.append(eff);
+    // sinais marcados
+    wrap.append(field("Marca sinais (flags) para cartas futuras lerem", jsonInput(v, "setFlags", '{"nome_do_sinal": true}  ou  {"contador": {"add": 1}}')));
+    // consequências trazidas
+    const injBox = el("div");
+    (v.inject || []).forEach((inj, k) => {
+      const sel = el("select", { "aria-label": "Carta de consequência" }, cards().filter((x) => x.kind === "consequence").map((x) => el("option", { value: x.id }, `${x.title} (${x.id})`)));
+      if (!byId(inj.card)) sel.append(el("option", { value: inj.card }, `${inj.card} (não existe)`));
+      sel.value = inj.card;
+      sel.onchange = () => { inj.card = sel.value; changed(); };
+      const rounds = el("input", { type: "number", min: 1, max: 10, value: inj.inRounds, "aria-label": "Rodadas depois" });
+      rounds.onchange = () => { inj.inRounds = Math.max(1, Math.round(Number(rounds.value) || 1)); changed(); };
+      injBox.append(el("div", { class: "inj" }, "traz", sel, rounds, "rodadas depois",
+        el("button", { class: "link", onclick: () => select(inj.card) }, "abrir"),
+        el("button", { class: "link danger", onclick: () => { v.inject.splice(k, 1); if (!v.inject.length) delete v.inject; changed(); renderPanel(); } }, "tirar")));
+    });
+    injBox.append(el("div", { class: "row" },
+      el("button", { class: "link", onclick: () => { const first = cards().find((x) => x.kind === "consequence"); if (!first) return toast("Ainda não há cartas de consequência: use “nova consequência”."); (v.inject ||= []).push({ card: first.id, inRounds: 3 }); changed(); renderPanel(); } }, "+ trazer consequência existente"),
+      el("button", { class: "link", onclick: () => newConsequence(v, c, o) }, "+ nova consequência a partir daqui")));
+    wrap.append(field("Consequências que este resultado traz", injBox));
+    box.append(wrap);
+  });
+  return box;
+}
+function renderIssuesInline() {
+  const list = $("#painel .issues");
+  const issues = validate().filter((i) => i.id === selected);
+  const fresh = el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.msg)));
+  if (list) list.replaceWith(fresh); else if (issues.length) $("#painel h2").parentElement.after(fresh);
+}
+function renderOverview(p) {
+  const all = cards();
+  const { flagEdges, inject } = analyze();
+  const issues = validate();
+  p.append(
+    el("h2", {}, "Visão geral"),
+    el("div", { class: "stats" },
+      el("div", {}, el("b", {}, all.filter((c) => c.kind === "root").length), "cartas raiz"),
+      el("div", {}, el("b", {}, all.filter((c) => c.kind === "consequence").length), "consequências"),
+      el("div", {}, el("b", {}, inject.length), "ligações diretas")),
+    el("p", { class: "hint" }, `Clique numa carta para editar o texto, os pontos de cada resultado e as ligações. Setas cheias: um resultado traz uma carta de consequência rodadas depois. Setas tracejadas (${flagEdges.length}): uma carta marca um sinal e outra lê esse sinal para mudar o próprio resultado.`),
+    el("p", { class: "hint" }, "Regras do balanceamento: carta raiz mexe ±1 em cada recurso; consequência até ±2; o empate perde no máximo 1 por recurso e nunca ajuda. A trilha vai de −7 a +7 e chegar a qualquer ponta derruba o Reino."),
+    el("h3", {}, issues.length ? `Problemas (${issues.length})` : "Problemas"),
+    issues.length
+      ? el("ul", { class: "issues" }, issues.map((i) => el("li", { class: i.err ? "err" : "" }, i.id ? el("button", { class: "link", onclick: () => { select(i.id); focusNode(i.id); } }, byId(i.id)?.title || i.id) : null, " ", i.msg)))
+      : el("p", { class: "hint" }, "Nenhum. Depois de salvar, rode npm test para a checagem completa e a simulação."),
+    el("h3", {}, "Arquivo"),
+    el("label", { class: "field" }, el("span", {}, "Versão"), (() => { const i = el("input", { type: "text", value: file.version || "" }); i.onchange = () => { file.version = i.value; changed(false); }; return i; })()),
+    el("label", { class: "field" }, el("span", {}, "Notas"), (() => { const t = el("textarea", { rows: 5 }); t.value = file.notes || ""; t.onchange = () => { file.notes = t.value; changed(false); }; return t; })()),
+  );
+}
+
+// ---------- operações ----------
+function uniqueId(base) { let id = base, n = 2; while (byId(id)) id = `${base}_${n++}`; return id; }
+function blankCard(kind, id) {
+  return { id, kind, category: "diplomacy", title: kind === "root" ? "Nova carta" : "Nova consequência", prompt: "", question: "O Reino deve …?",
+    outcomes: { yes: [{ text: "", effects: { security: 1, wealth: -1 } }], no: [{ text: "", effects: { security: -1, wealth: 1 } }], tie: [{ text: "", effects: { security: -1 } }] } };
+}
+function newCard() {
+  const c = blankCard("root", uniqueId("nova_carta"));
+  cards().push(c); changed(); select(c.id); focusNode(c.id);
+}
+function newConsequence(v, parent, o) {
+  const c = blankCard("consequence", uniqueId(`${parent.id}_depois`));
+  c.category = parent.category;
+  cards().push(c);
+  (v.inject ||= []).push({ card: c.id, inRounds: 3 });
+  changed(); select(c.id); focusNode(c.id);
+  toast(`Criada: ${OUT_SHORT[o]} em “${parent.title}” agora traz esta carta 3 rodadas depois.`);
+}
+function duplicateCard(c) {
+  const copy = JSON.parse(JSON.stringify(c)); copy.id = uniqueId(c.id + "_copia"); copy.title += " (cópia)";
+  cards().push(copy); changed(); select(copy.id); focusNode(copy.id);
+}
+function deleteCard(c) {
+  const refs = cards().filter((x) => x !== c && OUT.some((o) => x.outcomes[o].some((v) => (v.inject || []).some((i) => i.card === c.id))));
+  if (!confirm(`Excluir “${c.title}”?${refs.length ? `\nAs ligações vindas de ${refs.map((r) => r.title).join(", ")} também saem.` : ""}`)) return;
+  for (const x of cards()) for (const o of OUT) for (const v of x.outcomes[o]) if (v.inject) { v.inject = v.inject.filter((i) => i.card !== c.id); if (!v.inject.length) delete v.inject; }
+  file.dilemmas = cards().filter((x) => x !== c);
+  selected = null; changed(); renderPanel();
+}
+function renameCard(c, id) {
+  if (!id || id === c.id) return;
+  if (byId(id)) { toast("Já existe uma carta com esse id", true); renderPanel(); return; }
+  for (const x of cards()) for (const o of OUT) for (const v of x.outcomes[o]) for (const i of v.inject || []) if (i.card === c.id) i.card = id;
+  c.id = id; selected = id; changed(); renderPanel();
+}
+
+// ---------- carregar e salvar ----------
+async function load() {
+  try {
+    const r = await fetch("/api/cartas", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.statusText);
+    file = await r.json(); canSave = true;
+  } catch {
+    canSave = false;
+    file = { version: "", notes: "", dilemmas: [] };
+    toast("Abra com npm run grafo para editar o jogo direto, ou use “Abrir arquivo…”.");
+  }
+  dirty = false; draw(); fit(); renderPanel(); updateStatus();
+}
+async function save() {
+  const errs = validate().filter((i) => i.err);
+  if (errs.length && !confirm(`Há ${errs.length} problema(s) (o npm test vai acusar). Salvar mesmo assim?`)) return;
+  const r = await fetch("/api/cartas", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(file) });
+  const res = await r.json().catch(() => ({}));
+  if (!r.ok || !res.ok) return toast("Não salvou: " + (res.error || r.statusText), true);
+  dirty = false; updateStatus(); toast(`Salvo em content/dilemmas.json (${res.cards} cartas). A versão anterior ficou em data/backup-cartas/.`);
+}
+$("#salvar").onclick = save;
+$("#nova").onclick = newCard;
+$("#ver-sinais").onchange = (e) => { showFlags = e.target.checked; draw(); };
+$("#baixar").onclick = () => {
+  const blob = new Blob([JSON.stringify(file, null, 2) + "\n"], { type: "application/json" });
+  const a = el("a", { href: URL.createObjectURL(blob), download: "dilemmas.json" }); a.click(); URL.revokeObjectURL(a.href);
+};
+$("#abrir-btn").onclick = () => $("#abrir").click();
+$("#abrir").onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try { file = JSON.parse(await f.text()); if (!Array.isArray(file.dilemmas)) throw new Error(); selected = null; dirty = canSave; draw(); fit(); renderPanel(); updateStatus(); }
+  catch { toast("Esse arquivo não parece um dilemmas.json", true); }
+};
+$("#busca").addEventListener("change", (e) => {
+  const q = e.target.value.trim().toLowerCase(); if (!q) return;
+  const c = cards().find((x) => x.title.toLowerCase() === q) || cards().find((x) => (x.title + " " + x.id + " " + x.prompt).toLowerCase().includes(q));
+  if (c) { select(c.id); focusNode(c.id); } else toast("Nenhuma carta encontrada");
+});
+window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); if (dirty && canSave) save(); } });
+load();
+</script>
+</body>
+</html>

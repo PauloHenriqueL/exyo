@@ -62,9 +62,9 @@ export interface House {
   goals: Goal[];
 }
 
-/** Economia de fichas de voto. */
+/** Economia de pontos de influência. */
 export interface Economy {
-  startingTokens: number; // fichas de voto de cada jogador no início
+  startingTokens: number; // pontos de influência de cada jogador no início da campanha
 }
 
 export interface HousesFile {
@@ -77,6 +77,7 @@ export interface HousesFile {
 export type Choice = "yes" | "no" | "abstain";
 export interface Vote {
   choice: Choice;
+  /** Pontos de influência gastos = peso do voto (mínimo 1 em SIM/NÃO; 0 ao se abster). */
   tokens: number;
 }
 
@@ -125,6 +126,8 @@ export interface RevealInfo {
 
 export interface FinalInfo {
   collapsed: boolean;
+  /** Recurso que derrubou o Reino (−7 = falta, +7 = excesso). */
+  collapse: { resource: Resource; value: number } | null;
   /** `goals[i]` e `matchPoints[i]` são da partida i+1; `points` é a soma. */
   scores: { playerId: string; houseId: string; goals: Goal[]; matchPoints: number[]; points: number; tokens: number }[];
   winnerIds: string[];

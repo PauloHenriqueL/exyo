@@ -22,7 +22,7 @@ export function Intermission({ view, room }: { view: ClientView; room: Room }) {
           Fim da Partida {info.finishedMatch} de {view.totalMatches}
         </p>
         <h1>O Reino segue</h1>
-        <p className="lead">Os recursos, as fichas de voto, a fila da Mão do Rei e tudo o que foi decidido continuam. Só os objetivos mudam.</p>
+        <p className="lead">Os recursos, os pontos de influência, a fila da Mão do Rei e tudo o que foi decidido continuam. Só os objetivos mudam.</p>
       </motion.header>
 
       <div className="final-grid">

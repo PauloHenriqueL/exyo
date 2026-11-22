@@ -1,7 +1,8 @@
 import { RESOURCES, RESOURCE_LABEL, type ClientView, type Goal, type Resources } from "../../shared/types";
 
+import { MAX_RES, MIN_RES } from "../../shared/engine";
 import { ResourceIcon } from "./ResourceIcon";
-const CELLS = Array.from({ length: 21 }, (_, i) => i - 10);
+const CELLS = Array.from({ length: MAX_RES - MIN_RES + 1 }, (_, i) => i + MIN_RES);
 const fmt = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
 /**
