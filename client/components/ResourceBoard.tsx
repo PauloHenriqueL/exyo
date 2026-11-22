@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { RESOURCES, RESOURCE_LABEL, type Resources } from "../../shared/types";
 
+import { MAX_RES, MIN_RES } from "../../shared/engine";
 import { ResourceIcon } from "./ResourceIcon";
-const CELLS = Array.from({ length: 21 }, (_, i) => i - 10);
+/** Casas de −7 a +7; as das pontas derrubam o Reino. */
+const CELLS = Array.from({ length: MAX_RES - MIN_RES + 1 }, (_, i) => i + MIN_RES);
 
 export function ResourceBoard({ resources, deltas }: { resources: Resources; deltas?: Partial<Resources> | null }) {
   return (
@@ -16,14 +18,14 @@ export function ResourceBoard({ resources, deltas }: { resources: Resources; del
               <span>
                 <ResourceIcon r={r} /> {RESOURCE_LABEL[r]}
               </span>
-              <strong className={v <= -7 ? "danger" : ""}>
+              <strong className={v <= MIN_RES + 2 || v >= MAX_RES - 2 ? "danger" : ""}>
                 {v > 0 ? `+${v}` : v}
                 {d ? <span className={d > 0 ? "up" : "down"}> ({d > 0 ? `+${d}` : d})</span> : null}
               </strong>
             </div>
             <div className="cells">
               {CELLS.map((c) => (
-                <div key={c} className={`cell ${c === 0 ? "zero" : ""} ${c <= -8 ? "doom" : ""}`}>
+                <div key={c} className={`cell ${c === 0 ? "zero" : ""} ${c <= MIN_RES || c >= MAX_RES ? "doom" : ""}`}>
                   {c === v && (
                     <motion.div
                       layoutId={`marker-${r}`}

@@ -1,4 +1,4 @@
-# Balanceamento: fichas de voto e Mão do Rei
+# Balanceamento: pontos de influência, trilha e cartas
 
 Os números ficam em `content/houses.json` → `economy` e são escolhidos com `scripts/balance.ts`.
 
@@ -85,3 +85,40 @@ A Mão do Rei voltou, sem bônus nem Favor: a primeira é sorteada e a cada roda
 | 20 | 0,0% | 17% | 39% | 20% | 7% |
 
 **Mantido: 15 fichas.** Os empates caem de ~27% para ~20% das rodadas; os que sobram são rodadas em que a Mão se absteve.
+
+## Atualização (2026-11-22): pontos de influência, trilha de −7 a +7 e cartas reequilibradas
+
+Regras novas:
+- **Pontos de influência:** 15 por jogador para a campanha toda. Votar SIM ou NÃO gasta pelo menos 1 ponto e o peso do voto é o número de pontos gastos. Abster-se não custa nem rende. Com 0 pontos, só dá para se abster.
+- **Trilha de −7 a +7:** chegar a qualquer ponta derruba o Reino (falta ou excesso). O jogo vive entre −6 e +6.
+
+Com as cartas antigas (efeitos até ±3/±4) e essas regras, o Reino caía em 39–54% das campanhas mesmo com jogadores estratégicos. Ajustes, todos medidos com `npm run balance`:
+- **Cartas raiz mexem ±1 por recurso; consequências até ±2.** Nenhum recurso foi tirado de nenhum desfecho (os textos falam de todos); só a intensidade diminuiu.
+- **SIM e NÃO somam entre −1 e +1** quando dá para chegar lá só diminuindo intensidades; **o empate perde no máximo 1 por recurso** e nunca ajuda.
+- **Recursos começam em +1** (antes +2): com as duas pontas derrubando, +2 deixava o topo perto demais.
+- **Objetivos:** alto = **+3 a +6** (antes +3 a +10), moderado = −2 a +2. O teto do alto é a última casa antes da queda.
+- Os textos das 44 cartas foram reescritos curtos e diretos (abertura de 1–2 frases, desfecho de 1 frase).
+
+Decisão das faixas e do valor inicial (800–2.000 campanhas por linha, 4 jogadores, 2×12 rodadas, 15 pontos):
+
+| Início | Alto | Mesa | Colapso (−7 / +7) | Pontos por partida (de 5) |
+|---|---|---|---|---|
+| 0 | +3..+6 | estrategista | 3,3% (3,3 / 0,0) | 1,40 |
+| 0 | +3..+6 | ao acaso | 46,5% (37,3 / 9,3) | 1,48 |
+| **+1** | **+3..+6** | **estrategista** | **1,5% (1,5 / 0,0)** | **1,62** |
+| **+1** | **+3..+6** | **ao acaso** | **40,3% (17,6 / 22,6)** | **1,80** |
+| +2 | +3..+6 | estrategista | 15,6% (15,3 / 0,4) | 2,01 |
+| +2 | +3..+6 | ao acaso | 48,6% (6,0 / 42,6) | 2,08 |
+
+Resultado escolhido (2.000 campanhas, `npm run balance`):
+
+| Mesa | Colapso | Abstenção | Sem pontos | Empates | Mão decide | Ninguém votou | Pontos/partida | Pontos que sobram |
+|---|---|---|---|---|---|---|---|---|
+| estrategista | 1,5% | 62% | 4% | 38% | 3% | 37% | 1,62 | 2,7 |
+| ao acaso | 40,3% | 38% | 7% | 12% | 14% | 4% | 1,80 | 0,5 |
+
+Os objetivos estão equilibrados entre as Casas: de 1,58 a 1,69 ponto por partida com bots estrategistas.
+
+**A observar no playtest:**
+- Com 15 pontos para 24 rodadas, quem joga com cuidado guarda pontos e ~1 em 3 rodadas termina **sem ninguém votando** (Indecisão do Conselho). Se isso deixar o jogo parado, as alavancas são mais pontos iniciais ou o empate não custar nada.
+- Votando ao acaso, o Reino cai em ~40% das campanhas: a trilha curta pune quem não olha a prévia da carta.

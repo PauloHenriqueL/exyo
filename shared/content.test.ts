@@ -85,8 +85,23 @@ describe("clareza das cartas", () => {
     for (const palavra of ["bispo", "bruxa", "clero", "igreja", "relíquia", "herege"]) expect(texto, palavra).not.toContain(palavra);
   });
 
-  it("textos das cartas são longos o bastante para imersão", () => {
-    for (const d of DILEMMAS) expect(d.prompt.length, d.id).toBeGreaterThan(220);
+  it("textos curtos e diretos", () => {
+    for (const d of DILEMMAS) {
+      expect(d.prompt.length, `${d.id}: abertura`).toBeLessThanOrEqual(220);
+      expect(d.question.length, `${d.id}: pergunta`).toBeLessThanOrEqual(90);
+      for (const o of OUTCOMES) for (const v of d.outcomes[o]) expect(v.text.length, `${d.id}.${o}`).toBeLessThanOrEqual(130);
+    }
+  });
+
+  it("efeitos cabem na trilha de −7 a +7: raiz ±1, consequência até ±2, empate nunca ajuda", () => {
+    for (const d of DILEMMAS) {
+      const cap = d.kind === "root" ? 1 : 2;
+      for (const o of OUTCOMES)
+        for (const v of d.outcomes[o]) {
+          for (const [r, n] of Object.entries(v.effects)) expect(Math.abs(n!), `${d.id}.${o}.${r}`).toBeLessThanOrEqual(o === "tie" ? 1 : cap);
+          if (o === "tie") expect(Object.values(v.effects).reduce((a, b) => a! + b!, 0), `${d.id}.tie: indecisão nunca ajuda`).toBeLessThanOrEqual(0);
+        }
+    }
   });
 });
 
@@ -100,7 +115,7 @@ describe("Casas", () => {
 });
 
 describe("simulação de campanhas (votos aleatórios)", () => {
-  it("2 partidas de 12 rodadas: colapso raro e sem cartas repetidas", () => {
+  it("2 partidas de 12 rodadas: sem cartas repetidas e colapso dentro do esperado", () => {
     const players = HOUSES.houses.slice(0, 4).map((h, i) => ({ id: `p${i}`, houseId: h.id }));
     const N = 4000;
     let collapsed = 0;
@@ -121,9 +136,9 @@ describe("simulação de campanhas (votos aleatórios)", () => {
         }
         const votes: Record<string, Vote> = {};
         for (const p of players) {
-          const c = (["yes", "no", "abstain"] as const)[Math.floor(rand() * 3)];
           const t = d.state.tokens[p.id] ?? 0;
-          votes[p.id] = { choice: c, tokens: c !== "abstain" && t > 0 && rand() < 0.3 ? 1 : 0 };
+          const c = t > 0 ? (["yes", "no", "abstain"] as const)[Math.floor(rand() * 3)] : "abstain";
+          votes[p.id] = { choice: c, tokens: c === "abstain" ? 0 : 1 };
         }
         s = resolveRound(d.state, d.card, votes).state;
         dead = isCollapsed(s);
@@ -134,8 +149,8 @@ describe("simulação de campanhas (votos aleatórios)", () => {
     const rate = collapsed / N;
     console.log(`campanha 2×12: colapso em ${(rate * 100).toFixed(1)}% · baralho curto em ${shortDeck}`);
     expect(shortDeck).toBe(0);
-    // Uma partida isolada fica perto de 1%; em 24 rodadas a deriva negativa dos empates se acumula (~18%).
-    // Este limite só pega pioras de balanceamento — o valor-alvo é decisão de design.
-    expect(rate).toBeLessThan(0.2);
+    // Trilha curta (±7, as duas pontas derrubam): votando ao acaso o Reino cai em ~40% das campanhas;
+    // jogadores que olham a prévia caem em ~1–2% (scripts/balance.ts). Este limite só pega pioras.
+    expect(rate).toBeLessThan(0.5);
   });
 });

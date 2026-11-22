@@ -14,6 +14,12 @@ export function Final({ view }: { view: ClientView }) {
   return (
     <main className="page">
       <h1 className={f.collapsed ? "danger" : ""}>{f.collapsed ? "O Reino caiu. Todos perderam." : "Fim do reinado"}</h1>
+      {f.collapse && (
+        <p className="lead danger collapse-cause">
+          {RESOURCE_LABEL[f.collapse.resource]} chegou a {f.collapse.value > 0 ? `+${f.collapse.value}` : f.collapse.value}
+          {f.collapse.value > 0 ? ": excesso também derruba o Reino." : ": o Reino não resistiu à falta."}
+        </p>
+      )}
       <div className="final-grid">
         <section>
           {sorted.map((s, i) => {
@@ -43,7 +49,7 @@ export function Final({ view }: { view: ClientView }) {
                   ))}
                 </div>
                 <span className="points">
-                  {s.points}/{max} <small>🎖{s.tokens}</small>
+                  {s.points}/{max} <small title="Pontos de influência que sobraram">🎖{s.tokens}</small>
                 </span>
               </motion.div>
             );

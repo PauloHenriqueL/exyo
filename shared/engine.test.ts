@@ -8,6 +8,8 @@ import {
   isCollapsed,
   isMatchOver,
   isValidVote,
+  collapseCause,
+  pickVariant,
   matchRound,
   previewOutcomes,
   resolveRound,
@@ -25,11 +27,11 @@ const players = [
 ];
 
 describe("tally", () => {
-  it("peso = 1 + fichas", () => {
+  it("peso = pontos de influência gastos", () => {
     const votes: Record<string, Vote> = {
-      a: { choice: "yes", tokens: 0 },
-      b: { choice: "yes", tokens: 0 },
-      c: { choice: "no", tokens: 2 },
+      a: { choice: "yes", tokens: 1 },
+      b: { choice: "yes", tokens: 1 },
+      c: { choice: "no", tokens: 3 },
       d: { choice: "abstain", tokens: 0 },
     };
     expect(tally(votes)).toEqual({ outcome: "no", yesWeight: 2, noWeight: 3, tiebreakByHand: false });
@@ -40,10 +42,13 @@ describe("tally", () => {
 });
 
 describe("isValidVote", () => {
-  it("rejeita fichas além do saldo e fichas na abstenção", () => {
+  it("votar SIM/NÃO custa pelo menos 1 ponto; sem pontos, só abster", () => {
     expect(isValidVote({ choice: "yes", tokens: 2 }, 1)).toBe(false);
     expect(isValidVote({ choice: "abstain", tokens: 1 }, 3)).toBe(false);
     expect(isValidVote({ choice: "no", tokens: 1 }, 1)).toBe(true);
+    expect(isValidVote({ choice: "yes", tokens: 0 }, 5)).toBe(false);
+    expect(isValidVote({ choice: "yes", tokens: 1 }, 0)).toBe(false);
+    expect(isValidVote({ choice: "abstain", tokens: 0 }, 0)).toBe(true);
   });
 });
 
@@ -71,11 +76,12 @@ describe("partida", () => {
     s = { ...s, deck: ["viajantes_do_leste", ...s.deck.filter((d) => d !== "viajantes_do_leste")] };
     const drawn = drawCard(s, DILEMMA_BY_ID);
     expect(drawn.card?.id).toBe("viajantes_do_leste");
-    const yes: Record<string, Vote> = { a: { choice: "yes", tokens: 0 }, b: { choice: "abstain", tokens: 0 } };
+    const yes: Record<string, Vote> = { a: { choice: "yes", tokens: 2 }, b: { choice: "abstain", tokens: 0 } };
     const r = resolveRound(drawn.state, drawn.card!, yes);
     expect(r.state.flags.viajantes_aceitos).toBe(true);
     expect(r.state.queue).toEqual([{ card: "segredo_dos_viajantes", atRound: 4 }]);
-    expect(r.state.tokens.b).toBe(drawn.state.tokens.b + 1);
+    expect(r.state.tokens.a).toBe(drawn.state.tokens.a - 2); // votar gasta os pontos usados
+    expect(r.state.tokens.b).toBe(drawn.state.tokens.b); // abster não custa nem rende
 
     let st = r.state;
     for (let i = 0; i < 3; i++) {
@@ -85,19 +91,32 @@ describe("partida", () => {
     }
   });
 
-  it("recursos ficam presos entre -10 e 10 e colapso é detectado", () => {
+  it("chegar a −7 derruba o Reino (falta)", () => {
     let s = createGame(DILEMMAS, HOUSES, players, 3);
-    s = { ...s, resources: { ...s.resources, health: -9 }, round: 1 };
-    const r = resolveRound(s, DILEMMA_BY_ID["segunda_onda"], { a: { choice: "no", tokens: 0 } });
-    expect(r.state.resources.health).toBe(-10);
+    s = { ...s, resources: { ...s.resources, health: -6 }, round: 1 };
+    const r = resolveRound(s, DILEMMA_BY_ID["segunda_onda"], { a: { choice: "no", tokens: 1 } });
+    expect(r.state.resources.health).toBe(-7);
     expect(r.deltas.health).toBe(-1);
     expect(isCollapsed(r.state)).toBe(true);
+    expect(collapseCause(r.state)).toEqual({ resource: "health", value: -7 });
+  });
+
+  it("chegar a +7 também derruba o Reino (excesso), e nada passa das pontas", () => {
+    const s = { ...createGame(DILEMMAS, HOUSES, players, 3), resources: { health: 6, security: 6, military: 6, food: 6, wealth: 6 } };
+    expect(isCollapsed(s)).toBe(false);
+    const card = DILEMMA_BY_ID["viajantes_do_leste"];
+    const up = Object.entries(pickVariant(card, "yes", s).effects).find(([, n]) => n! > 0)![0] as keyof typeof s.resources;
+    const r = resolveRound(s, card, { a: { choice: "yes", tokens: 1 } });
+    expect(r.state.resources[up]).toBe(7);
+    expect(collapseCause(r.state)).toEqual({ resource: up, value: 7 });
+    const big = { ...s, resources: { ...s.resources, [up]: 7 } };
+    expect(resolveRound(big, card, { a: { choice: "yes", tokens: 1 } }).state.resources[up]).toBe(7);
   });
 
   it("pontuação conta recursos dentro das faixas", () => {
     const goal = HOUSES.houses[0].goals[0];
-    const res = { health: 0, military: 5, security: 3, food: 10, wealth: 2 };
-    // high: security(3 ok), food(10 ok), wealth(2 não) · moderate: health(0 ok), military(5 não)
+    const res = { health: 0, military: 5, security: 3, food: 6, wealth: 2 };
+    // high: security(3 ok), food(6 ok), wealth(2 não) · moderate: health(0 ok), military(5 não)
     expect(scoreGoal(goal, res, HOUSES.ranges)).toBe(3);
   });
 
@@ -106,7 +125,7 @@ describe("partida", () => {
     for (let i = 0; i < 12 && !isCollapsed(s); i++) {
       const d = drawCard(s, DILEMMA_BY_ID);
       if (!d.card) break;
-      s = resolveRound(d.state, d.card, { a: { choice: i % 2 ? "yes" : "no", tokens: 0 } }).state;
+      s = resolveRound(d.state, d.card, { a: { choice: i % 2 ? "yes" : "no", tokens: 1 } }).state;
     }
     expect(s.round).toBeGreaterThan(0);
   });
@@ -191,7 +210,7 @@ describe("prévia do resultado na carta", () => {
   it("considera as decisões anteriores (variante ligada a flag)", () => {
     const s = { ...createGame(DILEMMAS, HOUSES, players, 2), flags: { guarda_reforcada: true } };
     const p = previewOutcomes(s, DILEMMA_BY_ID["segredo_dos_viajantes"]);
-    expect(p.yes.effects).toEqual({ security: 3, wealth: -1 });
+    expect(p.yes.effects).toEqual({ security: 2, wealth: -1 });
   });
 
   it("todos começam com as fichas iniciais e o empate sem Mão do Rei é Indecisão do Conselho", () => {

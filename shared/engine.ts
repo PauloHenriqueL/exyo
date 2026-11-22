@@ -8,13 +8,15 @@ import {
   type Goal,
   type HousesFile,
   type Outcome,
+  type Resource,
   type Resources,
   type Variant,
   type Vote,
 } from "./types";
 
-export const MIN_RES = -10;
-export const MAX_RES = 10;
+/** Limites da trilha: chegar a −7 ou a +7 em qualquer recurso derruba o Reino (o jogo vive entre −6 e +6). */
+export const MIN_RES = -7;
+export const MAX_RES = 7;
 
 export interface Scheduled {
   card: string;
@@ -39,7 +41,7 @@ export interface GameState {
   deck: string[]; // ids de cartas raiz, na ordem de compra
   queue: Scheduled[];
   played: string[];
-  tokens: Record<string, number>; // fichas de voto
+  tokens: Record<string, number>; // pontos de influência (gastos a cada voto SIM/NÃO)
   goals: Record<string, Goal>;
   order: string[]; // fila da Mão do Rei: ordem dos jogadores na mesa
   hand: string; // Mão do Rei desta rodada: desempata pelo próprio voto
@@ -206,15 +208,19 @@ export function drawCard(s0: GameState, byId: Record<string, Dilemma>): { state:
   return { state: { ...s, round, queue }, card: null };
 }
 
+/**
+ * Votar SIM ou NÃO custa pontos de influência: pelo menos 1, e cada ponto é 1 de peso.
+ * Quem está com 0 pontos só pode se abster (abster-se não custa nem rende pontos).
+ */
 export function isValidVote(v: Vote, available: number): boolean {
   if (!["yes", "no", "abstain"].includes(v.choice)) return false;
   if (!Number.isInteger(v.tokens) || v.tokens < 0 || v.tokens > available) return false;
-  if (v.choice === "abstain" && v.tokens !== 0) return false;
-  return true;
+  if (v.choice === "abstain") return v.tokens === 0;
+  return v.tokens >= 1;
 }
 
 /**
- * Soma os pesos (1 + fichas). Num empate, vence o lado em que a Mão do Rei votou.
+ * Soma os pesos (peso = pontos de influência gastos). Num empate, vence o lado em que a Mão do Rei votou.
  * Se a Mão se absteve (ou todos se abstiveram), é Indecisão do Conselho.
  */
 export function tally(
@@ -224,8 +230,8 @@ export function tally(
   let yesWeight = 0;
   let noWeight = 0;
   for (const v of Object.values(votes)) {
-    if (v.choice === "yes") yesWeight += 1 + v.tokens;
-    if (v.choice === "no") noWeight += 1 + v.tokens;
+    if (v.choice === "yes") yesWeight += v.tokens;
+    if (v.choice === "no") noWeight += v.tokens;
   }
   let outcome: Outcome = yesWeight > noWeight ? "yes" : noWeight > yesWeight ? "no" : "tie";
   let tiebreakByHand = false;
@@ -291,18 +297,23 @@ export function resolveRound(s: GameState, card: Dilemma, votes: Record<string, 
     }
   }
 
-  // 3. Fichas de voto: abster rende 1; votar gasta as fichas apostadas.
+  // 3. Pontos de influência: votar gasta os pontos usados; abster-se não muda nada.
   const tokens = { ...s.tokens };
   for (const [pid, v] of Object.entries(votes)) {
-    const t = tokens[pid] ?? 0;
-    tokens[pid] = v.choice === "abstain" ? t + 1 : t - v.tokens;
+    if (v.choice !== "abstain") tokens[pid] = (tokens[pid] ?? 0) - v.tokens;
   }
 
   return { state: { ...s, resources, flags, queue, tokens }, outcome, yesWeight, noWeight, tiebreakByHand, variant, deltas };
 }
 
 export function isCollapsed(s: Pick<GameState, "resources">): boolean {
-  return RESOURCES.some((r) => s.resources[r] <= MIN_RES);
+  return collapseCause(s) !== null;
+}
+
+/** Qual recurso derrubou o Reino: no fundo (−7, falta) ou no topo (+7, excesso). */
+export function collapseCause(s: Pick<GameState, "resources">): { resource: Resource; value: number } | null {
+  const r = RESOURCES.find((x) => s.resources[x] <= MIN_RES || s.resources[x] >= MAX_RES);
+  return r ? { resource: r, value: s.resources[r] } : null;
 }
 
 export function scoreGoal(goal: Goal, res: Resources, ranges: HousesFile["ranges"]): number {
